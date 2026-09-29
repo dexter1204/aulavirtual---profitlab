@@ -18,7 +18,7 @@ export default function NewCoursePage() {
     try {
       const course = await createCourse(values);
       toast('Curso creado. Ahora añade su contenido.', 'success');
-      router.replace(`/admin/cursos/${course.id}`);
+      router.replace(`/admin/curso/?id=${course.id}`);
     } catch (e: any) {
       toast(e?.message ?? 'No se pudo crear el curso', 'error');
       setBusy(false);

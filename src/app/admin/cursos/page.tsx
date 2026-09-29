@@ -95,7 +95,7 @@ export default function AdminCoursesPage() {
               )}
 
               <div style={{ flex: 1, minWidth: 0 }}>
-                <Link href={`/admin/cursos/${c.id}`} style={styles.title} className="clamp-2">
+                <Link href={`/admin/curso/?id=${c.id}`} style={styles.title} className="clamp-2">
                   {c.title}
                 </Link>
                 <div style={{ display: 'flex', gap: 6, marginTop: 5, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -106,7 +106,7 @@ export default function AdminCoursesPage() {
                   <span style={{ color: '#64748B', fontSize: 11 }}>· {c.access_type === 'free' ? 'Gratis' : 'Por inscripción'}</span>
                 </div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-                  <Link href={`/admin/cursos/${c.id}`} style={styles.editLink}>✎ Editar</Link>
+                  <Link href={`/admin/curso/?id=${c.id}`} style={styles.editLink}>✎ Editar</Link>
                   <button onClick={() => togglePublish(c)} style={styles.linkBtn}>
                     {c.status === 'published' ? 'Despublicar' : 'Publicar'}
                   </button>

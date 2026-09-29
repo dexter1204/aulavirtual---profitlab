@@ -61,7 +61,7 @@ export default function MyCoursesPage() {
             <CourseCard
               key={course.id}
               course={course}
-              href={`/cursos/${course.slug}`}
+              href={`/curso/?slug=${course.slug}`}
               progress={{ done, total }}
               badge={total > 0 && done === total ? 'Completado' : undefined}
             />

@@ -67,6 +67,9 @@ npm run dev
 ```
 Abre http://localhost:3000
 
+> ℹ️ Las variables `NEXT_PUBLIC_*` se **incrustan en el build**. Si cambias de
+> proyecto Supabase, vuelve a generar el build.
+
 ### 5. Crea tu primer administrador (Master Study)
 1. Regístrate desde `/signup`.
 2. En Supabase → SQL Editor:
@@ -78,6 +81,49 @@ Abre http://localhost:3000
 
 ---
 
+---
+
+## 🌐 Desplegar en SiteGround (hosting estático)
+
+La app está configurada como **exportación estática** (`output: 'export'` en
+`next.config.ts`): al compilar genera una carpeta `out/` con HTML/JS puro que
+funciona en cualquier plan de SiteGround, sin necesidad de Node.js.
+
+### 1. Genera el build con tus credenciales
+En tu equipo (con `.env.local` ya configurado):
+```bash
+npm install
+npm run build
+```
+Esto crea la carpeta **`out/`** con todo el sitio (incluye un `.htaccess` listo
+para Apache).
+
+### 2. Sube el contenido de `out/` a SiteGround
+En **Site Tools → Sitio → Administrador de archivos** (o por FTP):
+1. Entra a la carpeta de tu dominio/subdominio (ej. `public_html/` o
+   `public_html/aula/`).
+2. Sube **todo el contenido de `out/`** (no la carpeta `out` en sí, sino lo que
+   hay dentro: `index.html`, `_next/`, `curso/`, `.htaccess`, etc.).
+3. Asegúrate de que el `.htaccess` se subió (activa "mostrar archivos ocultos").
+
+> **Subdominio recomendado:** crea `aula.tudominio.com` en
+> **Site Tools → Dominios → Subdominios**, apúntalo a una carpeta y sube ahí el
+> contenido de `out/`.
+
+### 3. Configura Supabase para tu dominio
+En Supabase → **Authentication → URL Configuration**, pon tu URL real en
+*Site URL* y en *Redirect URLs* (ej. `https://aula.tudominio.com`).
+
+### 4. Listo
+Abre tu dominio: la app carga y habla directamente con Supabase desde el
+navegador. Para actualizar el sitio, repite `npm run build` y vuelve a subir
+`out/`.
+
+> **Nota:** como es estático, cada vez que cambies el código debes regenerar
+> `out/` y volver a subirlo. La base de datos (Supabase) se actualiza sola.
+
+---
+
 ## 🗂️ Estructura
 
 ```
@@ -85,15 +131,15 @@ src/
 ├── app/
 │   ├── login, signup            → autenticación
 │   ├── cursos                   → catálogo
-│   ├── cursos/[slug]            → ficha del curso + inscripción
-│   ├── aprender/[courseId]      → reproductor + progreso
+│   ├── curso  (?slug=)          → ficha del curso + inscripción
+│   ├── aprender  (?curso=&lesson=) → reproductor + progreso
 │   ├── mis-cursos               → cursos inscritos
 │   ├── perfil                   → perfil del usuario
 │   └── admin/                   → panel Master Study
 │       ├── (resumen)
 │       ├── cursos               → lista + reordenar + publicar
 │       ├── cursos/nuevo         → crear curso
-│       ├── cursos/[id]          → constructor de currículo + ajustes + alumnos
+│       ├── curso  (?id=)        → constructor de currículo + ajustes + alumnos
 │       └── estudiantes          → gestión de alumnos
 ├── components/                  → UI (header, nav, cards, editor de clases…)
 ├── contexts/AuthContext.tsx     → sesión y perfil

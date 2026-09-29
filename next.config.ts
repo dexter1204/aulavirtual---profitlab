@@ -1,17 +1,15 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  // Exportación estática: genera HTML/JS en ./out para hosting como SiteGround.
+  output: 'export',
+  // Cada ruta se crea como carpeta/index.html (Apache la sirve en /ruta/).
+  trailingSlash: true,
   reactStrictMode: true,
   images: {
-    remotePatterns: [
-      { protocol: 'https', hostname: 'i.ytimg.com' },
-      { protocol: 'https', hostname: 'img.youtube.com' },
-    ],
+    // La optimización de imágenes de Next no está disponible en export estático.
+    unoptimized: true,
   },
-  allowedDevOrigins: [
-    '192.168.1.0/24',
-    'localhost',
-  ],
 };
 
 export default nextConfig;

@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { getCourseById, getCurriculum, isLessonReleased } from '@/lib/courses';
@@ -21,8 +21,9 @@ export default function LearnPage() {
 }
 
 function Learn() {
-  const { courseId } = useParams<{ courseId: string }>();
   const search = useSearchParams();
+  const courseId = search.get('curso') ?? '';
+  const lessonParam = search.get('lesson');
   const router = useRouter();
   const { session, isAdmin } = useAuth();
   const toast = useToast();
@@ -33,8 +34,6 @@ function Learn() {
   const [progress, setProgress] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
-
-  const lessonParam = search.get('lesson');
 
   const flatLessons = useMemo(
     () => modules.flatMap((m) => (m.lessons ?? []).map((l) => ({ ...l, moduleTitle: m.title }))),
@@ -47,7 +46,10 @@ function Learn() {
   }, [flatLessons, lessonParam]);
 
   useEffect(() => {
-    if (!courseId || !session) return;
+    if (!courseId || !session) {
+      if (!courseId) setLoading(false);
+      return;
+    }
     (async () => {
       try {
         const c = await getCourseById(courseId);
@@ -78,7 +80,7 @@ function Learn() {
   }, [courseId, session, isAdmin]);
 
   const goToLesson = (id: string) => {
-    router.replace(`/aprender/${courseId}?lesson=${id}`, { scroll: true });
+    router.replace(`/aprender/?curso=${courseId}&lesson=${id}`, { scroll: true });
   };
 
   const release = current
@@ -111,14 +113,14 @@ function Learn() {
           icon="🔒"
           title="Necesitas inscribirte"
           message="Inscríbete en el curso para acceder a las clases."
-          cta={{ label: 'Ver curso', href: course ? `/cursos/${course.slug}` : '/cursos' }}
+          cta={{ label: 'Ver curso', href: course ? `/curso/?slug=${course.slug}` : '/cursos/' }}
         />
       </div>
     );
   if (!current)
     return (
       <div style={{ padding: '20px 16px' }}>
-        <Empty icon="🎬" title="Sin clases todavía" cta={{ label: 'Volver', href: '/cursos' }} />
+        <Empty icon="🎬" title="Sin clases todavía" cta={{ label: 'Volver', href: '/cursos/' }} />
       </div>
     );
 
@@ -131,7 +133,7 @@ function Learn() {
 
   return (
     <div style={{ padding: '16px 16px 40px' }}>
-      <Link href={course ? `/cursos/${course.slug}` : '/cursos'} style={styles.back}>
+      <Link href={course ? `/curso/?slug=${course.slug}` : '/cursos/'} style={styles.back}>
         ← {course?.title ?? 'Curso'}
       </Link>
 

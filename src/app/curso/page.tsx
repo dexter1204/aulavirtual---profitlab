@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { getCourseBySlug, getCurriculum } from '@/lib/courses';
@@ -19,7 +19,15 @@ const levelLabel: Record<string, string> = {
 };
 
 export default function CourseDetailPage() {
-  const { slug } = useParams<{ slug: string }>();
+  return (
+    <Suspense fallback={<Spinner />}>
+      <CourseDetail />
+    </Suspense>
+  );
+}
+
+function CourseDetail() {
+  const slug = useSearchParams().get('slug') ?? '';
   const { session, isAdmin } = useAuth();
   const router = useRouter();
   const toast = useToast();
@@ -32,7 +40,10 @@ export default function CourseDetailPage() {
   const [working, setWorking] = useState(false);
 
   useEffect(() => {
-    if (!slug) return;
+    if (!slug) {
+      setLoading(false);
+      return;
+    }
     (async () => {
       try {
         const c = await getCourseBySlug(slug);
@@ -91,7 +102,7 @@ export default function CourseDetailPage() {
   if (!course)
     return (
       <Page>
-        <Empty icon="🔎" title="Curso no encontrado" cta={{ label: 'Volver al catálogo', href: '/cursos' }} />
+        <Empty icon="🔎" title="Curso no encontrado" cta={{ label: 'Volver al catálogo', href: '/cursos/' }} />
       </Page>
     );
 
@@ -99,10 +110,12 @@ export default function CourseDetailPage() {
   const pct = totalLessons > 0 ? Math.round((done / totalLessons) * 100) : 0;
   const enrolled = !!enrollment;
   const canWatch = enrolled || isAdmin;
+  const learnHref = (lessonId?: string) =>
+    `/aprender/?curso=${course.id}${lessonId ? `&lesson=${lessonId}` : ''}`;
 
   return (
     <Page>
-      <Link href="/cursos" style={styles.back}>
+      <Link href="/cursos/" style={styles.back}>
         ← Catálogo
       </Link>
 
@@ -141,13 +154,7 @@ export default function CourseDetailPage() {
         )}
 
         {canWatch ? (
-          <Button
-            full
-            onClick={() =>
-              router.push(`/aprender/${course.id}${firstLessonId ? `?lesson=${firstLessonId}` : ''}`)
-            }
-            disabled={totalLessons === 0}
-          >
+          <Button full onClick={() => router.push(learnHref(firstLessonId))} disabled={totalLessons === 0}>
             {totalLessons === 0 ? 'Sin clases todavía' : enrolled && done > 0 ? '▶  Continuar curso' : '▶  Comenzar curso'}
           </Button>
         ) : course.access_type === 'free' ? (
@@ -201,9 +208,7 @@ export default function CourseDetailPage() {
                     const isDone = progress[l.id];
                     const inner = (
                       <div style={styles.lesson}>
-                        <span style={{ fontSize: 14 }}>
-                          {isDone ? '✅' : unlocked ? '▶️' : '🔒'}
-                        </span>
+                        <span style={{ fontSize: 14 }}>{isDone ? '✅' : unlocked ? '▶️' : '🔒'}</span>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={youTubeThumbnail(l.youtube_id, 'mq')} alt="" style={styles.lessonThumb} />
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -218,7 +223,7 @@ export default function CourseDetailPage() {
                       </div>
                     );
                     return unlocked ? (
-                      <Link key={l.id} href={`/aprender/${course.id}?lesson=${l.id}`} style={styles.lessonLink}>
+                      <Link key={l.id} href={learnHref(l.id)} style={styles.lessonLink}>
                         {inner}
                       </Link>
                     ) : (

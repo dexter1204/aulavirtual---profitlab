@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   getCourseById,
@@ -24,7 +24,15 @@ import { useToast } from '@/components/Toast';
 type Tab = 'contenido' | 'ajustes' | 'alumnos';
 
 export default function EditCoursePage() {
-  const { id } = useParams<{ id: string }>();
+  return (
+    <Suspense fallback={<Spinner />}>
+      <EditCourse />
+    </Suspense>
+  );
+}
+
+function EditCourse() {
+  const id = useSearchParams().get('id') ?? '';
   const toast = useToast();
   const [tab, setTab] = useState<Tab>('contenido');
   const [course, setCourse] = useState<Course | null>(null);
@@ -32,7 +40,6 @@ export default function EditCoursePage() {
   const [loading, setLoading] = useState(true);
   const [savingSettings, setSavingSettings] = useState(false);
 
-  // Editor de clase
   const [editing, setEditing] = useState<{ moduleId: string; lesson?: Lesson } | null>(null);
 
   const loadCurriculum = async () => {
@@ -41,7 +48,10 @@ export default function EditCoursePage() {
   };
 
   useEffect(() => {
-    if (!id) return;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
     (async () => {
       try {
         const c = await getCourseById(id);
@@ -147,7 +157,7 @@ export default function EditCoursePage() {
   if (!course)
     return (
       <Page>
-        <Empty icon="🔎" title="Curso no encontrado" cta={{ label: 'Volver', href: '/admin/cursos' }} />
+        <Empty icon="🔎" title="Curso no encontrado" cta={{ label: 'Volver', href: '/admin/cursos/' }} />
       </Page>
     );
 
@@ -155,7 +165,7 @@ export default function EditCoursePage() {
 
   return (
     <Page>
-      <Link href="/admin/cursos" style={styles.back}>← Cursos</Link>
+      <Link href="/admin/cursos/" style={styles.back}>← Cursos</Link>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
         <div style={{ minWidth: 0 }}>
@@ -167,7 +177,7 @@ export default function EditCoursePage() {
             <span style={{ color: '#64748B', fontSize: 12 }}>{modules.length} módulos · {totalLessons} clases</span>
           </div>
         </div>
-        <Link href={`/cursos/${course.slug}`} style={styles.previewBtn}>👁 Ver</Link>
+        <Link href={`/curso/?slug=${course.slug}`} style={styles.previewBtn}>👁 Ver</Link>
       </div>
 
       {/* TABS */}

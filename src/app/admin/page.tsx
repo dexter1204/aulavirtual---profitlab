@@ -69,7 +69,7 @@ export default function AdminDashboard() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {courses.slice(0, 6).map((c) => (
-                <Link key={c.id} href={`/admin/cursos/${c.id}`} style={{ textDecoration: 'none' }}>
+                <Link key={c.id} href={`/admin/curso/?id=${c.id}`} style={{ textDecoration: 'none' }}>
                   <Card style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12 }}>
                     <div style={styles.dot(c.status)} />
                     <div style={{ flex: 1, minWidth: 0 }}>
