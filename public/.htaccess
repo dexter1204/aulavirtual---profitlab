@@ -1,32 +1,31 @@
 # ============================================================
-# Profit Lab · Aula Virtual — configuración Apache para SiteGround
-# Este archivo se copia automáticamente a la carpeta out/ al hacer el build.
+# Profit Lab · Aula Virtual — Apache (SiteGround)
+# Se copia automáticamente a out/ al hacer el build.
+# Directivas defensivas: todo va protegido por <IfModule>.
 # ============================================================
 
-# Página de error personalizada (export estático de Next.js)
+# Página 404 del export estático
 ErrorDocument 404 /404.html
 
-# Forzar HTTPS (descomenta si tu dominio ya tiene certificado SSL activo)
-# RewriteEngine On
-# RewriteCond %{HTTPS} off
-# RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
-
-# --- Compresión GZIP ---
+# --- Compresión ---
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json image/svg+xml
 </IfModule>
 
-# --- Caché de recursos estáticos ---
+# --- Caché de assets con hash (/_next/static) ---
 <IfModule mod_expires.c>
   ExpiresActive On
-  # Los assets de Next (/_next/static) llevan hash: cachear 1 año
-  <FilesMatch "\.(js|css|woff2?|ttf|eot|svg|png|jpg|jpeg|gif|webp|ico)$">
-    ExpiresDefault "access plus 1 year"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/x-icon "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css|woff2?|ttf|eot|svg|png|jpe?g|gif|webp|ico)$">
     Header set Cache-Control "public, max-age=31536000, immutable"
-  </FilesMatch>
-  # El HTML no se cachea de forma agresiva
-  <FilesMatch "\.html$">
-    ExpiresDefault "access plus 0 seconds"
-    Header set Cache-Control "no-cache"
   </FilesMatch>
 </IfModule>
