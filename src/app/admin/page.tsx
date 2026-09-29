@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase';
 import { listAllCourses } from '@/lib/courses';
-import type { Course } from '@/lib/supabase';
+import { getAdminStats, type Course } from '@/lib/api';
 import { Page, PageTitle, Card, Spinner, Pill } from '@/components/ui';
 import { AdminNav } from '@/components/AdminNav';
 
@@ -17,15 +16,10 @@ export default function AdminDashboard() {
   useEffect(() => {
     (async () => {
       try {
-        const supabase = createClient();
-        const [cs, studentsRes, enrRes] = await Promise.all([
-          listAllCourses(),
-          supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'student'),
-          supabase.from('enrollments').select('id', { count: 'exact', head: true }),
-        ]);
+        const [cs, stats] = await Promise.all([listAllCourses(), getAdminStats()]);
         setCourses(cs);
-        setStudents(studentsRes.count ?? 0);
-        setEnrollments(enrRes.count ?? 0);
+        setStudents(stats.students);
+        setEnrollments(stats.enrollments);
       } catch (e) {
         console.error(e);
       } finally {

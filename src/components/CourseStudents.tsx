@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClient, type Enrollment, type Profile } from '@/lib/supabase';
+import { listUsers, type Enrollment, type Profile } from '@/lib/api';
 import { listCourseEnrollments, adminEnroll, adminUnenroll } from '@/lib/enrollments';
 import { Spinner, Button, Modal, inputStyle, Empty } from './ui';
 import { useToast } from './Toast';
@@ -30,13 +30,7 @@ export function CourseStudents({ courseId }: { courseId: string }) {
   const openPicker = async () => {
     setPicker(true);
     try {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('name', { ascending: true });
-      if (error) throw error;
-      setAllStudents((data ?? []) as Profile[]);
+      setAllStudents(await listUsers());
     } catch (e: any) {
       toast(e.message, 'error');
     }

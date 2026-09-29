@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getCourseBySlug, getCurriculum } from '@/lib/courses';
 import { enrollMe, getMyEnrollment, unenrollMe } from '@/lib/enrollments';
 import { getCourseProgress, countCompleted } from '@/lib/progress';
-import type { Course, Module, Enrollment } from '@/lib/supabase';
+import type { Course, Module, Enrollment } from '@/lib/api';
 import { youTubeThumbnail } from '@/lib/youtube';
 import { Page, Spinner, Button, Pill, Card, Empty } from '@/components/ui';
 import { useToast } from '@/components/Toast';

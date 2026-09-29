@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import type { Course } from '@/lib/supabase';
+import type { Course } from '@/lib/api';
 
 const levelLabel: Record<string, string> = {
   principiante: 'Principiante',

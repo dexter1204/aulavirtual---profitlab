@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { createClient } from '@/lib/supabase';
+import { updateMyProfile } from '@/lib/api';
 import { listMyEnrollments } from '@/lib/enrollments';
 import { Page, PageTitle, Card, Button, Field, inputStyle, Spinner, Pill } from '@/components/ui';
 import { useToast } from '@/components/Toast';
@@ -29,9 +29,7 @@ export default function ProfilePage() {
     if (!session || !name.trim()) return;
     setSaving(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase.from('profiles').update({ name: name.trim() }).eq('id', session.user.id);
-      if (error) throw error;
+      await updateMyProfile(name.trim());
       await refreshProfile();
       toast('Perfil actualizado', 'success');
     } catch (e: any) {

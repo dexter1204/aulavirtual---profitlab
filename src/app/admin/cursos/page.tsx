@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { listAllCourses, reorderCourses, deleteCourse, updateCourse } from '@/lib/courses';
-import type { Course } from '@/lib/supabase';
+import type { Course } from '@/lib/api';
 import { youTubeThumbnail } from '@/lib/youtube';
 import { Page, PageTitle, Spinner, Empty, Pill, Button } from '@/components/ui';
 import { AdminNav } from '@/components/AdminNav';

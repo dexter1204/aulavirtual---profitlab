@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { listPublishedCourses } from '@/lib/courses';
-import type { Course } from '@/lib/supabase';
+import type { Course } from '@/lib/api';
 import { CourseCard } from '@/components/CourseCard';
 import { Page, PageTitle, Spinner, Empty, inputStyle } from '@/components/ui';
 

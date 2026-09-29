@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { createClient, type Profile } from '@/lib/supabase';
+import { listUsers, setUserRole, type UserRow } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Page, PageTitle, Spinner, Empty, Pill, inputStyle } from '@/components/ui';
 import { AdminNav } from '@/components/AdminNav';
 import { useToast } from '@/components/Toast';
 
-type Row = Profile & { enrollments: number };
+type Row = UserRow;
 
 export default function AdminStudentsPage() {
   const { session } = useAuth();
@@ -19,17 +19,7 @@ export default function AdminStudentsPage() {
   const load = async () => {
     setLoading(true);
     try {
-      const supabase = createClient();
-      const [{ data: profiles, error }, { data: enr }] = await Promise.all([
-        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
-        supabase.from('enrollments').select('user_id'),
-      ]);
-      if (error) throw error;
-      const counts = new Map<string, number>();
-      for (const e of (enr ?? []) as { user_id: string }[]) {
-        counts.set(e.user_id, (counts.get(e.user_id) ?? 0) + 1);
-      }
-      setRows(((profiles ?? []) as Profile[]).map((p) => ({ ...p, enrollments: counts.get(p.id) ?? 0 })));
+      setRows(await listUsers());
     } catch (e: any) {
       toast(e.message, 'error');
     } finally {
@@ -45,9 +35,7 @@ export default function AdminStudentsPage() {
       if (!confirm('Vas a quitarte a ti mismo el rol de administrador. ¿Continuar?')) return;
     }
     try {
-      const supabase = createClient();
-      const { error } = await supabase.from('profiles').update({ role }).eq('id', p.id);
-      if (error) throw error;
+      await setUserRole(p.id, role);
       setRows((prev) => prev.map((x) => (x.id === p.id ? { ...x, role } : x)));
       toast(role === 'admin' ? `${p.name} ahora es Master Study` : `${p.name} ahora es alumno`, 'success');
     } catch (e: any) {

@@ -1,11 +1,20 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { createClient, type Profile } from '@/lib/supabase';
-import type { Session } from '@supabase/supabase-js';
+import {
+  apiLogin,
+  apiSignup,
+  apiMe,
+  clearToken,
+  getToken,
+  type Profile,
+} from '@/lib/api';
+
+// Compatibilidad: mantenemos una forma de "sesión" mínima con user.id
+type Session = { user: { id: string; email: string } } | null;
 
 interface AuthContextValue {
-  session: Session | null;
+  session: Session;
   profile: Profile | null;
   isLoading: boolean;
   isAdmin: boolean;
@@ -18,69 +27,47 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [supabase] = useState(() => createClient());
-  const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setLoading] = useState(true);
 
+  const session: Session = profile ? { user: { id: profile.id, email: profile.email } } : null;
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) loadProfile(session.user.id);
-      else setLoading(false);
-    });
-
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      if (session) loadProfile(session.user.id);
-      else {
+    if (!getToken()) {
+      setLoading(false);
+      return;
+    }
+    apiMe()
+      .then((p) => setProfile(p))
+      .catch(() => {
+        clearToken();
         setProfile(null);
-        setLoading(false);
-      }
-    });
-
-    return () => subscription.subscription.unsubscribe();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  const loadProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-      if (error) throw error;
-      setProfile(data as Profile);
-    } catch (e) {
-      console.warn('No se pudo cargar el perfil', e);
-      setProfile(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const login = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
+    const p = await apiLogin(email.trim(), password);
+    setProfile(p);
   };
 
   const signUp = async (email: string, password: string, name: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { name } },
-    });
-    if (error) throw error;
+    const p = await apiSignup(name, email.trim(), password);
+    setProfile(p);
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    clearToken();
+    setProfile(null);
   };
 
   const refreshProfile = async () => {
-    if (!session) return;
-    await loadProfile(session.user.id);
+    if (!getToken()) return;
+    try {
+      setProfile(await apiMe());
+    } catch {
+      /* ignore */
+    }
   };
 
   return (

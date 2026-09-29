@@ -1,75 +1,37 @@
-import { createClient, type Enrollment } from './supabase';
+import { api, type Enrollment } from './api';
 
-/** Inscripción del usuario actual en un curso (mediante RPC seguro). */
+/** Inscripción del usuario actual en un curso (auto-inscripción). */
 export async function enrollMe(courseId: string): Promise<void> {
-  const supabase = createClient();
-  const { error } = await supabase.rpc('enroll_me', { course: courseId });
-  if (error) throw error;
+  await api('/enroll', { method: 'POST', body: { course_id: courseId } });
 }
 
-/** Cancela la inscripción del usuario actual. */
-export async function unenrollMe(courseId: string, userId: string): Promise<void> {
-  const supabase = createClient();
-  const { error } = await supabase
-    .from('enrollments')
-    .delete()
-    .eq('course_id', courseId)
-    .eq('user_id', userId);
-  if (error) throw error;
+/** Cancela la inscripción del usuario actual. (userId se ignora: lo resuelve el token) */
+export async function unenrollMe(courseId: string, _userId?: string): Promise<void> {
+  await api(`/enroll/${courseId}`, { method: 'DELETE' });
 }
 
-/** ¿Está el usuario inscrito? Devuelve la inscripción o null. */
-export async function getMyEnrollment(courseId: string, userId: string): Promise<Enrollment | null> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from('enrollments')
-    .select('*')
-    .eq('course_id', courseId)
-    .eq('user_id', userId)
-    .maybeSingle();
-  if (error) throw error;
-  return (data as Enrollment) ?? null;
+/** Inscripción del usuario actual para un curso, o null. */
+export async function getMyEnrollment(courseId: string, _userId?: string): Promise<Enrollment | null> {
+  return api<Enrollment | null>(`/my-enrollment/${courseId}`);
 }
 
 /** Cursos en los que el usuario está inscrito (con datos del curso). */
-export async function listMyEnrollments(userId: string): Promise<Enrollment[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from('enrollments')
-    .select('*, course:courses(*)')
-    .eq('user_id', userId)
-    .order('enrolled_at', { ascending: false });
-  if (error) throw error;
-  return (data ?? []) as Enrollment[];
+export async function listMyEnrollments(_userId?: string): Promise<Enrollment[]> {
+  return api<Enrollment[]>('/enrollments/me');
 }
 
 // ============================================================
 // ADMIN
 // ============================================================
 
-/** Inscripciones de un curso, con datos del alumno. */
 export async function listCourseEnrollments(courseId: string): Promise<Enrollment[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from('enrollments')
-    .select('*, profile:profiles(id, name, email, avatar_url)')
-    .eq('course_id', courseId)
-    .order('enrolled_at', { ascending: false });
-  if (error) throw error;
-  return (data ?? []) as Enrollment[];
+  return api<Enrollment[]>(`/courses/${courseId}/enrollments`);
 }
 
-/** Inscribe manualmente a un alumno (admin). */
 export async function adminEnroll(userId: string, courseId: string): Promise<void> {
-  const supabase = createClient();
-  const { error } = await supabase
-    .from('enrollments')
-    .upsert({ user_id: userId, course_id: courseId }, { onConflict: 'user_id,course_id' });
-  if (error) throw error;
+  await api(`/courses/${courseId}/enrollments`, { method: 'POST', body: { user_id: userId } });
 }
 
 export async function adminUnenroll(enrollmentId: string): Promise<void> {
-  const supabase = createClient();
-  const { error } = await supabase.from('enrollments').delete().eq('id', enrollmentId);
-  if (error) throw error;
+  await api(`/enrollments/${enrollmentId}`, { method: 'DELETE' });
 }

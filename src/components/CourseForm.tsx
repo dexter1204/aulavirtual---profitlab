@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Course, CourseLevel, CourseStatus, AccessType } from '@/lib/supabase';
+import type { Course, CourseLevel, CourseStatus, AccessType } from '@/lib/api';
 import { parseYouTubeId, youTubeThumbnail } from '@/lib/youtube';
 import { Field, inputStyle, Button } from './ui';
 

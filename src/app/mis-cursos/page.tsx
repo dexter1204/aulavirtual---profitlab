@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { listMyEnrollments } from '@/lib/enrollments';
 import { getCurriculum } from '@/lib/courses';
 import { getCourseProgress, countCompleted } from '@/lib/progress';
-import type { Course } from '@/lib/supabase';
+import type { Course } from '@/lib/api';
 import { CourseCard } from '@/components/CourseCard';
 import { Page, PageTitle, Spinner, Empty } from '@/components/ui';
 

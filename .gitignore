@@ -34,3 +34,6 @@
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# API PHP: credenciales locales (NO subir)
+api/config.php

@@ -1,167 +1,151 @@
 # Profit Lab · Aula Virtual 🎓
 
-Aula virtual (LMS) para **Profit Lab Academy**. Permite alojar los cursos de la
-academia con videos de **YouTube**, gestionar inscripciones y que los alumnos
-vean las clases tras iniciar sesión. Incluye un panel de administración estilo
-**Master Study** para crear cursos, ordenar módulos y clases, programar el
-lanzamiento (goteo/drip) y gestionar alumnos.
+Aula virtual (LMS) para **Profit Lab Academy**. Aloja los cursos de la academia
+con videos de **YouTube**, gestiona **inscripciones** y permite que los alumnos
+vean las clases tras **iniciar sesión**. Incluye un panel de administración
+estilo **Master Study** para crear cursos, ordenar módulos y clases, programar
+el lanzamiento (goteo/drip) y gestionar alumnos.
 
-Construida con el mismo stack e identidad visual que el resto de ProfitLab:
-**Next.js 16 · React 19 · Tailwind v4 · Supabase**, tema oscuro con acento lima
-`#C7F94C`, fondo aurora animado y tarjetas *glassmorphism*.
+## 🧱 Arquitectura (todo en SiteGround, sin servicios externos)
+
+```
+Navegador ──►  Frontend estático (Next.js export)   →  archivos en public_html/
+           ──►  API REST en PHP  (/api)              →  se conecta a…
+                                                        MySQL (SiteGround)
+```
+
+- **Frontend:** Next.js 16 + React 19 + Tailwind v4, exportado como sitio
+  **estático** (`out/`). Identidad visual de ProfitLab (tema oscuro, acento lima
+  `#C7F94C`, aurora y glassmorphism, fuentes Bricolage + Manrope).
+- **Backend:** API REST en **PHP puro** (sin dependencias) con **PDO** y
+  autenticación por **JWT**. Se ejecuta de forma nativa en SiteGround.
+- **Base de datos:** **MySQL / MariaDB**.
 
 ---
 
 ## ✨ Funcionalidades
 
 ### Para alumnos
-- Registro e inicio de sesión (Supabase Auth).
-- Catálogo de cursos con búsqueda y filtro por categoría.
+- Registro e inicio de sesión (JWT, contraseñas cifradas con `password_hash`).
+- Catálogo con búsqueda y filtro por categoría.
 - Ficha del curso con currículo, clases de muestra gratis e inscripción.
-- Reproductor de YouTube integrado con seguimiento de progreso.
-- Marcar clases como completadas y avance automático a la siguiente.
-- "Mis cursos" con barra de progreso por curso.
-- Perfil editable.
+- Reproductor de YouTube con seguimiento de progreso y avance automático.
+- "Mis cursos" con barra de progreso; perfil editable.
 
 ### Panel Master Study (administrador)
-- **Resumen** con métricas (cursos, alumnos, inscripciones).
-- **Cursos**: crear, editar, reordenar (▲▼), publicar/despublicar y eliminar.
-- **Constructor de currículo**: módulos y clases con reordenamiento.
-- **Clases**: título, video de YouTube (cualquier formato de enlace), duración,
-  descripción, recursos y **clase de muestra gratuita**.
-- **Lanzamiento / goteo (drip)** por clase:
-  - Disponible de inmediato.
-  - En una fecha específica.
-  - X días después de que el alumno se inscribe.
-- **Alumnos por curso**: inscribir/retirar manualmente.
-- **Gestión global de alumnos**: buscar y cambiar roles (Master/Alumno).
+- Resumen con métricas (cursos, alumnos, inscripciones).
+- Cursos: crear, editar, **reordenar**, **publicar/despublicar**, eliminar.
+- Constructor de currículo: módulos y clases con reordenamiento.
+- Editor de clases: **cualquier enlace de YouTube**, duración, recursos,
+  **clase de muestra gratuita** y **lanzamiento por goteo** (inmediato / fecha /
+  X días tras inscribirse).
+- Gestión de alumnos por curso (inscribir/retirar) y global (roles).
+
+### Seguridad
+- El `youtube_id` de las clases **no se entrega** a quien no esté inscrito (salvo
+  clases marcadas como muestra). Las acciones de administración exigen rol admin.
+- Las contraseñas se guardan cifradas; el acceso se valida con tokens JWT.
 
 ---
 
-## 🚀 Puesta en marcha
+## 🚀 Puesta en marcha en local (desarrollo)
 
-### 1. Instala dependencias
+Necesitas Node.js y PHP con MySQL (o usa el modo SQLite de prueba).
+
 ```bash
+# 1. Frontend
 npm install
-```
+cp .env.example .env.local        # NEXT_PUBLIC_API_URL=http://localhost:8000
 
-### 2. Configura Supabase
-1. Crea un proyecto en [supabase.com](https://supabase.com).
-2. En **SQL Editor**, pega y ejecuta el contenido de [`supabase/schema.sql`](supabase/schema.sql).
-   Crea todas las tablas, funciones, triggers y políticas de seguridad (RLS).
-3. En **Settings → API** copia la *Project URL* y la *anon public key*.
+# 2. API
+cp api/config.example.php api/config.php   # y edita tus credenciales MySQL
+# en local, como el frontend (3000) y la API (8000) son distinto origen,
+# pon en config.php:  'cors_origin' => 'http://localhost:3000'
 
-### 3. Variables de entorno
-```bash
-cp .env.example .env.local
-```
-Rellena en `.env.local`:
-```
-NEXT_PUBLIC_SUPABASE_URL=https://TU-PROYECTO.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
-```
-
-### 4. Ejecuta en desarrollo
-```bash
+# 3. Arranca la API (PHP) y el frontend (Next) en dos terminales
+php -S localhost:8000 -t api api/index.php
 npm run dev
 ```
-Abre http://localhost:3000
-
-> ℹ️ Las variables `NEXT_PUBLIC_*` se **incrustan en el build**. Si cambias de
-> proyecto Supabase, vuelve a generar el build.
-
-### 5. Crea tu primer administrador (Master Study)
-1. Regístrate desde `/signup`.
-2. En Supabase → SQL Editor:
-   ```sql
-   update public.profiles set role = 'admin'
-   where email = 'tu-correo@ejemplo.com';
-   ```
-3. Recarga la app: verás el panel **Master Study** en la barra inferior.
 
 ---
 
----
+## 🌐 Desplegar en SiteGround
 
-## 🌐 Desplegar en SiteGround (hosting estático)
+### 1. Crear la base de datos MySQL
+1. **Site Tools → Bases de datos → Bases de datos MySQL**: crea una base y un
+   usuario, y asígnale todos los permisos.
+2. Abre **phpMyAdmin** de esa base → pestaña **Importar** (o **SQL**) y ejecuta
+   el archivo **`api/schema.sql`**.
 
-La app está configurada como **exportación estática** (`output: 'export'` en
-`next.config.ts`): al compilar genera una carpeta `out/` con HTML/JS puro que
-funciona en cualquier plan de SiteGround, sin necesidad de Node.js.
+### 2. Subir la API (PHP)
+1. Copia `api/config.example.php` a `api/config.php` y rellena `db_name`,
+   `db_user`, `db_pass` y un `jwt_secret` largo y aleatorio
+   (`php -r "echo bin2hex(random_bytes(32));"`).
+2. Sube **toda la carpeta `api/`** a `public_html/api/` (incluye `index.php`,
+   `lib/`, `.htaccess` y tu `config.php`). **No subas** `schema.sql` a un lugar
+   público (el `.htaccess` ya lo bloquea, pero mejor bórralo del servidor).
 
-### 1. Genera el build con tus credenciales
-En tu equipo (con `.env.local` ya configurado):
+### 3. Compilar y subir el frontend
 ```bash
 npm install
-npm run build
+npm run build          # genera la carpeta out/
 ```
-Esto crea la carpeta **`out/`** con todo el sitio (incluye un `.htaccess` listo
-para Apache).
+Sube **el contenido de `out/`** a `public_html/` (junto a la carpeta `api/`).
+Como frontend y API comparten dominio, `NEXT_PUBLIC_API_URL` puede quedar en
+`/api` (valor por defecto), así que normalmente **no necesitas** tocar el `.env`
+para producción.
 
-### 2. Sube el contenido de `out/` a SiteGround
-En **Site Tools → Sitio → Administrador de archivos** (o por FTP):
-1. Entra a la carpeta de tu dominio/subdominio (ej. `public_html/` o
-   `public_html/aula/`).
-2. Sube **todo el contenido de `out/`** (no la carpeta `out` en sí, sino lo que
-   hay dentro: `index.html`, `_next/`, `curso/`, `.htaccess`, etc.).
-3. Asegúrate de que el `.htaccess` se subió (activa "mostrar archivos ocultos").
+> Estructura final en el servidor:
+> ```
+> public_html/
+> ├── index.html, _next/, curso/, cursos/ …   ← frontend (out/)
+> ├── .htaccess                                 ← del frontend
+> └── api/
+>     ├── index.php, lib/, .htaccess
+>     └── config.php   ← tus credenciales (NO en git)
+> ```
 
-> **Subdominio recomendado:** crea `aula.tudominio.com` en
-> **Site Tools → Dominios → Subdominios**, apúntalo a una carpeta y sube ahí el
-> contenido de `out/`.
-
-### 3. Configura Supabase para tu dominio
-En Supabase → **Authentication → URL Configuration**, pon tu URL real en
-*Site URL* y en *Redirect URLs* (ej. `https://aula.tudominio.com`).
-
-### 4. Listo
-Abre tu dominio: la app carga y habla directamente con Supabase desde el
-navegador. Para actualizar el sitio, repite `npm run build` y vuelve a subir
-`out/`.
-
-> **Nota:** como es estático, cada vez que cambies el código debes regenerar
-> `out/` y volver a subirlo. La base de datos (Supabase) se actualiza sola.
+### 4. Crear tu primer administrador (Master Study)
+1. Regístrate desde la app (`/signup`).
+2. En phpMyAdmin ejecuta con tu email:
+   ```sql
+   UPDATE users SET role = 'admin' WHERE email = 'tu-correo@ejemplo.com';
+   ```
+3. Vuelve a iniciar sesión: verás el panel **Master Study**.
 
 ---
 
-## 🗂️ Estructura
+## 🗂️ Estructura del proyecto
 
 ```
+api/                         → API REST en PHP
+├── index.php                → router / front controller
+├── lib/{db,jwt,helpers}.php  → PDO, JWT, utilidades
+├── config.example.php        → plantilla de credenciales
+├── schema.sql                → esquema MySQL
+└── .htaccess                 → enruta /api/* → index.php
+
 src/
 ├── app/
-│   ├── login, signup            → autenticación
-│   ├── cursos                   → catálogo
-│   ├── curso  (?slug=)          → ficha del curso + inscripción
-│   ├── aprender  (?curso=&lesson=) → reproductor + progreso
-│   ├── mis-cursos               → cursos inscritos
-│   ├── perfil                   → perfil del usuario
-│   └── admin/                   → panel Master Study
-│       ├── (resumen)
-│       ├── cursos               → lista + reordenar + publicar
-│       ├── cursos/nuevo         → crear curso
-│       ├── curso  (?id=)        → constructor de currículo + ajustes + alumnos
-│       └── estudiantes          → gestión de alumnos
-├── components/                  → UI (header, nav, cards, editor de clases…)
-├── contexts/AuthContext.tsx     → sesión y perfil
-└── lib/                         → supabase, courses, enrollments, progress, youtube
-supabase/schema.sql              → esquema completo + RLS
+│   ├── login, signup         → autenticación
+│   ├── cursos                → catálogo
+│   ├── curso  (?slug=)       → ficha del curso + inscripción
+│   ├── aprender (?curso=&lesson=) → reproductor + progreso
+│   ├── mis-cursos            → cursos inscritos
+│   ├── perfil                → perfil
+│   └── admin/                → panel Master Study
+│       ├── (resumen), cursos, cursos/nuevo, curso (?id=), estudiantes
+├── components/               → UI (header, nav, cards, editor de clases…)
+├── contexts/AuthContext.tsx  → sesión JWT
+└── lib/
+    ├── api.ts                → cliente REST + tipos + token
+    ├── courses.ts, enrollments.ts, progress.ts, youtube.ts
 ```
-
-## 🎨 Identidad visual
-Reutiliza el sistema de diseño de ProfitLab: paleta oscura (`#0A0B0E`), acento
-lima (`#C7F94C`), fuentes *Bricolage Grotesque* + *Manrope*, fondo aurora
-animado y `glassmorphism`, definidos en `src/app/globals.css` y
-`tailwind.config.ts`.
-
-## 🔒 Seguridad
-El acceso a las clases está protegido por **Row Level Security** en Supabase:
-solo los administradores o los alumnos inscritos pueden leer las clases de un
-curso publicado. El goteo por fecha se aplica además en la aplicación.
 
 ## 📜 Scripts
 | Comando | Descripción |
 |---|---|
-| `npm run dev` | Servidor de desarrollo |
-| `npm run build` | Compilación de producción |
-| `npm run start` | Servir la build |
-| `npm run typecheck` | Verificación de tipos TypeScript |
+| `npm run dev` | Frontend en desarrollo |
+| `npm run build` | Genera `out/` (sitio estático) |
+| `npm run typecheck` | Verificación de tipos |
+| `php -S localhost:8000 -t api api/index.php` | API en local |

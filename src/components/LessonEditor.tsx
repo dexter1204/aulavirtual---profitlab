@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Lesson, ReleaseType } from '@/lib/supabase';
+import type { Lesson, ReleaseType } from '@/lib/api';
 import { createLesson, updateLesson } from '@/lib/courses';
 import { parseYouTubeId, youTubeThumbnail } from '@/lib/youtube';
 import { Modal, Field, inputStyle, Button } from './ui';

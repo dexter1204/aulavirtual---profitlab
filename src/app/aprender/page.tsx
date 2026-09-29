@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getCourseById, getCurriculum, isLessonReleased } from '@/lib/courses';
 import { getMyEnrollment } from '@/lib/enrollments';
 import { getCourseProgress, setLessonCompleted, countCompleted } from '@/lib/progress';
-import type { Course, Module, Lesson, Enrollment } from '@/lib/supabase';
+import type { Course, Module, Lesson, Enrollment } from '@/lib/api';
 import { YouTubePlayer } from '@/components/YouTubePlayer';
 import { Spinner, Button, Empty } from '@/components/ui';
 import { useToast } from '@/components/Toast';

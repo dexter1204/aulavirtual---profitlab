@@ -14,7 +14,7 @@ import {
   reorderLessons,
   deleteLesson,
 } from '@/lib/courses';
-import type { Course, Module, Lesson } from '@/lib/supabase';
+import type { Course, Module, Lesson } from '@/lib/api';
 import { Page, Spinner, Button, Pill, Empty } from '@/components/ui';
 import { CourseForm, type CourseFormValues } from '@/components/CourseForm';
 import { LessonEditor } from '@/components/LessonEditor';
