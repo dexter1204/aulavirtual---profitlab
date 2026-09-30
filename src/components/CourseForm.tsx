@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Course, CourseLevel, CourseStatus, AccessType } from '@/lib/api';
+import { uploadFile } from '@/lib/api';
 import { parseYouTubeId, youTubeThumbnail } from '@/lib/youtube';
 import { Field, inputStyle, Button } from './ui';
+import { useToast } from './Toast';
 
 export type CourseFormValues = {
   title: string;
@@ -56,6 +58,30 @@ export function CourseForm({
     else set('thumbnail_url', val);
   };
 
+  const toast = useToast();
+  const imgRef = useRef<HTMLInputElement>(null);
+  const [uploadingImg, setUploadingImg] = useState(false);
+
+  const onPickImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast('Selecciona un archivo de imagen', 'error');
+      return;
+    }
+    setUploadingImg(true);
+    try {
+      const up = await uploadFile(file);
+      set('thumbnail_url', up.url);
+      toast('Imagen subida', 'success');
+    } catch (err: any) {
+      toast(err?.message ?? 'No se pudo subir la imagen', 'error');
+    } finally {
+      setUploadingImg(false);
+      if (imgRef.current) imgRef.current.value = '';
+    }
+  };
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(v);
@@ -88,9 +114,26 @@ export function CourseForm({
         <input value={v.instructor} onChange={(e) => set('instructor', e.target.value)} style={inputStyle} />
       </Field>
 
-      <Field label="Miniatura (URL de imagen o enlace de YouTube)" hint="Si pegas un enlace de YouTube usamos su miniatura automáticamente.">
-        <input value={v.thumbnail_url} onChange={(e) => onThumbChange(e.target.value)} style={inputStyle} placeholder="https://…" />
+      <Field label="Miniatura del curso" hint="Sube una foto, o pega una URL de imagen o un enlace de YouTube (usamos su miniatura).">
+        <input value={v.thumbnail_url} onChange={(e) => onThumbChange(e.target.value)} style={inputStyle} placeholder="https://…  o sube una imagen ↓" />
       </Field>
+      <input
+        ref={imgRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+        onChange={onPickImage}
+        style={{ display: 'none' }}
+      />
+      <div style={{ display: 'flex', gap: 8, marginTop: -6, marginBottom: 12, flexWrap: 'wrap' }}>
+        <Button type="button" variant="ghost" size="sm" onClick={() => imgRef.current?.click()} disabled={uploadingImg}>
+          {uploadingImg ? 'Subiendo…' : '⬆ Subir imagen'}
+        </Button>
+        {v.thumbnail_url && (
+          <Button type="button" variant="outline" size="sm" onClick={() => set('thumbnail_url', '')}>
+            Quitar
+          </Button>
+        )}
+      </div>
       {v.thumbnail_url && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={v.thumbnail_url} alt="preview" style={styles.preview} />
