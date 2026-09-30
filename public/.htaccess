@@ -4,8 +4,8 @@
 # Directivas defensivas: todo va protegido por <IfModule>.
 # ============================================================
 
-# Página 404 del export estático
-ErrorDocument 404 /404.html
+# Página 404 del export estático (subcarpeta /aulavirtual)
+ErrorDocument 404 /aulavirtual/404.html
 
 # --- Compresión ---
 <IfModule mod_deflate.c>

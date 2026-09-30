@@ -3,7 +3,7 @@
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /api/
+  RewriteBase /aulavirtual/api/
 
   # No reescribir si el recurso existe (por si sirves algo estático)
   RewriteCond %{REQUEST_FILENAME} -f [OR]
