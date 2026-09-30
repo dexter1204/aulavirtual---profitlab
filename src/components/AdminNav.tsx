@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { stripBase } from '@/lib/basePath';
 
 const tabs = [
   { href: '/admin', label: 'Resumen' },
@@ -10,7 +11,7 @@ const tabs = [
 ];
 
 export function AdminNav() {
-  const pathname = usePathname();
+  const pathname = stripBase(usePathname());
   const isActive = (href: string) =>
     href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
 

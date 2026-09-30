@@ -6,12 +6,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AppHeader } from './AppHeader';
 import { BottomNav } from './BottomNav';
 import { LogoMark } from './Logo';
+import { stripBase } from '@/lib/basePath';
 
 // Rutas accesibles sin sesión
 const PUBLIC_PATHS = ['/login', '/signup'];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  const rawPathname = usePathname();
+  const pathname = stripBase(rawPathname);
   const router = useRouter();
   const { session, isLoading, isAdmin } = useAuth();
 

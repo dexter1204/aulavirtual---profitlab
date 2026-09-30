@@ -3,9 +3,10 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { stripBase } from '@/lib/basePath';
 
 export function BottomNav() {
-  const pathname = usePathname();
+  const pathname = stripBase(usePathname());
   const { isAdmin } = useAuth();
 
   const isActive = (path: string) => {
