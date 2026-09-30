@@ -323,6 +323,27 @@ try {
 
   // ============ LESSONS ============
   if ($seg[0] === 'lessons') {
+    // GET /lessons/{id}/materials  (admin / inscrito / muestra)
+    if (($seg[2] ?? '') === 'materials' && $method === 'GET') {
+      $lessonId = $seg[1];
+      $ls = db()->prepare('SELECT course_id, is_preview FROM lessons WHERE id = ?');
+      $ls->execute([$lessonId]);
+      $lrow = $ls->fetch();
+      if (!$lrow) fail('Clase no encontrada', 404);
+      $me = current_user();
+      $isAdmin = $me && $me['role'] === 'admin';
+      $authorized = $isAdmin || $lrow['is_preview'] || ($me && is_enrolled($me['id'], $lrow['course_id']));
+      if (!$authorized) fail('No autorizado', 403);
+      $s = db()->prepare('SELECT * FROM materials WHERE lesson_id = ? ORDER BY position ASC, created_at ASC');
+      $s->execute([$lessonId]);
+      $rows = array_map(function ($r) {
+        $r['size'] = $r['size'] !== null ? (int) $r['size'] : null;
+        $r['position'] = (int) $r['position'];
+        return $r;
+      }, $s->fetchAll());
+      json_out($rows);
+    }
+
     if (($seg[1] ?? '') === 'reorder' && $method === 'POST') {
       require_admin();
       reorder_table('lessons', body()['ids'] ?? []);
@@ -477,6 +498,62 @@ try {
       json_out(['ok' => true]);
     }
     fail('Ruta de users no encontrada', 404);
+  }
+
+  // ============ UPLOAD de archivos (admin) ============
+  if ($seg[0] === 'upload' && $method === 'POST') {
+    require_admin();
+    if (empty($_FILES['file'])) fail('No se recibió ningún archivo');
+    $f = $_FILES['file'];
+    if ($f['error'] !== UPLOAD_ERR_OK) fail('Error al subir el archivo (código ' . $f['error'] . ')');
+    if ($f['size'] > 50 * 1024 * 1024) fail('El archivo supera el límite de 50 MB', 413);
+    $ext = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
+    $allowed = ['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','csv','zip','rar',
+                'png','jpg','jpeg','gif','webp','svg','mp4','webm','mov','mp3','wav'];
+    if (!in_array($ext, $allowed, true)) fail('Tipo de archivo no permitido: .' . $ext, 415);
+
+    $dir = __DIR__ . '/../uploads';
+    if (!is_dir($dir)) @mkdir($dir, 0755, true);
+    // Protección: impedir ejecución de scripts en /uploads
+    $ht = "$dir/.htaccess";
+    if (!file_exists($ht)) {
+      @file_put_contents($ht,
+        "php_flag engine off\nRemoveHandler .php .phtml .phar\n" .
+        "<FilesMatch \"\\.(php|phtml|phar|cgi|pl|py)$\">\n  Require all denied\n</FilesMatch>\n");
+    }
+    $fname = bin2hex(random_bytes(8)) . '.' . $ext;
+    if (!move_uploaded_file($f['tmp_name'], "$dir/$fname")) fail('No se pudo guardar el archivo', 500);
+
+    $uriPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    $pos = strpos($uriPath, '/api');
+    $appBase = $pos !== false ? substr($uriPath, 0, $pos) : '';
+    json_out([
+      'url'  => $appBase . '/uploads/' . $fname,
+      'name' => $f['name'],
+      'mime' => $f['type'] ?: null,
+      'size' => (int) $f['size'],
+    ]);
+  }
+
+  // ============ MATERIALS (admin: crear/borrar) ============
+  if ($seg[0] === 'materials') {
+    if (count($seg) === 1 && $method === 'POST') {
+      require_admin();
+      $b = body();
+      foreach (['lesson_id','course_id','title','url'] as $req) if (empty($b[$req])) fail("$req requerido");
+      $kind = in_array(($b['kind'] ?? ''), ['file','link'], true) ? $b['kind'] : 'link';
+      $id = uuid();
+      db()->prepare('INSERT INTO materials (id,lesson_id,course_id,kind,title,url,mime,size,position) VALUES (?,?,?,?,?,?,?,?,?)')
+          ->execute([$id, $b['lesson_id'], $b['course_id'], $kind, $b['title'], $b['url'],
+                     $b['mime'] ?? null, isset($b['size']) ? (int) $b['size'] : null, (int) ($b['position'] ?? 0)]);
+      json_out(['id' => $id], 201);
+    }
+    if (count($seg) === 2 && $method === 'DELETE') {
+      require_admin();
+      db()->prepare('DELETE FROM materials WHERE id = ?')->execute([$seg[1]]);
+      json_out(['ok' => true]);
+    }
+    fail('Ruta de materials no encontrada', 404);
   }
 
   // ============ STATS (admin) ============

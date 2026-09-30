@@ -7,7 +7,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getCourseById, getCurriculum, isLessonReleased } from '@/lib/courses';
 import { getMyEnrollment } from '@/lib/enrollments';
 import { getCourseProgress, setLessonCompleted, countCompleted } from '@/lib/progress';
-import type { Course, Module, Lesson, Enrollment } from '@/lib/api';
+import { listLessonMaterials, type Course, type Module, type Lesson, type Enrollment, type Material } from '@/lib/api';
+import { materialIcon, formatBytes } from '@/components/materials';
 import { YouTubePlayer } from '@/components/YouTubePlayer';
 import { Spinner, Button, Empty } from '@/components/ui';
 import { useToast } from '@/components/Toast';
@@ -34,6 +35,7 @@ function Learn() {
   const [progress, setProgress] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [denied, setDenied] = useState(false);
+  const [materials, setMaterials] = useState<Material[]>([]);
 
   const flatLessons = useMemo(
     () => modules.flatMap((m) => (m.lessons ?? []).map((l) => ({ ...l, moduleTitle: m.title }))),
@@ -86,6 +88,16 @@ function Learn() {
   const release = current
     ? isLessonReleased(current, enrollment?.enrolled_at ?? null, isAdmin)
     : { released: true, availableAt: null };
+
+  // Cargar materiales de la clase actual
+  useEffect(() => {
+    if (!current?.id) { setMaterials([]); return; }
+    let alive = true;
+    listLessonMaterials(current.id)
+      .then((m) => { if (alive) setMaterials(m); })
+      .catch(() => { if (alive) setMaterials([]); });
+    return () => { alive = false; };
+  }, [current?.id]);
 
   const toggleComplete = async () => {
     if (!current || !session) return;
@@ -163,10 +175,39 @@ function Learn() {
 
         {current.resources && (
           <div style={styles.resources}>
-            <span style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600 }}>📎 Recursos</span>
+            <span style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600 }}>📝 Notas</span>
             <p style={{ color: '#CBD5E1', fontSize: 13, whiteSpace: 'pre-wrap', margin: '6px 0 0' }}>
               {current.resources}
             </p>
+          </div>
+        )}
+
+        {materials.length > 0 && (
+          <div style={styles.resources}>
+            <span style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600 }}>📎 Materiales y recursos</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
+              {materials.map((m) => (
+                <a
+                  key={m.id}
+                  href={m.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download={m.kind === 'file' ? m.title : undefined}
+                  style={styles.material}
+                >
+                  <span style={{ fontSize: 18 }}>{materialIcon(m)}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ color: '#F1F5F9', fontSize: 13, fontWeight: 600 }} className="clamp-2">{m.title}</div>
+                    <div style={{ color: '#64748B', fontSize: 11 }}>
+                      {m.kind === 'file'
+                        ? `Descargar${m.size ? ' · ' + formatBytes(m.size) : ''}`
+                        : 'Abrir enlace'}
+                    </div>
+                  </div>
+                  <span style={{ color: '#C7F94C', fontSize: 16 }}>{m.kind === 'file' ? '⬇' : '↗'}</span>
+                </a>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -268,6 +309,16 @@ const styles: Record<string, React.CSSProperties> = {
     border: '1px solid #1F222B',
     borderRadius: 12,
     padding: 14,
+  },
+  material: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#0A0B0E',
+    border: '1px solid #1F222B',
+    borderRadius: 10,
+    padding: '10px 12px',
+    textDecoration: 'none',
   },
   controls: { display: 'flex', gap: 8, marginTop: 18, justifyContent: 'space-between', flexWrap: 'wrap' },
   progressTrack: { width: '100%', height: 8, backgroundColor: '#14161C', borderRadius: 999, overflow: 'hidden' },

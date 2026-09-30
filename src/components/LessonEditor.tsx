@@ -1,11 +1,18 @@
 'use client';
 
-import { useState } from 'react';
-import type { Lesson, ReleaseType } from '@/lib/api';
+import { useEffect, useRef, useState } from 'react';
+import type { Lesson, ReleaseType, Material } from '@/lib/api';
 import { createLesson, updateLesson } from '@/lib/courses';
+import {
+  listLessonMaterials,
+  createMaterial,
+  deleteMaterial,
+  uploadFile,
+} from '@/lib/api';
 import { parseYouTubeId, youTubeThumbnail } from '@/lib/youtube';
 import { Modal, Field, inputStyle, Button } from './ui';
 import { useToast } from './Toast';
+import { materialIcon, formatBytes } from './materials';
 
 export function LessonEditor({
   courseId,
@@ -23,6 +30,7 @@ export function LessonEditor({
   onSaved: () => void;
 }) {
   const toast = useToast();
+  const [lessonId, setLessonId] = useState<string | null>(lesson?.id ?? null);
   const [title, setTitle] = useState(lesson?.title ?? '');
   const [youtube, setYoutube] = useState(lesson?.youtube_id ?? '');
   const [duration, setDuration] = useState(lesson?.duration ?? '');
@@ -34,7 +42,27 @@ export function LessonEditor({
   const [dripDays, setDripDays] = useState<number>(lesson?.drip_days ?? 7);
   const [busy, setBusy] = useState(false);
 
+  // Materiales
+  const [materials, setMaterials] = useState<Material[]>([]);
+  const [linkTitle, setLinkTitle] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
   const ytId = parseYouTubeId(youtube);
+
+  const loadMaterials = async (id: string) => {
+    try {
+      setMaterials(await listLessonMaterials(id));
+    } catch {
+      /* ignore */
+    }
+  };
+
+  useEffect(() => {
+    if (lessonId) loadMaterials(lessonId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const save = async () => {
     if (!title.trim()) return toast('Escribe un título', 'error');
@@ -55,10 +83,14 @@ export function LessonEditor({
         drip_days: releaseType === 'drip_days' ? dripDays : null,
         position: lesson?.position ?? position,
       };
-      if (lesson) await updateLesson(lesson.id, payload);
-      else await createLesson(payload as Omit<Lesson, 'id' | 'created_at'>);
-      toast(lesson ? 'Clase actualizada' : 'Clase añadida', 'success');
-      onSaved();
+      if (lessonId) {
+        await updateLesson(lessonId, payload);
+        toast('Clase guardada', 'success');
+      } else {
+        const created = await createLesson(payload as Omit<Lesson, 'id' | 'created_at'>);
+        setLessonId(created.id);
+        toast('Clase creada. Ya puedes adjuntar materiales.', 'success');
+      }
     } catch (e: any) {
       toast(e?.message ?? 'Error al guardar', 'error');
     } finally {
@@ -66,15 +98,69 @@ export function LessonEditor({
     }
   };
 
+  const addLink = async () => {
+    if (!lessonId) return;
+    if (!linkTitle.trim() || !linkUrl.trim()) return toast('Completa título y enlace', 'error');
+    try {
+      await createMaterial({
+        lesson_id: lessonId,
+        course_id: courseId,
+        kind: 'link',
+        title: linkTitle.trim(),
+        url: linkUrl.trim(),
+      });
+      setLinkTitle(''); setLinkUrl('');
+      await loadMaterials(lessonId);
+      toast('Enlace añadido', 'success');
+    } catch (e: any) {
+      toast(e?.message ?? 'Error', 'error');
+    }
+  };
+
+  const onPickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !lessonId) return;
+    setUploading(true);
+    try {
+      const up = await uploadFile(file);
+      await createMaterial({
+        lesson_id: lessonId,
+        course_id: courseId,
+        kind: 'file',
+        title: up.name,
+        url: up.url,
+        mime: up.mime,
+        size: up.size,
+      });
+      await loadMaterials(lessonId);
+      toast('Archivo subido', 'success');
+    } catch (e: any) {
+      toast(e?.message ?? 'No se pudo subir', 'error');
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  const removeMaterial = async (id: string) => {
+    if (!lessonId) return;
+    try {
+      await deleteMaterial(id);
+      await loadMaterials(lessonId);
+    } catch (e: any) {
+      toast(e?.message ?? 'Error', 'error');
+    }
+  };
+
   return (
     <Modal
       open
-      onClose={onClose}
-      title={lesson ? 'Editar clase' : 'Nueva clase'}
+      onClose={onSaved}
+      title={lessonId ? 'Editar clase' : 'Nueva clase'}
       footer={
         <>
-          <Button variant="outline" size="sm" onClick={onClose}>Cancelar</Button>
-          <Button size="sm" onClick={save} disabled={busy}>{busy ? '...' : 'Guardar'}</Button>
+          <Button variant="outline" size="sm" onClick={onSaved}>Cerrar</Button>
+          <Button size="sm" onClick={save} disabled={busy}>{busy ? '...' : lessonId ? 'Guardar cambios' : 'Crear clase'}</Button>
         </>
       }
     >
@@ -100,8 +186,8 @@ export function LessonEditor({
         <textarea value={description} onChange={(e) => setDescription(e.target.value)} style={{ ...inputStyle, minHeight: 80, resize: 'vertical' }} />
       </Field>
 
-      <Field label="Recursos / notas (opcional)">
-        <textarea value={resources} onChange={(e) => setResources(e.target.value)} style={{ ...inputStyle, minHeight: 60, resize: 'vertical' }} placeholder="Enlaces, PDFs, indicadores…" />
+      <Field label="Notas (opcional)" hint="Texto libre que verá el alumno junto al video.">
+        <textarea value={resources} onChange={(e) => setResources(e.target.value)} style={{ ...inputStyle, minHeight: 56, resize: 'vertical' }} placeholder="Indicaciones, apuntes…" />
       </Field>
 
       <label style={styles.checkRow}>
@@ -132,6 +218,60 @@ export function LessonEditor({
           <input type="number" min={0} value={dripDays} onChange={(e) => setDripDays(Number(e.target.value))} style={inputStyle} />
         </Field>
       )}
+
+      {/* ===================== MATERIALES ===================== */}
+      <div style={styles.materialsBox}>
+        <h4 style={styles.materialsTitle}>📎 Materiales de la clase</h4>
+
+        {!lessonId ? (
+          <p style={{ color: '#64748B', fontSize: 12, margin: 0 }}>
+            Crea la clase (botón de abajo) para poder subir documentos o añadir enlaces.
+          </p>
+        ) : (
+          <>
+            {materials.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
+                {materials.map((m) => (
+                  <div key={m.id} style={styles.matRow}>
+                    <span style={{ fontSize: 15 }}>{materialIcon(m)}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ color: '#F1F5F9', fontSize: 12, fontWeight: 600 }} className="clamp-2">{m.title}</div>
+                      <div style={{ color: '#64748B', fontSize: 10 }}>
+                        {m.kind === 'file' ? `Archivo${m.size ? ' · ' + formatBytes(m.size) : ''}` : 'Enlace'}
+                      </div>
+                    </div>
+                    <button onClick={() => removeMaterial(m.id)} style={styles.matDel}>✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Subir archivo */}
+            <input
+              ref={fileRef}
+              type="file"
+              onChange={onPickFile}
+              style={{ display: 'none' }}
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.png,.jpg,.jpeg,.gif,.webp,.svg,.mp4,.webm,.mov,.mp3,.wav"
+            />
+            <Button variant="ghost" size="sm" full onClick={() => fileRef.current?.click()} disabled={uploading} style={{ marginBottom: 10 }}>
+              {uploading ? 'Subiendo…' : '⬆ Subir documento / archivo'}
+            </Button>
+            <p style={{ color: '#64748B', fontSize: 10, margin: '0 0 12px' }}>
+              PDF, Word, Excel, PowerPoint, imágenes, ZIP, audio o video (máx. 50 MB).
+            </p>
+
+            {/* Añadir enlace */}
+            <div style={{ display: 'flex', gap: 6 }}>
+              <input value={linkTitle} onChange={(e) => setLinkTitle(e.target.value)} style={{ ...inputStyle, flex: 1 }} placeholder="Título del enlace" />
+            </div>
+            <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+              <input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} style={{ ...inputStyle, flex: 1 }} placeholder="https://… (video, drive, web)" />
+              <Button size="sm" onClick={addLink}>+ Enlace</Button>
+            </div>
+          </>
+        )}
+      </div>
     </Modal>
   );
 }
@@ -145,4 +285,8 @@ function toLocalInput(iso: string): string {
 const styles: Record<string, React.CSSProperties> = {
   preview: { width: 140, aspectRatio: '16/9', objectFit: 'cover', borderRadius: 8, marginBottom: 12, border: '1px solid #1F222B' },
   checkRow: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, cursor: 'pointer' },
+  materialsBox: { marginTop: 8, padding: 14, backgroundColor: '#0A0B0E', border: '1px solid #1F222B', borderRadius: 12 },
+  materialsTitle: { color: '#F1F5F9', fontSize: 13, fontWeight: 700, margin: '0 0 10px' },
+  matRow: { display: 'flex', alignItems: 'center', gap: 10, backgroundColor: '#14161C', border: '1px solid #1F222B', borderRadius: 8, padding: '7px 10px' },
+  matDel: { background: 'transparent', border: 'none', color: '#FCA5A5', fontSize: 13, cursor: 'pointer', flexShrink: 0 },
 };

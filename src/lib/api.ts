@@ -153,6 +153,19 @@ export type Lesson = {
   created_at?: string;
 };
 
+export type Material = {
+  id: string;
+  lesson_id: string;
+  course_id: string;
+  kind: 'file' | 'link';
+  title: string;
+  url: string;
+  mime: string | null;
+  size: number | null;
+  position: number;
+  created_at: string;
+};
+
 export type Enrollment = {
   id: string;
   user_id: string;
@@ -235,6 +248,59 @@ export async function changePassword(currentPassword: string, newPassword: strin
 
 export async function listMyPurchases(): Promise<Purchase[]> {
   return api<Purchase[]>('/purchases/me');
+}
+
+// ============================================================
+// MATERIALES (documentos, archivos, enlaces)
+// ============================================================
+
+export async function listLessonMaterials(lessonId: string): Promise<Material[]> {
+  return api<Material[]>(`/lessons/${lessonId}/materials`);
+}
+
+export async function createMaterial(input: {
+  lesson_id: string;
+  course_id: string;
+  kind: 'file' | 'link';
+  title: string;
+  url: string;
+  mime?: string | null;
+  size?: number | null;
+}): Promise<string> {
+  const { id } = await api<{ id: string }>('/materials', { method: 'POST', body: input });
+  return id;
+}
+
+export async function deleteMaterial(id: string): Promise<void> {
+  await api(`/materials/${id}`, { method: 'DELETE' });
+}
+
+/** Sube un archivo (multipart) y devuelve su URL pública y metadatos. */
+export async function uploadFile(
+  file: File
+): Promise<{ url: string; name: string; mime: string | null; size: number }> {
+  const fd = new FormData();
+  fd.append('file', file);
+  const token = getToken();
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/upload`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: fd,
+    });
+  } catch {
+    throw new Error('No se pudo conectar con el servidor');
+  }
+  const text = await res.text();
+  const data = text ? safeJson(text) : null;
+  if (!res.ok) throw new Error((data && (data.error as string)) || `Error ${res.status}`);
+  return data;
+}
+
+/** URL absoluta usable en el navegador para un material (rutas root-relative tal cual). */
+export function materialHref(url: string): string {
+  return url;
 }
 
 // Usuarios (admin)
