@@ -16,6 +16,8 @@ export type CourseFormValues = {
   status: CourseStatus;
   published_at: string | null;
   access_type: AccessType;
+  price: number;
+  currency: string;
 };
 
 export function CourseForm({
@@ -40,6 +42,8 @@ export function CourseForm({
     status: (initial?.status as CourseStatus) ?? 'draft',
     published_at: initial?.published_at ?? null,
     access_type: (initial?.access_type as AccessType) ?? 'free',
+    price: initial?.price ?? 0,
+    currency: initial?.currency ?? 'USD',
   });
 
   const set = <K extends keyof CourseFormValues>(k: K, val: CourseFormValues[K]) =>
@@ -127,6 +131,29 @@ export function CourseForm({
           />
         </Field>
       )}
+
+      <div style={styles.two}>
+        <Field label="Precio" hint="0 = curso gratis">
+          <input
+            type="number"
+            min={0}
+            step="0.01"
+            value={v.price}
+            onChange={(e) => set('price', Number(e.target.value) || 0)}
+            style={inputStyle}
+          />
+        </Field>
+        <Field label="Moneda">
+          <select value={v.currency} onChange={(e) => set('currency', e.target.value)} style={inputStyle}>
+            <option value="USD">USD ($)</option>
+            <option value="PEN">PEN (S/)</option>
+            <option value="MXN">MXN ($)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="COP">COP ($)</option>
+            <option value="ARS">ARS ($)</option>
+          </select>
+        </Field>
+      </div>
 
       <Button type="submit" full disabled={busy || !v.title.trim()} style={{ marginTop: 8 }}>
         {busy ? '...' : submitLabel}

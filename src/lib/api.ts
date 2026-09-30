@@ -117,6 +117,8 @@ export type Course = {
   status: CourseStatus;
   published_at: string | null;
   access_type: AccessType;
+  price: number;
+  currency: string;
   position: number;
   created_at: string;
   updated_at: string;
@@ -172,6 +174,17 @@ export type LessonProgress = {
   updated_at: string;
 };
 
+export type Purchase = {
+  id: string;
+  user_id: string;
+  course_id: string | null;
+  course_title: string;
+  amount: number;
+  currency: string;
+  status: 'completed' | 'refunded';
+  created_at: string;
+};
+
 // Usuario con conteo de inscripciones (panel admin)
 export type UserRow = Profile & { enrollments: number };
 
@@ -211,6 +224,17 @@ export async function apiMe(): Promise<Profile> {
 
 export async function updateMyProfile(name: string): Promise<void> {
   await api('/profile', { method: 'PUT', body: { name } });
+}
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  await api('/profile/password', {
+    method: 'PUT',
+    body: { current_password: currentPassword, new_password: newPassword },
+  });
+}
+
+export async function listMyPurchases(): Promise<Purchase[]> {
+  return api<Purchase[]>('/purchases/me');
 }
 
 // Usuarios (admin)

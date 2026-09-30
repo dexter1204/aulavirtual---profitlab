@@ -96,6 +96,7 @@ function is_enrolled(string $userId, string $courseId): bool {
 // Normaliza los tipos de una fila de curso para JSON (bool/int).
 function shape_course(array $c): array {
   $c['position'] = (int) $c['position'];
+  if (array_key_exists('price', $c)) $c['price'] = (float) $c['price'];
   return $c;
 }
 

@@ -18,6 +18,15 @@ const levelLabel: Record<string, string> = {
   avanzado: 'Avanzado',
 };
 
+function money(amount: number, currency: string): string {
+  if (!amount || amount <= 0) return 'Gratis';
+  try {
+    return new Intl.NumberFormat('es', { style: 'currency', currency }).format(amount);
+  } catch {
+    return `${amount.toFixed(2)} ${currency}`;
+  }
+}
+
 export default function CourseDetailPage() {
   return (
     <Suspense fallback={<Spinner />}>
@@ -153,13 +162,21 @@ function CourseDetail() {
           </div>
         )}
 
+        {!enrolled && !isAdmin && (
+          <div style={{ marginBottom: 12 }}>
+            <span style={{ color: course.price > 0 ? '#F1F5F9' : '#86EFAC', fontSize: 24, fontWeight: 800 }}>
+              {money(course.price, course.currency)}
+            </span>
+          </div>
+        )}
+
         {canWatch ? (
           <Button full onClick={() => router.push(learnHref(firstLessonId))} disabled={totalLessons === 0}>
             {totalLessons === 0 ? 'Sin clases todavía' : enrolled && done > 0 ? '▶  Continuar curso' : '▶  Comenzar curso'}
           </Button>
         ) : course.access_type === 'free' ? (
           <Button full onClick={handleEnroll} disabled={working}>
-            {working ? '...' : '🎓  Inscribirme gratis'}
+            {working ? '...' : course.price > 0 ? `🎓  Obtener por ${money(course.price, course.currency)}` : '🎓  Inscribirme gratis'}
           </Button>
         ) : (
           <div style={styles.lockedNote}>

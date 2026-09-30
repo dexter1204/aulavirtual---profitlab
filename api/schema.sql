@@ -40,6 +40,8 @@ CREATE TABLE IF NOT EXISTS courses (
   status        ENUM('draft','published','scheduled') NOT NULL DEFAULT 'draft',
   published_at  DATETIME     NULL,
   access_type   ENUM('free','enrollment') NOT NULL DEFAULT 'free',
+  price         DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  currency      VARCHAR(8)   NOT NULL DEFAULT 'USD',
   position      INT          NOT NULL DEFAULT 0,
   created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -131,6 +133,26 @@ CREATE TABLE IF NOT EXISTS lesson_progress (
     REFERENCES lessons(id) ON DELETE CASCADE,
   CONSTRAINT fk_progress_course FOREIGN KEY (course_id)
     REFERENCES courses(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- PURCHASES (perfil de compras / historial de adquisiciones)
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS purchases (
+  id           CHAR(36)      NOT NULL,
+  user_id      CHAR(36)      NOT NULL,
+  course_id    CHAR(36)      NULL,
+  course_title VARCHAR(200)  NOT NULL,
+  amount       DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  currency     VARCHAR(8)    NOT NULL DEFAULT 'USD',
+  status       ENUM('completed','refunded') NOT NULL DEFAULT 'completed',
+  created_at   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_purchases_user (user_id, created_at),
+  CONSTRAINT fk_purchases_user FOREIGN KEY (user_id)
+    REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_purchases_course FOREIGN KEY (course_id)
+    REFERENCES courses(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================

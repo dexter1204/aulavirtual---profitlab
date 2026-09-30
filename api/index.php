@@ -97,13 +97,56 @@ try {
   }
 
   // ============ PROFILE ============
-  if ($seg[0] === 'profile' && $method === 'PUT') {
+  if ($seg[0] === 'profile') {
     $u = require_auth();
-    $b = body();
-    $name = trim($b['name'] ?? '');
-    if ($name === '') fail('El nombre no puede estar vacío');
-    db()->prepare('UPDATE users SET name = ? WHERE id = ?')->execute([$name, $u['id']]);
-    json_out(['ok' => true]);
+
+    // PUT /profile/password  — cambiar contraseña
+    if (($seg[1] ?? '') === 'password' && $method === 'PUT') {
+      $b = body();
+      $cur = (string)($b['current_password'] ?? '');
+      $new = (string)($b['new_password'] ?? '');
+      if (strlen($new) < 6) fail('La nueva contraseña debe tener al menos 6 caracteres');
+      $s = db()->prepare('SELECT password_hash FROM users WHERE id = ?');
+      $s->execute([$u['id']]);
+      $hash = $s->fetchColumn();
+      if (!$hash || !password_verify($cur, $hash)) fail('La contraseña actual es incorrecta', 403);
+      db()->prepare('UPDATE users SET password_hash = ? WHERE id = ?')
+          ->execute([password_hash($new, PASSWORD_DEFAULT), $u['id']]);
+      json_out(['ok' => true]);
+    }
+
+    // PUT /profile  — cambiar nombre
+    if (count($seg) === 1 && $method === 'PUT') {
+      $b = body();
+      $name = trim($b['name'] ?? '');
+      if ($name === '') fail('El nombre no puede estar vacío');
+      db()->prepare('UPDATE users SET name = ? WHERE id = ?')->execute([$name, $u['id']]);
+      json_out(['ok' => true]);
+    }
+    fail('Ruta de profile no encontrada', 404);
+  }
+
+  // ============ PURCHASES (perfil de compras) ============
+  if ($seg[0] === 'purchases') {
+    // GET /purchases/me
+    if (($seg[1] ?? '') === 'me' && $method === 'GET') {
+      $u = require_auth();
+      $s = db()->prepare('SELECT * FROM purchases WHERE user_id = ? ORDER BY created_at DESC');
+      $s->execute([$u['id']]);
+      $rows = array_map(function ($r) { $r['amount'] = (float) $r['amount']; return $r; }, $s->fetchAll());
+      json_out($rows);
+    }
+    // GET /purchases  (admin: todas)
+    if (count($seg) === 1 && $method === 'GET') {
+      require_admin();
+      $rows = db()->query(
+        'SELECT p.*, u.name AS user_name, u.email AS user_email
+         FROM purchases p JOIN users u ON u.id = p.user_id
+         ORDER BY p.created_at DESC')->fetchAll();
+      foreach ($rows as &$r) { $r['amount'] = (float) $r['amount']; }
+      json_out($rows);
+    }
+    fail('Ruta de purchases no encontrada', 404);
   }
 
   // ============ COURSES ============
@@ -145,13 +188,13 @@ try {
         $id = uuid();
         $slug = slugify($b['slug'] ?? $b['title']) . '-' . substr(bin2hex(random_bytes(3)), 0, 4);
         db()->prepare('INSERT INTO courses
-            (id,title,slug,subtitle,description,thumbnail_url,category,level,instructor,status,published_at,access_type,position)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0)')
+            (id,title,slug,subtitle,description,thumbnail_url,category,level,instructor,status,published_at,access_type,price,currency,position)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)')
           ->execute([
             $id, $b['title'], $slug, $b['subtitle'] ?? null, $b['description'] ?? null,
             $b['thumbnail_url'] ?? null, $b['category'] ?? 'General', $b['level'] ?? 'principiante',
             $b['instructor'] ?? 'Profit Lab', $b['status'] ?? 'draft', $b['published_at'] ?? null,
-            $b['access_type'] ?? 'free',
+            $b['access_type'] ?? 'free', (float)($b['price'] ?? 0), $b['currency'] ?? 'USD',
           ]);
         json_out(shape_course(fetch_course($id)), 201);
       }
@@ -227,7 +270,7 @@ try {
       if ($method === 'PUT') {
         require_admin();
         $b = body();
-        $allowed = ['title','subtitle','description','thumbnail_url','category','level','instructor','status','published_at','access_type'];
+        $allowed = ['title','subtitle','description','thumbnail_url','category','level','instructor','status','published_at','access_type','price','currency'];
         $sets = []; $vals = [];
         foreach ($allowed as $k) {
           if (array_key_exists($k, $b)) { $sets[] = "$k = ?"; $vals[] = $b[$k]; }
@@ -471,5 +514,11 @@ function upsert_enrollment(string $userId, string $courseId): void {
   if (!$s->fetchColumn()) {
     db()->prepare('INSERT INTO enrollments (id, user_id, course_id) VALUES (?,?,?)')
         ->execute([uuid(), $userId, $courseId]);
+    // Registrar la compra (snapshot del precio en el momento)
+    $c = fetch_course($courseId);
+    if ($c) {
+      db()->prepare('INSERT INTO purchases (id,user_id,course_id,course_title,amount,currency,status) VALUES (?,?,?,?,?,?,?)')
+          ->execute([uuid(), $userId, $courseId, $c['title'], (float)($c['price'] ?? 0), $c['currency'] ?? 'USD', 'completed']);
+    }
   }
 }
