@@ -38,4 +38,6 @@ return [
   'mp_access_token' => '',
   // Moneda de tu cuenta Mercado Pago (Perú = PEN).
   'mp_currency' => 'PEN',
+  // true = modo PRUEBA (sandbox, no mueve dinero). false = producción (cobra).
+  'mp_sandbox' => false,
 ];

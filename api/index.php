@@ -600,11 +600,15 @@ try {
     ];
     [$code, $data] = mp_request('POST', 'https://api.mercadopago.com/checkout/preferences', $token, $pref);
     if ($code >= 200 && $code < 300 && !empty($data['init_point'])) {
-      $isTest = str_starts_with($token, 'TEST-');
-      $link = $isTest ? ($data['sandbox_init_point'] ?? $data['init_point']) : $data['init_point'];
-      json_out(['init_point' => $link, 'id' => $data['id'] ?? null]);
+      // Modo prueba: con 'mp_sandbox' => true, o token antiguo TEST-, usa el
+      // checkout de pruebas (no mueve dinero real).
+      $sandbox = !empty($cfg['mp_sandbox']) || str_starts_with($token, 'TEST-');
+      $link = $sandbox ? ($data['sandbox_init_point'] ?? $data['init_point']) : $data['init_point'];
+      json_out(['init_point' => $link, 'id' => $data['id'] ?? null, 'sandbox' => $sandbox]);
     }
-    fail('No se pudo iniciar el pago con Mercado Pago', 502);
+    // Propaga el mensaje real de Mercado Pago para diagnosticar más fácil
+    $detail = $data['message'] ?? ($data['error'] ?? '');
+    fail('No se pudo iniciar el pago con Mercado Pago' . ($detail ? ": $detail" : ''), 502);
   }
 
   // Confirmación/verificación de un pago (la usa la página de retorno y el webhook)
