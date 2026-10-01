@@ -197,6 +197,94 @@ select[style*="rgb(20, 22, 28)"] {
   }
 }
 
+/* ============================================================
+   TARJETA DE CURSO · hover, foco y zoom de miniatura
+   ============================================================ */
+.courseCard {
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform;
+}
+.courseCard:hover {
+  transform: translateY(-3px);
+  border-color: rgba(199, 249, 76, 0.35) !important;
+  box-shadow: 0 14px 32px -14px rgba(0, 0, 0, 0.7);
+}
+.courseCard:focus-visible {
+  outline: 2px solid #C7F94C;
+  outline-offset: 2px;
+  border-color: rgba(199, 249, 76, 0.5) !important;
+}
+.courseThumb {
+  transition: transform 0.4s ease;
+}
+.courseCard:hover .courseThumb {
+  transform: scale(1.045);
+}
+.courseCardCta > span {
+  transition: transform 0.2s ease;
+}
+.courseCard:hover .courseCardCta > span {
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .courseCard,
+  .courseThumb,
+  .courseCardCta > span {
+    transition: none;
+  }
+  .courseCard:hover {
+    transform: none;
+  }
+  .courseCard:hover .courseThumb,
+  .courseCard:hover .courseCardCta > span {
+    transform: none;
+  }
+}
+
+/* Buscador con ícono · campo de catálogo */
+.searchField {
+  position: relative;
+}
+.searchField .searchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748B;
+  pointer-events: none;
+  display: flex;
+}
+.searchField input {
+  padding-left: 42px !important;
+  padding-right: 42px !important;
+}
+.searchField input[type="search"]::-webkit-search-cancel-button,
+.searchField input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.searchField .searchClear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #94A3B8;
+  cursor: pointer;
+}
+.searchField .searchClear:hover {
+  background: #1F222B;
+  color: #F1F5F9;
+}
+
 /* Foco visible accesible (teclado) */
 a:focus-visible,
 button:focus-visible,

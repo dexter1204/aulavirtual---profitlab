@@ -99,3 +99,33 @@ export const IconArrowLeft = ({ size, color, style, strokeWidth }: P) => (
     <path d="m12 19-7-7 7-7" />
   </svg>
 );
+export const IconArrowRight = ({ size, color, style, strokeWidth }: P) => (
+  <svg {...base(size, color, strokeWidth, style)}>
+    <path d="M5 12h14" />
+    <path d="m12 5 7 7-7 7" />
+  </svg>
+);
+export const IconSearch = ({ size, color, style, strokeWidth }: P) => (
+  <svg {...base(size, color, strokeWidth, style)}>
+    <circle cx="11" cy="11" r="8" />
+    <path d="m21 21-4.3-4.3" />
+  </svg>
+);
+export const IconX = ({ size, color, style, strokeWidth }: P) => (
+  <svg {...base(size, color, strokeWidth, style)}>
+    <path d="M18 6 6 18" />
+    <path d="m6 6 12 12" />
+  </svg>
+);
+export const IconVideo = ({ size, color, style, strokeWidth }: P) => (
+  <svg {...base(size, color, strokeWidth, style)}>
+    <path d="m16 10 4.5-2.6a.6.6 0 0 1 .9.5v8.2a.6.6 0 0 1-.9.5L16 14" />
+    <rect x="2.5" y="6" width="13.5" height="12" rx="2.5" />
+  </svg>
+);
+export const IconTag = ({ size, color, style, strokeWidth }: P) => (
+  <svg {...base(size, color, strokeWidth, style)}>
+    <path d="M12.6 2.6 21 11a2 2 0 0 1 0 2.8l-6.2 6.2a2 2 0 0 1-2.8 0L3.6 11.6A2 2 0 0 1 3 10.2V4a1 1 0 0 1 1-1h6.2a2 2 0 0 1 1.4.6z" />
+    <circle cx="7.5" cy="7.5" r="1.3" fill={color ?? 'currentColor'} stroke="none" />
+  </svg>
+);

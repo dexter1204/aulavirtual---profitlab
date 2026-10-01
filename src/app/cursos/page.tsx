@@ -5,6 +5,7 @@ import { listPublishedCourses } from '@/lib/courses';
 import type { Course } from '@/lib/api';
 import { CourseCard } from '@/components/CourseCard';
 import { Page, PageTitle, Spinner, Empty, inputStyle } from '@/components/ui';
+import { IconSearch, IconX, IconBook } from '@/components/icons';
 
 export default function CatalogPage() {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -41,44 +42,75 @@ export default function CatalogPage() {
     <Page>
       <PageTitle title="Catálogo" subtitle="Cursos de trading de Profit Lab Academy" />
 
-      <input
-        placeholder="🔍  Buscar curso, tema o instructor…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        style={{ ...inputStyle, marginBottom: 14 }}
-      />
-
-      <div style={styles.chips}>
-        {categories.map((c) => (
+      <div className="searchField" style={{ marginBottom: 14 }}>
+        <span className="searchIcon" aria-hidden="true">
+          <IconSearch size={17} />
+        </span>
+        <input
+          type="search"
+          placeholder="Buscar curso, tema o instructor…"
+          aria-label="Buscar cursos"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          style={inputStyle}
+        />
+        {query && (
           <button
-            key={c}
-            onClick={() => setCat(c)}
-            style={{
-              ...styles.chip,
-              backgroundColor: cat === c ? '#C7F94C' : '#14161C',
-              color: cat === c ? '#0A0B0E' : '#94A3B8',
-              borderColor: cat === c ? '#C7F94C' : '#1F222B',
-            }}
+            type="button"
+            className="searchClear"
+            aria-label="Limpiar búsqueda"
+            onClick={() => setQuery('')}
           >
-            {c}
+            <IconX size={16} />
           </button>
-        ))}
+        )}
+      </div>
+
+      <div style={styles.chips} role="group" aria-label="Filtrar por categoría">
+        {categories.map((c) => {
+          const active = cat === c;
+          return (
+            <button
+              key={c}
+              type="button"
+              aria-pressed={active}
+              onClick={() => setCat(c)}
+              style={{
+                ...styles.chip,
+                backgroundColor: active ? '#C7F94C' : '#14161C',
+                color: active ? '#0A0B0E' : '#94A3B8',
+                borderColor: active ? '#C7F94C' : '#1F222B',
+              }}
+            >
+              {c}
+            </button>
+          );
+        })}
       </div>
 
       {loading ? (
         <Spinner />
       ) : filtered.length === 0 ? (
         <Empty
-          icon="📚"
-          title="Aún no hay cursos"
-          message="Cuando la academia publique un curso, aparecerá aquí."
+          icon={<IconBook size={38} color="#C7F94C" style={{ opacity: 0.6 }} />}
+          title={query || cat !== 'Todos' ? 'Sin resultados' : 'Aún no hay cursos'}
+          message={
+            query || cat !== 'Todos'
+              ? 'Prueba con otra búsqueda o cambia de categoría.'
+              : 'Cuando la academia publique un curso, aparecerá aquí.'
+          }
         />
       ) : (
-        <div style={styles.grid}>
-          {filtered.map((c) => (
-            <CourseCard key={c.id} course={c} href={`/curso/?slug=${c.slug}`} />
-          ))}
-        </div>
+        <>
+          <p style={styles.count} aria-live="polite">
+            {filtered.length} {filtered.length === 1 ? 'curso' : 'cursos'}
+          </p>
+          <div style={styles.grid}>
+            {filtered.map((c) => (
+              <CourseCard key={c.id} course={c} href={`/curso/?slug=${c.slug}`} />
+            ))}
+          </div>
+        </>
       )}
     </Page>
   );
@@ -95,7 +127,9 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     cursor: 'pointer',
     whiteSpace: 'nowrap',
+    transition: 'background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease',
   },
+  count: { color: '#64748B', fontSize: 12, fontWeight: 500, margin: '0 0 12px' },
   grid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',

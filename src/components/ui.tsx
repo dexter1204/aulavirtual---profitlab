@@ -183,7 +183,7 @@ export function Empty({
   message,
   cta,
 }: {
-  icon?: string;
+  icon?: React.ReactNode;
   title: string;
   message?: string;
   cta?: { label: string; href: string };
