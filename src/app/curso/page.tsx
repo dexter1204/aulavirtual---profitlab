@@ -177,8 +177,9 @@ function CourseDetail() {
         ← Catálogo
       </Link>
 
+      <div className="courseGrid">
       {/* HERO */}
-      <div style={styles.hero}>
+      <div style={{ ...styles.hero, gridArea: 'hero' }}>
         {course.thumbnail_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={course.thumbnail_url} alt={course.title} style={styles.heroImg} />
@@ -199,7 +200,7 @@ function CourseDetail() {
       </div>
 
       {/* ACCIÓN */}
-      <Card style={{ marginTop: 16 }}>
+      <Card className="ca-buy" style={{ gridArea: 'buy' }}>
         {enrolled && (
           <div style={{ marginBottom: 14 }}>
             <div style={styles.progressTrack}>
@@ -254,7 +255,7 @@ function CourseDetail() {
       </Card>
 
       {/* DETALLES DEL CURSO */}
-      <Card style={{ marginTop: 16 }}>
+      <Card className="ca-details" style={{ gridArea: 'details' }}>
         <h2 style={{ ...styles.sectionTitle, marginBottom: 2 }}>Detalles del curso</h2>
         <DetailRow icon="📚" label="Lecciones" value={totalLessons} />
         <DetailRow icon="🧩" label="Módulos" value={modules.length} />
@@ -274,15 +275,17 @@ function CourseDetail() {
       </Card>
 
       {/* DESCRIPCIÓN */}
-      {course.description && (
-        <section style={{ marginTop: 24 }}>
-          <h2 style={styles.sectionTitle}>Sobre este curso</h2>
-          <p style={styles.desc}>{course.description}</p>
-        </section>
-      )}
+      <section style={{ gridArea: 'desc' }}>
+        {course.description ? (
+          <>
+            <h2 style={styles.sectionTitle}>Sobre este curso</h2>
+            <p style={styles.desc}>{course.description}</p>
+          </>
+        ) : null}
+      </section>
 
       {/* CURRÍCULO */}
-      <section style={{ marginTop: 24 }}>
+      <section style={{ gridArea: 'curriculum' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
           <h2 style={styles.sectionTitle}>Contenido del curso</h2>
           <span style={{ color: '#64748B', fontSize: 12 }}>
@@ -337,6 +340,7 @@ function CourseDetail() {
           </div>
         )}
       </section>
+      </div>
     </Page>
   );
 }

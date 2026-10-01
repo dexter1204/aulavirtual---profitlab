@@ -151,9 +151,18 @@ export const inputStyle: React.CSSProperties = {
 };
 
 // ---------- Tarjeta ----------
-export function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+export function Card({
+  children,
+  style,
+  className,
+}: {
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+  className?: string;
+}) {
   return (
     <div
+      className={className}
       style={{
         backgroundColor: '#14161C',
         border: '1px solid #1F222B',

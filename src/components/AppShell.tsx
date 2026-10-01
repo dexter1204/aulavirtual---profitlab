@@ -57,10 +57,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // La ficha de curso usa dos columnas en escritorio → contenedor más ancho.
+  const wide = pathname === '/curso';
+
   return (
     <>
       <AppHeader />
-      <main style={{ maxWidth: 760, margin: '0 auto' }}>{children}</main>
+      <main style={{ maxWidth: wide ? 1040 : 760, margin: '0 auto' }}>{children}</main>
       <BottomNav />
     </>
   );

@@ -159,6 +159,39 @@ select[style*="rgb(20, 22, 28)"] {
   -webkit-backdrop-filter: none !important;
 }
 
+/* ============================================================
+   PÁGINA DE CURSO · dos columnas en escritorio, una en móvil
+   ============================================================ */
+.courseGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "hero"
+    "buy"
+    "details"
+    "desc"
+    "curriculum";
+  gap: 16px;
+  align-items: start;
+}
+
+@media (min-width: 860px) {
+  .courseGrid {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-areas:
+      "hero       buy"
+      "desc       details"
+      "curriculum details";
+    column-gap: 24px;
+    row-gap: 18px;
+  }
+  .courseGrid .ca-buy,
+  .courseGrid .ca-details {
+    position: sticky;
+    top: 86px;
+  }
+}
+
 /* Clamp de texto multilínea */
 .clamp-2 {
   display: -webkit-box;
