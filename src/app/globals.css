@@ -167,29 +167,44 @@ select[style*="rgb(20, 22, 28)"] {
   grid-template-columns: 1fr;
   grid-template-areas:
     "hero"
-    "buy"
-    "details"
+    "side"
     "desc"
     "curriculum";
-  gap: 16px;
+  gap: 20px;
   align-items: start;
 }
+.courseGrid .ca-side {
+  grid-area: side;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
-@media (min-width: 860px) {
+@media (min-width: 900px) {
   .courseGrid {
-    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-columns: minmax(0, 1fr) 352px;
     grid-template-areas:
-      "hero       buy"
-      "desc       details"
-      "curriculum details";
-    column-gap: 24px;
-    row-gap: 18px;
+      "hero       side"
+      "desc       side"
+      "curriculum side";
+    column-gap: 28px;
+    row-gap: 24px;
   }
-  .courseGrid .ca-buy,
-  .courseGrid .ca-details {
+  .courseGrid .ca-side {
     position: sticky;
-    top: 86px;
+    top: 84px;
   }
+}
+
+/* Foco visible accesible (teclado) */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #C7F94C;
+  outline-offset: 2px;
 }
 
 /* Clamp de texto multilínea */

@@ -11,6 +11,10 @@ import { getCourseStats, startCheckout, type Course, type Module, type Enrollmen
 import { youTubeThumbnail } from '@/lib/youtube';
 import { Page, Spinner, Button, Pill, Card, Empty } from '@/components/ui';
 import { useToast } from '@/components/Toast';
+import {
+  IconBook, IconLayers, IconClock, IconChart, IconUsers, IconCard, IconAward,
+  IconDevices, IconPlay, IconArrowLeft, IconCheck, IconLock,
+} from '@/components/icons';
 
 const levelLabel: Record<string, string> = {
   principiante: 'Principiante',
@@ -50,12 +54,12 @@ function totalDuration(modules: Module[]): string | null {
   return h > 0 ? `${h} h ${m} min` : `${m} min`;
 }
 
-function DetailRow({ icon, label, value }: { icon: string; label: string; value: React.ReactNode }) {
+function DetailRow({ icon, label, value, last }: { icon: React.ReactNode; label: string; value: React.ReactNode; last?: boolean }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 0', borderBottom: '1px solid #1F222B' }}>
-      <span style={{ fontSize: 16, width: 20, textAlign: 'center' }}>{icon}</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: last ? 'none' : '1px solid #1F222B' }}>
+      <span style={{ color: '#C7F94C', display: 'flex', flexShrink: 0 }}>{icon}</span>
       <span style={{ color: '#94A3B8', fontSize: 13, flex: 1 }}>{label}</span>
-      <span style={{ color: '#F1F5F9', fontSize: 13, fontWeight: 700 }}>{value}</span>
+      <span style={{ color: '#F1F5F9', fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{value}</span>
     </div>
   );
 }
@@ -174,7 +178,8 @@ function CourseDetail() {
   return (
     <Page>
       <Link href="/cursos/" style={styles.back}>
-        ← Catálogo
+        <IconArrowLeft size={15} />
+        Catálogo
       </Link>
 
       <div className="courseGrid">
@@ -199,8 +204,10 @@ function CourseDetail() {
         </div>
       </div>
 
+      {/* COLUMNA DERECHA: compra + detalles (juntos, arriba) */}
+      <aside className="ca-side">
       {/* ACCIÓN */}
-      <Card className="ca-buy" style={{ gridArea: 'buy' }}>
+      <Card>
         {enrolled && (
           <div style={{ marginBottom: 14 }}>
             <div style={styles.progressTrack}>
@@ -222,18 +229,20 @@ function CourseDetail() {
 
         {canWatch ? (
           <Button full onClick={() => router.push(learnHref(firstLessonId))} disabled={totalLessons === 0}>
-            {totalLessons === 0 ? 'Sin clases todavía' : enrolled && done > 0 ? '▶  Continuar curso' : '▶  Comenzar curso'}
+            <IconPlay size={16} color="#0A0B0E" />
+            {totalLessons === 0 ? 'Sin clases todavía' : enrolled && done > 0 ? 'Continuar curso' : 'Comenzar curso'}
           </Button>
         ) : course.price > 0 ? (
           <>
             <Button full onClick={handleBuy} disabled={working || !session}>
-              {working ? 'Redirigiendo…' : `💳  Comprar por ${money(course.price, course.currency)}`}
+              <IconCard size={17} color="#0A0B0E" />
+              {working ? 'Redirigiendo…' : `Comprar por ${money(course.price, course.currency)}`}
             </Button>
             <p style={styles.mpNote}>Pago seguro con Mercado Pago · tarjeta, Yape, transferencia y más</p>
           </>
         ) : course.access_type === 'free' ? (
           <Button full onClick={handleEnroll} disabled={working || !session}>
-            {working ? '...' : '🎓  Inscribirme gratis'}
+            {working ? '...' : 'Inscribirme gratis'}
           </Button>
         ) : (
           <div style={styles.lockedNote}>
@@ -255,24 +264,22 @@ function CourseDetail() {
       </Card>
 
       {/* DETALLES DEL CURSO */}
-      <Card className="ca-details" style={{ gridArea: 'details' }}>
-        <h2 style={{ ...styles.sectionTitle, marginBottom: 2 }}>Detalles del curso</h2>
-        <DetailRow icon="📚" label="Lecciones" value={totalLessons} />
-        <DetailRow icon="🧩" label="Módulos" value={modules.length} />
-        {totalDuration(modules) && <DetailRow icon="🎬" label="Duración" value={totalDuration(modules)} />}
-        <DetailRow icon="📊" label="Nivel" value={levelLabel[course.level] ?? course.level} />
-        <DetailRow icon="👥" label="Alumnos inscritos" value={students} />
+      <Card>
+        <h2 style={{ ...styles.sectionTitle, marginBottom: 4 }}>Detalles del curso</h2>
+        <DetailRow icon={<IconBook size={18} />} label="Lecciones" value={totalLessons} />
+        <DetailRow icon={<IconLayers size={18} />} label="Módulos" value={modules.length} />
+        {totalDuration(modules) && <DetailRow icon={<IconClock size={18} />} label="Duración" value={totalDuration(modules)} />}
+        <DetailRow icon={<IconChart size={18} />} label="Nivel" value={levelLabel[course.level] ?? course.level} />
+        <DetailRow icon={<IconUsers size={18} />} label="Alumnos inscritos" value={students} />
         <DetailRow
-          icon="💳"
+          icon={<IconCard size={18} />}
           label="Acceso"
           value={course.price > 0 ? money(course.price, course.currency) : course.access_type === 'free' ? 'Gratis' : 'Por inscripción'}
         />
-        <DetailRow icon="🏆" label="Certificado" value="Al completar" />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 0' }}>
-          <span style={{ fontSize: 16, width: 20, textAlign: 'center' }}>📱</span>
-          <span style={{ color: '#94A3B8', fontSize: 13 }}>Disponible en Desktop, Tablet y Móvil</span>
-        </div>
+        <DetailRow icon={<IconAward size={18} />} label="Certificado" value="Al completar" />
+        <DetailRow icon={<IconDevices size={18} />} label="Dispositivos" value="Desktop · Tablet · Móvil" last />
       </Card>
+      </aside>
 
       {/* DESCRIPCIÓN */}
       <section style={{ gridArea: 'desc' }}>
@@ -310,7 +317,9 @@ function CourseDetail() {
                     const isDone = progress[l.id];
                     const inner = (
                       <div style={styles.lesson}>
-                        <span style={{ fontSize: 14 }}>{isDone ? '✅' : unlocked ? '▶️' : '🔒'}</span>
+                        <span style={{ display: 'flex', flexShrink: 0, color: isDone ? '#C7F94C' : unlocked ? '#94A3B8' : '#64748B' }}>
+                          {isDone ? <IconCheck size={15} /> : unlocked ? <IconPlay size={13} /> : <IconLock size={14} />}
+                        </span>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={youTubeThumbnail(l.youtube_id, 'mq')} alt="" style={styles.lessonThumb} />
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -346,7 +355,7 @@ function CourseDetail() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  back: { color: '#94A3B8', fontSize: 13, textDecoration: 'none', display: 'inline-block', marginBottom: 14 },
+  back: { color: '#94A3B8', fontSize: 13, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 },
   hero: { position: 'relative', borderRadius: 18, overflow: 'hidden', border: '1px solid #1F222B' },
   heroImg: { width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' },
   heroFallback: {
