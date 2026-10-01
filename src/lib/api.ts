@@ -61,6 +61,9 @@ export async function api<T = any>(path: string, opts: Options = {}): Promise<T>
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      // Nunca servir desde la caché del navegador: tras crear/editar módulos o
+      // clases, la lista debe reflejar el cambio al instante.
+      cache: 'no-store',
     });
   } catch {
     throw new Error('No se pudo conectar con el servidor');

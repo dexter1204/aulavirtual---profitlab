@@ -20,6 +20,9 @@ function send_cors_headers(): void {
 function json_out($data, int $code = 200): void {
   http_response_code($code);
   header('Content-Type: application/json; charset=utf-8');
+  // Evita que el navegador o la caché dinámica de SiteGround sirvan respuestas viejas.
+  header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+  header('Pragma: no-cache');
   echo json_encode($data);
   exit;
 }
