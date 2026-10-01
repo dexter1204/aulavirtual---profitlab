@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getCourseBySlug, getCurriculum } from '@/lib/courses';
 import { enrollMe, getMyEnrollment, unenrollMe } from '@/lib/enrollments';
 import { getCourseProgress, countCompleted } from '@/lib/progress';
-import type { Course, Module, Enrollment } from '@/lib/api';
+import { getCourseStats, startCheckout, type Course, type Module, type Enrollment } from '@/lib/api';
 import { youTubeThumbnail } from '@/lib/youtube';
 import { Page, Spinner, Button, Pill, Card, Empty } from '@/components/ui';
 import { useToast } from '@/components/Toast';
@@ -25,6 +25,39 @@ function money(amount: number, currency: string): string {
   } catch {
     return `${amount.toFixed(2)} ${currency}`;
   }
+}
+
+/** Suma duraciones "mm:ss" o "h:mm:ss" de todas las clases; devuelve texto o null. */
+function totalDuration(modules: Module[]): string | null {
+  let secs = 0;
+  let any = false;
+  for (const m of modules) {
+    for (const l of m.lessons ?? []) {
+      if (!l.duration) continue;
+      const parts = l.duration.split(':').map((x) => parseInt(x, 10));
+      if (parts.some((n) => isNaN(n))) continue;
+      let s = 0;
+      if (parts.length === 3) s = parts[0] * 3600 + parts[1] * 60 + parts[2];
+      else if (parts.length === 2) s = parts[0] * 60 + parts[1];
+      else continue;
+      secs += s;
+      any = true;
+    }
+  }
+  if (!any) return null;
+  const h = Math.floor(secs / 3600);
+  const m = Math.round((secs % 3600) / 60);
+  return h > 0 ? `${h} h ${m} min` : `${m} min`;
+}
+
+function DetailRow({ icon, label, value }: { icon: string; label: string; value: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 0', borderBottom: '1px solid #1F222B' }}>
+      <span style={{ fontSize: 16, width: 20, textAlign: 'center' }}>{icon}</span>
+      <span style={{ color: '#94A3B8', fontSize: 13, flex: 1 }}>{label}</span>
+      <span style={{ color: '#F1F5F9', fontSize: 13, fontWeight: 700 }}>{value}</span>
+    </div>
+  );
 }
 
 export default function CourseDetailPage() {
@@ -47,6 +80,7 @@ function CourseDetail() {
   const [progress, setProgress] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
+  const [students, setStudents] = useState<number>(0);
 
   useEffect(() => {
     if (!slug) {
@@ -58,12 +92,14 @@ function CourseDetail() {
         const c = await getCourseBySlug(slug);
         setCourse(c);
         if (c) {
-          const [mods, enr] = await Promise.all([
+          const [mods, enr, stats] = await Promise.all([
             getCurriculum(c.id),
             session ? getMyEnrollment(c.id, session.user.id) : Promise.resolve(null),
+            getCourseStats(c.id).catch(() => ({ students: 0 })),
           ]);
           setModules(mods);
           setEnrollment(enr);
+          setStudents(stats.students);
           if (enr && session) setProgress(await getCourseProgress(session.user.id, c.id));
         }
       } catch (e) {
@@ -88,6 +124,19 @@ function CourseDetail() {
     } catch (e: any) {
       toast(e?.message ?? 'No se pudo completar la inscripción', 'error');
     } finally {
+      setWorking(false);
+    }
+  };
+
+  const handleBuy = async () => {
+    if (!course) return;
+    setWorking(true);
+    try {
+      const { init_point } = await startCheckout(course.id);
+      if (init_point) window.location.href = init_point;
+      else throw new Error('No se obtuvo el enlace de pago');
+    } catch (e: any) {
+      toast(e?.message ?? 'No se pudo iniciar el pago', 'error');
       setWorking(false);
     }
   };
@@ -174,9 +223,16 @@ function CourseDetail() {
           <Button full onClick={() => router.push(learnHref(firstLessonId))} disabled={totalLessons === 0}>
             {totalLessons === 0 ? 'Sin clases todavía' : enrolled && done > 0 ? '▶  Continuar curso' : '▶  Comenzar curso'}
           </Button>
+        ) : course.price > 0 ? (
+          <>
+            <Button full onClick={handleBuy} disabled={working || !session}>
+              {working ? 'Redirigiendo…' : `💳  Comprar por ${money(course.price, course.currency)}`}
+            </Button>
+            <p style={styles.mpNote}>Pago seguro con Mercado Pago · tarjeta, Yape, transferencia y más</p>
+          </>
         ) : course.access_type === 'free' ? (
-          <Button full onClick={handleEnroll} disabled={working}>
-            {working ? '...' : course.price > 0 ? `🎓  Obtener por ${money(course.price, course.currency)}` : '🎓  Inscribirme gratis'}
+          <Button full onClick={handleEnroll} disabled={working || !session}>
+            {working ? '...' : '🎓  Inscribirme gratis'}
           </Button>
         ) : (
           <div style={styles.lockedNote}>
@@ -184,11 +240,37 @@ function CourseDetail() {
           </div>
         )}
 
+        {!session && (
+          <p style={{ color: '#FCD34D', fontSize: 12, textAlign: 'center', marginTop: 10 }}>
+            Inicia sesión para inscribirte o comprar.
+          </p>
+        )}
+
         {enrolled && (
           <button onClick={handleUnenroll} disabled={working} style={styles.unenroll}>
             Cancelar inscripción
           </button>
         )}
+      </Card>
+
+      {/* DETALLES DEL CURSO */}
+      <Card style={{ marginTop: 16 }}>
+        <h2 style={{ ...styles.sectionTitle, marginBottom: 2 }}>Detalles del curso</h2>
+        <DetailRow icon="📚" label="Lecciones" value={totalLessons} />
+        <DetailRow icon="🧩" label="Módulos" value={modules.length} />
+        {totalDuration(modules) && <DetailRow icon="🎬" label="Duración" value={totalDuration(modules)} />}
+        <DetailRow icon="📊" label="Nivel" value={levelLabel[course.level] ?? course.level} />
+        <DetailRow icon="👥" label="Alumnos inscritos" value={students} />
+        <DetailRow
+          icon="💳"
+          label="Acceso"
+          value={course.price > 0 ? money(course.price, course.currency) : course.access_type === 'free' ? 'Gratis' : 'Por inscripción'}
+        />
+        <DetailRow icon="🏆" label="Certificado" value="Al completar" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 0' }}>
+          <span style={{ fontSize: 16, width: 20, textAlign: 'center' }}>📱</span>
+          <span style={{ color: '#94A3B8', fontSize: 13 }}>Disponible en Desktop, Tablet y Móvil</span>
+        </div>
       </Card>
 
       {/* DESCRIPCIÓN */}
@@ -298,6 +380,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 13,
     textAlign: 'center',
   },
+  mpNote: { color: '#64748B', fontSize: 11, textAlign: 'center', margin: '8px 0 0' },
   unenroll: {
     display: 'block',
     width: '100%',

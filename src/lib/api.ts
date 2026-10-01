@@ -315,3 +315,21 @@ export async function setUserRole(userId: string, role: Role): Promise<void> {
 export async function getAdminStats(): Promise<AdminStats> {
   return api<AdminStats>('/stats');
 }
+
+// ============================================================
+// CURSO · stats públicas y pagos (Mercado Pago)
+// ============================================================
+
+export async function getCourseStats(courseId: string): Promise<{ students: number }> {
+  return api<{ students: number }>(`/courses/${courseId}/stats`);
+}
+
+/** Inicia el checkout de Mercado Pago y devuelve el enlace de pago. */
+export async function startCheckout(courseId: string): Promise<{ init_point: string }> {
+  return api<{ init_point: string }>('/checkout', { method: 'POST', body: { course_id: courseId } });
+}
+
+/** Verifica un pago tras volver de Mercado Pago (da acceso al instante). */
+export async function verifyPayment(paymentId: string): Promise<{ ok: boolean }> {
+  return api<{ ok: boolean }>('/mp/verify', { method: 'POST', body: { payment_id: paymentId } });
+}

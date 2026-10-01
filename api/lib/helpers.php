@@ -93,6 +93,25 @@ function is_enrolled(string $userId, string $courseId): bool {
   return (bool) $stmt->fetchColumn();
 }
 
+// ---------- Mercado Pago (HTTP via cURL) ----------
+/** Llama a la API de Mercado Pago. Devuelve [httpCode, dataArray]. */
+function mp_request(string $method, string $url, string $token, ?array $body = null): array {
+  $ch = curl_init($url);
+  $headers = ['Authorization: Bearer ' . $token, 'Content-Type: application/json'];
+  curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_CUSTOMREQUEST  => $method,
+    CURLOPT_HTTPHEADER     => $headers,
+    CURLOPT_TIMEOUT        => 20,
+  ]);
+  if ($body !== null) curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+  $resp = curl_exec($ch);
+  $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  curl_close($ch);
+  $data = $resp ? json_decode($resp, true) : null;
+  return [$code, is_array($data) ? $data : []];
+}
+
 // Normaliza los tipos de una fila de curso para JSON (bool/int).
 function shape_course(array $c): array {
   $c['position'] = (int) $c['position'];

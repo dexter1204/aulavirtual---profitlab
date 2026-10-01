@@ -204,6 +204,13 @@ try {
     $id = $seg[1] ?? '';
     $sub = $seg[2] ?? '';
 
+    // /courses/{id}/stats  (público: nº de alumnos)
+    if ($sub === 'stats' && $method === 'GET') {
+      $st = db()->prepare('SELECT COUNT(*) FROM enrollments WHERE course_id = ?');
+      $st->execute([$id]);
+      json_out(['students' => (int) $st->fetchColumn()]);
+    }
+
     // /courses/{id}/curriculum
     if ($sub === 'curriculum' && $method === 'GET') {
       $course = fetch_course($id);
@@ -556,6 +563,81 @@ try {
     fail('Ruta de materials no encontrada', 404);
   }
 
+  // ============ CHECKOUT · Mercado Pago ============
+  // POST /checkout  → crea una preferencia y devuelve el enlace de pago
+  if ($seg[0] === 'checkout' && count($seg) === 1 && $method === 'POST') {
+    $u = require_auth();
+    $cfg = config();
+    $token = $cfg['mp_access_token'] ?? '';
+    if ($token === '') fail('Pagos no configurados (falta el Access Token de Mercado Pago).', 503);
+
+    $courseId = body()['course_id'] ?? '';
+    $c = fetch_course($courseId);
+    if (!$c) fail('Curso no encontrado', 404);
+    if ($c['status'] !== 'published') fail('El curso no está disponible');
+    if ((float) ($c['price'] ?? 0) <= 0) fail('Este curso es gratuito, inscríbete directamente');
+    if (is_enrolled($u['id'], $courseId)) fail('Ya tienes acceso a este curso');
+
+    $site = rtrim($cfg['site_url'] ?? '', '/');
+    $pref = [
+      'items' => [[
+        'title'       => mb_substr($c['title'], 0, 250),
+        'quantity'    => 1,
+        'currency_id' => $cfg['mp_currency'] ?? 'PEN',
+        'unit_price'  => (float) $c['price'],
+      ]],
+      'payer' => ['email' => $u['email']],
+      'external_reference' => $u['id'] . ':' . $courseId,
+      'metadata' => ['user_id' => $u['id'], 'course_id' => $courseId],
+      'back_urls' => [
+        'success' => $site . '/mis-cursos/?pago=ok',
+        'failure' => $site . '/curso/?slug=' . rawurlencode($c['slug']) . '&pago=error',
+        'pending' => $site . '/mis-cursos/?pago=pendiente',
+      ],
+      'auto_return'      => 'approved',
+      'notification_url' => $site . '/api/mp/webhook',
+      'statement_descriptor' => 'PROFITLAB',
+    ];
+    [$code, $data] = mp_request('POST', 'https://api.mercadopago.com/checkout/preferences', $token, $pref);
+    if ($code >= 200 && $code < 300 && !empty($data['init_point'])) {
+      $isTest = str_starts_with($token, 'TEST-');
+      $link = $isTest ? ($data['sandbox_init_point'] ?? $data['init_point']) : $data['init_point'];
+      json_out(['init_point' => $link, 'id' => $data['id'] ?? null]);
+    }
+    fail('No se pudo iniciar el pago con Mercado Pago', 502);
+  }
+
+  // Confirmación/verificación de un pago (la usa la página de retorno y el webhook)
+  if ($seg[0] === 'mp') {
+    $cfg = config();
+    $token = $cfg['mp_access_token'] ?? '';
+
+    // POST /mp/verify {payment_id}  (auth) → verifica y da acceso al instante
+    if (($seg[1] ?? '') === 'verify' && $method === 'POST') {
+      $u = require_auth();
+      if ($token === '') fail('Pagos no configurados', 503);
+      $pid = body()['payment_id'] ?? '';
+      if ($pid === '') fail('payment_id requerido');
+      $ok = mp_settle_payment((string) $pid, $token);
+      json_out(['ok' => $ok]);
+    }
+
+    // POST/GET /mp/webhook  → notificación server-to-server de Mercado Pago
+    if (($seg[1] ?? '') === 'webhook') {
+      if ($token !== '') {
+        $pid = $_GET['data.id'] ?? $_GET['id'] ?? (body()['data']['id'] ?? null);
+        $type = $_GET['type'] ?? $_GET['topic'] ?? (body()['type'] ?? '');
+        if ($pid && ($type === 'payment' || $type === '')) {
+          mp_settle_payment((string) $pid, $token);
+        }
+      }
+      http_response_code(200);
+      echo 'ok';
+      exit;
+    }
+    fail('Ruta mp no encontrada', 404);
+  }
+
   // ============ STATS (admin) ============
   if ($seg[0] === 'stats' && $method === 'GET') {
     require_admin();
@@ -585,17 +667,69 @@ function respond_with_token(string $userId): void {
   json_out(['token' => $token, 'profile' => $s->fetch()]);
 }
 
-function upsert_enrollment(string $userId, string $courseId): void {
+function upsert_enrollment(
+  string $userId,
+  string $courseId,
+  string $provider = 'manual',
+  ?string $reference = null,
+  ?float $amount = null,
+  ?string $currency = null
+): void {
+  // Idempotencia por referencia (ej. id de pago de Mercado Pago)
+  if ($reference !== null) {
+    $r = db()->prepare('SELECT 1 FROM purchases WHERE reference = ? LIMIT 1');
+    $r->execute([$reference]);
+    if ($r->fetchColumn()) {
+      // Ya procesado: asegura la inscripción y termina.
+      ensure_enrollment($userId, $courseId);
+      return;
+    }
+  }
+  ensure_enrollment($userId, $courseId);
+
+  $c = fetch_course($courseId);
+  db()->prepare('INSERT INTO purchases (id,user_id,course_id,course_title,amount,currency,status,provider,reference) VALUES (?,?,?,?,?,?,?,?,?)')
+      ->execute([
+        uuid(), $userId, $courseId, $c['title'] ?? 'Curso',
+        $amount !== null ? $amount : (float) ($c['price'] ?? 0),
+        $currency ?? ($c['currency'] ?? 'USD'),
+        'completed', $provider, $reference,
+      ]);
+}
+
+function ensure_enrollment(string $userId, string $courseId): void {
   $s = db()->prepare('SELECT id FROM enrollments WHERE user_id = ? AND course_id = ?');
   $s->execute([$userId, $courseId]);
   if (!$s->fetchColumn()) {
     db()->prepare('INSERT INTO enrollments (id, user_id, course_id) VALUES (?,?,?)')
         ->execute([uuid(), $userId, $courseId]);
-    // Registrar la compra (snapshot del precio en el momento)
-    $c = fetch_course($courseId);
-    if ($c) {
-      db()->prepare('INSERT INTO purchases (id,user_id,course_id,course_title,amount,currency,status) VALUES (?,?,?,?,?,?,?)')
-          ->execute([uuid(), $userId, $courseId, $c['title'], (float)($c['price'] ?? 0), $c['currency'] ?? 'USD', 'completed']);
-    }
   }
+}
+
+/**
+ * Verifica un pago en Mercado Pago y, si está aprobado, inscribe al alumno
+ * y registra la compra (idempotente). Devuelve true si quedó inscrito.
+ */
+function mp_settle_payment(string $paymentId, string $token): bool {
+  [$code, $p] = mp_request('GET', 'https://api.mercadopago.com/v1/payments/' . rawurlencode($paymentId), $token);
+  if ($code < 200 || $code >= 300) return false;
+  if (($p['status'] ?? '') !== 'approved') return false;
+
+  $ref = (string) ($p['external_reference'] ?? '');
+  $parts = explode(':', $ref);
+  if (count($parts) !== 2) return false;
+  [$userId, $courseId] = $parts;
+
+  // Validar que el usuario y el curso existen
+  $uq = db()->prepare('SELECT 1 FROM users WHERE id = ?');
+  $uq->execute([$userId]);
+  if (!$uq->fetchColumn()) return false;
+  if (!fetch_course($courseId)) return false;
+
+  upsert_enrollment(
+    $userId, $courseId, 'mercadopago', 'mp_' . $paymentId,
+    (float) ($p['transaction_amount'] ?? 0),
+    $p['currency_id'] ?? null
+  );
+  return true;
 }

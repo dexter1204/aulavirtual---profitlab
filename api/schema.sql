@@ -167,9 +167,12 @@ CREATE TABLE IF NOT EXISTS purchases (
   course_title VARCHAR(200)  NOT NULL,
   amount       DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   currency     VARCHAR(8)    NOT NULL DEFAULT 'USD',
-  status       ENUM('completed','refunded') NOT NULL DEFAULT 'completed',
+  status       ENUM('completed','refunded','pending') NOT NULL DEFAULT 'completed',
+  provider     VARCHAR(40)   NOT NULL DEFAULT 'manual',
+  reference    VARCHAR(120)  NULL,
   created_at   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
+  UNIQUE KEY uq_purchases_ref (reference),
   KEY idx_purchases_user (user_id, created_at),
   CONSTRAINT fk_purchases_user FOREIGN KEY (user_id)
     REFERENCES users(id) ON DELETE CASCADE,

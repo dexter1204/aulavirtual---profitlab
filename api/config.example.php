@@ -27,4 +27,15 @@ return [
   // Si están en dominios distintos, pon la URL del frontend, ej:
   //   'https://aula.tudominio.com'
   'cors_origin' => '',
+
+  // --- URL pública del aula (para los retornos de pago) ---
+  'site_url' => 'https://profitlab-academy.com/aulavirtual',
+
+  // --- Mercado Pago (Checkout Pro) ---
+  // Access Token de PRODUCCIÓN o PRUEBA:
+  //   mercadopago.com → Tu negocio → Configuración → Credenciales
+  // Déjalo vacío para desactivar los pagos.
+  'mp_access_token' => '',
+  // Moneda de tu cuenta Mercado Pago (Perú = PEN).
+  'mp_currency' => 'PEN',
 ];
