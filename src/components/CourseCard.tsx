@@ -231,7 +231,6 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     marginTop: 'auto',
     paddingTop: 12,
-    borderTop: '1px solid #1F222B',
   },
   price: {
     fontSize: 16,

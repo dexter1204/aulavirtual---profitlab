@@ -201,13 +201,12 @@ select[style*="rgb(20, 22, 28)"] {
    TARJETA DE CURSO · hover, foco y zoom de miniatura
    ============================================================ */
 .courseCard {
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease;
   will-change: transform;
 }
 .courseCard:hover {
   transform: translateY(-3px);
   border-color: rgba(199, 249, 76, 0.35) !important;
-  box-shadow: 0 14px 32px -14px rgba(0, 0, 0, 0.7);
 }
 .courseCard:focus-visible {
   outline: 2px solid #C7F94C;
