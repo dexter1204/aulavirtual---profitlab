@@ -54,9 +54,9 @@ function totalDuration(modules: Module[]): string | null {
   return h > 0 ? `${h} h ${m} min` : `${m} min`;
 }
 
-function DetailRow({ icon, label, value, last }: { icon: React.ReactNode; label: string; value: React.ReactNode; last?: boolean }) {
+function DetailRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: last ? 'none' : '1px solid #1F222B' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0' }}>
       <span style={{ color: '#C7F94C', display: 'flex', flexShrink: 0 }}>{icon}</span>
       <span style={{ color: '#94A3B8', fontSize: 13, flex: 1 }}>{label}</span>
       <span style={{ color: '#F1F5F9', fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{value}</span>
@@ -277,7 +277,7 @@ function CourseDetail() {
           value={course.price > 0 ? money(course.price, course.currency) : course.access_type === 'free' ? 'Gratis' : 'Por inscripción'}
         />
         <DetailRow icon={<IconAward size={18} />} label="Certificado" value="Al completar" />
-        <DetailRow icon={<IconDevices size={18} />} label="Dispositivos" value="Desktop · Tablet · Móvil" last />
+        <DetailRow icon={<IconDevices size={18} />} label="Dispositivos" value="Desktop · Tablet · Móvil" />
       </Card>
       </aside>
 
