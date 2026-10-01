@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { IconInbox, IconX } from './icons';
 
 // ---------- Contenedor de página ----------
 export function Page({ children }: { children: React.ReactNode }) {
@@ -178,7 +179,7 @@ export function Card({
 
 // ---------- Estado vacío ----------
 export function Empty({
-  icon = '📭',
+  icon = <IconInbox size={36} color="#64748B" />,
   title,
   message,
   cta,
@@ -289,9 +290,10 @@ export function Modal({
           </h3>
           <button
             onClick={onClose}
-            style={{ background: 'transparent', border: 'none', color: '#94A3B8', fontSize: 20, cursor: 'pointer' }}
+            aria-label="Cerrar"
+            style={{ display: 'flex', background: 'transparent', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: 4 }}
           >
-            ✕
+            <IconX size={18} />
           </button>
         </div>
         {children}

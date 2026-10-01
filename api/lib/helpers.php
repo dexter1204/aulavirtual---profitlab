@@ -116,6 +116,7 @@ function mp_request(string $method, string $url, string $token, ?array $body = n
 function shape_course(array $c): array {
   $c['position'] = (int) $c['position'];
   if (array_key_exists('price', $c)) $c['price'] = (float) $c['price'];
+  if (array_key_exists('students', $c)) $c['students'] = (int) $c['students'];
   return $c;
 }
 

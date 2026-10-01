@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogoMark, LogoWordmark } from './Logo';
+import { IconGraduation, IconGrid, IconUser, IconSettings, IconChevronDown } from './icons';
 
 export function AppHeader() {
   const { profile, isAdmin, logout } = useAuth();
@@ -38,7 +39,9 @@ export function AppHeader() {
               <div style={styles.userName}>{profile?.name?.split(' ')[0] ?? 'Usuario'}</div>
               <div style={{ ...styles.userRole, color: roleBadge.color }}>★ {roleBadge.label}</div>
             </div>
-            <span style={styles.chevron}>▾</span>
+            <span style={styles.chevron} aria-hidden="true">
+              <IconChevronDown size={14} color="#94A3B8" />
+            </span>
           </button>
 
           {open && (
@@ -46,13 +49,16 @@ export function AppHeader() {
               <div onClick={() => setOpen(false)} style={styles.overlay} />
               <div style={styles.dropdown}>
                 <Link href="/mis-cursos" style={styles.dropItem} onClick={() => setOpen(false)}>
-                  🎓 Mis cursos
+                  <IconGraduation size={16} color="#94A3B8" />
+                  Mis cursos
                 </Link>
                 <Link href="/cursos" style={styles.dropItem} onClick={() => setOpen(false)}>
-                  📚 Catálogo
+                  <IconGrid size={16} color="#94A3B8" />
+                  Catálogo
                 </Link>
                 <Link href="/perfil" style={styles.dropItem} onClick={() => setOpen(false)}>
-                  👤 Mi perfil
+                  <IconUser size={16} color="#94A3B8" />
+                  Mi perfil
                 </Link>
                 {isAdmin && (
                   <Link
@@ -60,7 +66,8 @@ export function AppHeader() {
                     style={{ ...styles.dropItem, color: '#C7F94C' }}
                     onClick={() => setOpen(false)}
                   >
-                    ⚙ Panel Master Study
+                    <IconSettings size={16} color="#C7F94C" />
+                    Panel Master Study
                   </Link>
                 )}
                 <div style={styles.divider} />
@@ -131,7 +138,7 @@ const styles: Record<string, React.CSSProperties> = {
   userInfo: { textAlign: 'left' },
   userName: { color: '#F1F5F9', fontSize: 11, fontWeight: 500, lineHeight: '14px' },
   userRole: { fontSize: 9, fontWeight: 500, letterSpacing: 0.4, lineHeight: '11px' },
-  chevron: { color: '#94A3B8', fontSize: 10 },
+  chevron: { display: 'inline-flex', alignItems: 'center' },
   overlay: { position: 'fixed', inset: 0, zIndex: 60 },
   dropdown: {
     position: 'absolute',
@@ -146,7 +153,9 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
   },
   dropItem: {
-    display: 'block',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
     padding: '11px 14px',
     color: '#F1F5F9',
     fontSize: 12,

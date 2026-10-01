@@ -9,6 +9,7 @@ import { getCourseProgress, countCompleted } from '@/lib/progress';
 import { verifyPayment, type Course } from '@/lib/api';
 import { CourseCard } from '@/components/CourseCard';
 import { Page, PageTitle, Spinner, Empty } from '@/components/ui';
+import { IconGraduation } from '@/components/icons';
 import { useToast } from '@/components/Toast';
 
 type Item = { course: Course; done: number; total: number };
@@ -56,7 +57,7 @@ function MyCourses() {
         if (pago === 'ok' && paymentId) {
           try {
             const { ok } = await verifyPayment(paymentId);
-            toast(ok ? '¡Pago aprobado! Ya tienes acceso al curso. 🎉' : 'Pago recibido, se activará en breve.', ok ? 'success' : 'info');
+            toast(ok ? '¡Pago aprobado! Ya tienes acceso al curso.' : 'Pago recibido, se activará en breve.', ok ? 'success' : 'info');
           } catch {
             toast('Estamos confirmando tu pago…', 'info');
           }
@@ -80,7 +81,7 @@ function MyCourses() {
         <Spinner />
       ) : items.length === 0 ? (
         <Empty
-          icon="🎓"
+          icon={<IconGraduation size={36} color="#64748B" />}
           title="Aún no estás inscrito en ningún curso"
           message="Explora el catálogo e inscríbete para empezar a aprender."
           cta={{ label: 'Ver catálogo', href: '/cursos' }}

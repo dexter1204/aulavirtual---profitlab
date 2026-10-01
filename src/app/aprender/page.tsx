@@ -8,9 +8,10 @@ import { getCourseById, getCurriculum, isLessonReleased } from '@/lib/courses';
 import { getMyEnrollment } from '@/lib/enrollments';
 import { getCourseProgress, setLessonCompleted, countCompleted } from '@/lib/progress';
 import { listLessonMaterials, type Course, type Module, type Lesson, type Enrollment, type Material } from '@/lib/api';
-import { materialIcon, formatBytes } from '@/components/materials';
+import { formatBytes } from '@/components/materials';
 import { YouTubePlayer } from '@/components/YouTubePlayer';
 import { Spinner, Button, Empty } from '@/components/ui';
+import { IconCheck, IconPlay, IconLock, IconDot, IconDocument, IconVideo, IconClock, IconPaperclip, IconDownload, IconExternal, MaterialIcon } from '@/components/icons';
 import { useToast } from '@/components/Toast';
 
 export default function LearnPage() {
@@ -122,7 +123,7 @@ function Learn() {
     return (
       <div style={{ padding: '20px 16px' }}>
         <Empty
-          icon="🔒"
+          icon={<IconLock size={34} color="#64748B" />}
           title="Necesitas inscribirte"
           message="Inscríbete en el curso para acceder a las clases."
           cta={{ label: 'Ver curso', href: course ? `/curso/?slug=${course.slug}` : '/cursos/' }}
@@ -132,7 +133,7 @@ function Learn() {
   if (!current)
     return (
       <div style={{ padding: '20px 16px' }}>
-        <Empty icon="🎬" title="Sin clases todavía" cta={{ label: 'Volver', href: '/cursos/' }} />
+        <Empty icon={<IconVideo size={34} color="#64748B" />} title="Sin clases todavía" cta={{ label: 'Volver', href: '/cursos/' }} />
       </div>
     );
 
@@ -154,7 +155,7 @@ function Learn() {
         <YouTubePlayer youtubeId={current.youtube_id} title={current.title} />
       ) : (
         <div style={styles.locked}>
-          <div style={{ fontSize: 38, marginBottom: 10 }}>⏳</div>
+          <div style={{ marginBottom: 10, color: '#64748B' }}><IconClock size={38} /></div>
           <p style={{ color: '#F1F5F9', fontWeight: 600, margin: 0 }}>Clase bloqueada por goteo</p>
           <p style={{ color: '#94A3B8', fontSize: 13, marginTop: 6 }}>
             Disponible el{' '}
@@ -175,7 +176,7 @@ function Learn() {
 
         {current.resources && (
           <div style={styles.resources}>
-            <span style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600 }}>📝 Notas</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#94A3B8', fontSize: 12, fontWeight: 600 }}><IconDocument size={14} color="#94A3B8" />Notas</span>
             <p style={{ color: '#CBD5E1', fontSize: 13, whiteSpace: 'pre-wrap', margin: '6px 0 0' }}>
               {current.resources}
             </p>
@@ -184,7 +185,7 @@ function Learn() {
 
         {materials.length > 0 && (
           <div style={styles.resources}>
-            <span style={{ color: '#94A3B8', fontSize: 12, fontWeight: 600 }}>📎 Materiales y recursos</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#94A3B8', fontSize: 12, fontWeight: 600 }}><IconPaperclip size={14} color="#94A3B8" />Materiales y recursos</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
               {materials.map((m) => (
                 <a
@@ -195,7 +196,7 @@ function Learn() {
                   download={m.kind === 'file' ? m.title : undefined}
                   style={styles.material}
                 >
-                  <span style={{ fontSize: 18 }}>{materialIcon(m)}</span>
+                  <span style={{ display: 'flex', flexShrink: 0 }}><MaterialIcon m={m} size={18} /></span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ color: '#F1F5F9', fontSize: 13, fontWeight: 600 }} className="clamp-2">{m.title}</div>
                     <div style={{ color: '#64748B', fontSize: 11 }}>
@@ -204,7 +205,7 @@ function Learn() {
                         : 'Abrir enlace'}
                     </div>
                   </div>
-                  <span style={{ color: '#C7F94C', fontSize: 16 }}>{m.kind === 'file' ? '⬇' : '↗'}</span>
+                  <span style={{ color: '#C7F94C', display: 'flex' }} aria-hidden="true">{m.kind === 'file' ? <IconDownload size={16} /> : <IconExternal size={16} />}</span>
                 </a>
               ))}
             </div>
@@ -258,8 +259,14 @@ function Learn() {
                     backgroundColor: active ? 'rgba(199,249,76,0.1)' : 'transparent',
                   }}
                 >
-                  <span style={{ fontSize: 13 }}>
-                    {progress[l.id] ? '✅' : rel.released ? (active ? '🔴' : '▶️') : '⏳'}
+                  <span style={{ display: 'flex', flexShrink: 0 }} aria-hidden="true">
+                    {progress[l.id] ? (
+                      <IconCheck size={15} color="#C7F94C" />
+                    ) : rel.released ? (
+                      active ? <IconDot size={12} color="#C7F94C" /> : <IconPlay size={12} color="#94A3B8" />
+                    ) : (
+                      <IconLock size={13} color="#64748B" />
+                    )}
                   </span>
                   <span
                     className="clamp-2"

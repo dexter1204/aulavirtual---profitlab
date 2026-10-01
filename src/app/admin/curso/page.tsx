@@ -20,6 +20,7 @@ import { CourseForm, type CourseFormValues } from '@/components/CourseForm';
 import { LessonEditor } from '@/components/LessonEditor';
 import { CourseStudents } from '@/components/CourseStudents';
 import { useToast } from '@/components/Toast';
+import { IconPencil, IconTrash, IconSearch, IconEye, IconLayers } from '@/components/icons';
 
 type Tab = 'contenido' | 'ajustes' | 'alumnos';
 
@@ -157,7 +158,7 @@ function EditCourse() {
   if (!course)
     return (
       <Page>
-        <Empty icon="🔎" title="Curso no encontrado" cta={{ label: 'Volver', href: '/admin/cursos/' }} />
+        <Empty icon={<IconSearch size={34} color="#64748B" />} title="Curso no encontrado" cta={{ label: 'Volver', href: '/admin/cursos/' }} />
       </Page>
     );
 
@@ -177,7 +178,7 @@ function EditCourse() {
             <span style={{ color: '#64748B', fontSize: 12 }}>{modules.length} módulos · {totalLessons} clases</span>
           </div>
         </div>
-        <Link href={`/curso/?slug=${course.slug}`} style={styles.previewBtn}>👁 Ver</Link>
+        <Link href={`/curso/?slug=${course.slug}`} style={styles.previewBtn}><IconEye size={14} /> Ver</Link>
       </div>
 
       {/* TABS */}
@@ -197,7 +198,7 @@ function EditCourse() {
       {tab === 'contenido' && (
         <>
           {modules.length === 0 ? (
-            <Empty icon="🧩" title="Sin módulos" message="Crea el primer módulo para añadir clases." />
+            <Empty icon={<IconLayers size={34} color="#64748B" />} title="Sin módulos" message="Crea el primer módulo para añadir clases." />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {modules.map((m, mi) => (
@@ -209,8 +210,12 @@ function EditCourse() {
                     </div>
                     <span style={styles.moduleIdx}>{mi + 1}</span>
                     <span style={{ flex: 1, color: '#F1F5F9', fontSize: 15, fontWeight: 700 }}>{m.title}</span>
-                    <button onClick={() => renameModule(m)} style={styles.iconBtn}>✎</button>
-                    <button onClick={() => removeModule(m)} style={{ ...styles.iconBtn, color: '#FCA5A5' }}>🗑</button>
+                    <button onClick={() => renameModule(m)} style={styles.iconBtn} aria-label="Renombrar módulo">
+                      <IconPencil size={15} />
+                    </button>
+                    <button onClick={() => removeModule(m)} style={{ ...styles.iconBtn, color: '#FCA5A5' }} aria-label="Eliminar módulo">
+                      <IconTrash size={15} />
+                    </button>
                   </div>
 
                   <div style={{ padding: 8 }}>
@@ -233,8 +238,12 @@ function EditCourse() {
                             {l.duration && <span style={{ color: '#64748B', fontSize: 10 }}>{l.duration}</span>}
                           </div>
                         </div>
-                        <button onClick={() => setEditing({ moduleId: m.id, lesson: l })} style={styles.iconBtn}>✎</button>
-                        <button onClick={() => removeLesson(l)} style={{ ...styles.iconBtn, color: '#FCA5A5' }}>🗑</button>
+                        <button onClick={() => setEditing({ moduleId: m.id, lesson: l })} style={styles.iconBtn} aria-label="Editar clase">
+                          <IconPencil size={15} />
+                        </button>
+                        <button onClick={() => removeLesson(l)} style={{ ...styles.iconBtn, color: '#FCA5A5' }} aria-label="Eliminar clase">
+                          <IconTrash size={15} />
+                        </button>
                       </div>
                     ))}
 

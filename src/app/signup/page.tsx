@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogoMark } from '@/components/Logo';
+import { IconMail } from '@/components/icons';
 
 export default function SignupPage() {
   const { signUp, login } = useAuth();
@@ -49,7 +50,9 @@ export default function SignupPage() {
     return (
       <main style={styles.main}>
         <div style={styles.card}>
-          <div style={{ fontSize: 44, marginBottom: 16 }}>📧</div>
+          <div style={{ marginBottom: 16, color: '#C7F94C', display: 'flex', justifyContent: 'center' }}>
+            <IconMail size={42} />
+          </div>
           <h2 style={styles.title}>Revisa tu correo</h2>
           <p style={styles.subtitle}>
             Te enviamos un enlace de confirmación a <strong>{email}</strong>. Confírmalo y luego

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useCallback, useContext, useState } from 'react';
+import { IconCheck, IconX, IconInfo } from './icons';
 
 type ToastKind = 'success' | 'error' | 'info';
 type ToastItem = { id: number; message: string; kind: ToastKind };
@@ -33,11 +34,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           >
             <span
               style={{
+                display: 'flex',
+                flexShrink: 0,
                 color:
                   t.kind === 'success' ? '#86EFAC' : t.kind === 'error' ? '#FCA5A5' : '#C7F94C',
               }}
+              aria-hidden="true"
             >
-              {t.kind === 'success' ? '✓' : t.kind === 'error' ? '✕' : 'ℹ'}
+              {t.kind === 'success' ? <IconCheck size={16} /> : t.kind === 'error' ? <IconX size={16} /> : <IconInfo size={16} />}
             </span>
             <span style={{ color: '#F1F5F9', fontSize: 13 }}>{t.message}</span>
           </div>

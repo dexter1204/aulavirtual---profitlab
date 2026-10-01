@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Page, PageTitle, Spinner, Empty, Pill, inputStyle } from '@/components/ui';
 import { AdminNav } from '@/components/AdminNav';
 import { useToast } from '@/components/Toast';
+import { IconSearch, IconX, IconUsers } from '@/components/icons';
 
 type Row = UserRow;
 
@@ -58,17 +59,29 @@ export default function AdminStudentsPage() {
       <PageTitle title="Alumnos" subtitle="Gestiona roles y accesos" />
       <AdminNav />
 
-      <input
-        placeholder="🔍 Buscar por nombre o email…"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        style={{ ...inputStyle, marginBottom: 14 }}
-      />
+      <div className="searchField" style={{ marginBottom: 14 }}>
+        <span className="searchIcon" aria-hidden="true">
+          <IconSearch size={17} />
+        </span>
+        <input
+          type="search"
+          placeholder="Buscar por nombre o email…"
+          aria-label="Buscar usuarios"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          style={inputStyle}
+        />
+        {query && (
+          <button type="button" className="searchClear" aria-label="Limpiar búsqueda" onClick={() => setQuery('')}>
+            <IconX size={16} />
+          </button>
+        )}
+      </div>
 
       {loading ? (
         <Spinner />
       ) : filtered.length === 0 ? (
-        <Empty icon="👥" title="Sin usuarios" message="Los usuarios aparecerán cuando se registren." />
+        <Empty icon={<IconUsers size={34} color="#64748B" />} title="Sin usuarios" message="Los usuarios aparecerán cuando se registren." />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {filtered.map((p) => (

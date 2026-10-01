@@ -166,8 +166,11 @@ try {
         $me = current_user();
         $isAdmin = $me && $me['role'] === 'admin';
 
+        // Subconsulta para el nº de alumnos inscritos por curso (evita N+1).
+        $withStudents = '(SELECT COUNT(*) FROM enrollments e WHERE e.course_id = courses.id) AS students';
+
         if ($slug !== null) {
-          $s = db()->prepare('SELECT * FROM courses WHERE slug = ?');
+          $s = db()->prepare("SELECT *, $withStudents FROM courses WHERE slug = ?");
           $s->execute([$slug]);
           $c = $s->fetch();
           if (!$c || ($c['status'] !== 'published' && !$isAdmin)) json_out(null);
@@ -175,9 +178,9 @@ try {
         }
 
         if ($all && $isAdmin) {
-          $rows = db()->query('SELECT * FROM courses ORDER BY position ASC, created_at DESC')->fetchAll();
+          $rows = db()->query("SELECT *, $withStudents FROM courses ORDER BY position ASC, created_at DESC")->fetchAll();
         } else {
-          $rows = db()->query("SELECT * FROM courses WHERE status = 'published' ORDER BY position ASC, created_at DESC")->fetchAll();
+          $rows = db()->query("SELECT *, $withStudents FROM courses WHERE status = 'published' ORDER BY position ASC, created_at DESC")->fetchAll();
         }
         json_out(array_map('shape_course', $rows));
       }

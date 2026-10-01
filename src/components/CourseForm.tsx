@@ -5,6 +5,7 @@ import type { Course, CourseLevel, CourseStatus, AccessType } from '@/lib/api';
 import { uploadFile } from '@/lib/api';
 import { parseYouTubeId, youTubeThumbnail } from '@/lib/youtube';
 import { Field, inputStyle, Button } from './ui';
+import { IconUpload } from './icons';
 import { useToast } from './Toast';
 
 export type CourseFormValues = {
@@ -126,7 +127,7 @@ export function CourseForm({
       />
       <div style={{ display: 'flex', gap: 8, marginTop: -6, marginBottom: 12, flexWrap: 'wrap' }}>
         <Button type="button" variant="ghost" size="sm" onClick={() => imgRef.current?.click()} disabled={uploadingImg}>
-          {uploadingImg ? 'Subiendo…' : '⬆ Subir imagen'}
+          {uploadingImg ? 'Subiendo…' : (<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><IconUpload size={14} />Subir imagen</span>)}
         </Button>
         {v.thumbnail_url && (
           <Button type="button" variant="outline" size="sm" onClick={() => set('thumbnail_url', '')}>

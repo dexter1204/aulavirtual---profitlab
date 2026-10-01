@@ -13,7 +13,7 @@ import { Page, Spinner, Button, Pill, Card, Empty } from '@/components/ui';
 import { useToast } from '@/components/Toast';
 import {
   IconBook, IconLayers, IconClock, IconChart, IconUsers, IconCard, IconAward,
-  IconDevices, IconPlay, IconArrowLeft, IconCheck, IconLock,
+  IconDevices, IconPlay, IconArrowLeft, IconCheck, IconLock, IconVideo, IconSearch,
 } from '@/components/icons';
 
 const levelLabel: Record<string, string> = {
@@ -164,7 +164,7 @@ function CourseDetail() {
   if (!course)
     return (
       <Page>
-        <Empty icon="🔎" title="Curso no encontrado" cta={{ label: 'Volver al catálogo', href: '/cursos/' }} />
+        <Empty icon={<IconSearch size={34} color="#64748B" />} title="Curso no encontrado" cta={{ label: 'Volver al catálogo', href: '/cursos/' }} />
       </Page>
     );
 
@@ -189,7 +189,7 @@ function CourseDetail() {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={course.thumbnail_url} alt={course.title} style={styles.heroImg} />
         ) : (
-          <div style={{ ...styles.heroImg, ...styles.heroFallback }}>🎬</div>
+          <div style={{ ...styles.heroImg, ...styles.heroFallback }}><IconVideo size={46} color="#C7F94C" style={{ opacity: 0.5 }} /></div>
         )}
         <div style={styles.heroOverlay} />
         <div style={styles.heroContent}>
@@ -246,7 +246,7 @@ function CourseDetail() {
           </Button>
         ) : (
           <div style={styles.lockedNote}>
-            🔒 Este curso requiere inscripción gestionada por la academia. Contacta a tu asesor.
+            Este curso requiere inscripción gestionada por la academia. Contacta a tu asesor.
           </div>
         )}
 

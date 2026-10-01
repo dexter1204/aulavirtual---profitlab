@@ -22,12 +22,17 @@ export function BottomNav() {
   ];
 
   return (
-    <nav style={styles.nav}>
+    <nav style={styles.nav} aria-label="Navegación principal">
       <div style={{ ...styles.container, gridTemplateColumns: `repeat(${items.length}, 1fr)` }}>
         {items.map((it) => {
           const active = isActive(it.href);
           return (
-            <Link key={it.href} href={it.href} style={styles.item}>
+            <Link
+              key={it.href}
+              href={it.href}
+              style={styles.item}
+              aria-current={active ? 'page' : undefined}
+            >
               <Icon type={it.icon} active={active} />
               <span
                 style={{

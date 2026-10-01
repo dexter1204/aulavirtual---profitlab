@@ -107,7 +107,7 @@ export default function CatalogPage() {
           </p>
           <div style={styles.grid}>
             {filtered.map((c) => (
-              <CourseCard key={c.id} course={c} href={`/curso/?slug=${c.slug}`} />
+              <CourseCard key={c.id} course={c} href={`/curso/?slug=${c.slug}`} students={c.students} />
             ))}
           </div>
         </>

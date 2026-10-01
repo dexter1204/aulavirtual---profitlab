@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { updateMyProfile, changePassword, listMyPurchases, type Purchase } from '@/lib/api';
 import { listMyEnrollments } from '@/lib/enrollments';
 import { Page, PageTitle, Card, Button, Field, inputStyle, Spinner, Pill } from '@/components/ui';
+import { IconLock, IconCard, IconSettings } from '@/components/icons';
 import { useToast } from '@/components/Toast';
 
 function money(amount: number, currency: string): string {
@@ -112,7 +113,7 @@ export default function ProfilePage() {
 
       {/* CAMBIAR CONTRASEÑA */}
       <Card style={{ marginTop: 16 }}>
-        <h3 style={styles.cardTitle}>🔒 Cambiar contraseña</h3>
+        <h3 style={styles.cardTitle}><IconLock size={16} color="#C7F94C" />Cambiar contraseña</h3>
         <Field label="Contraseña actual">
           <input type="password" value={curPass} onChange={(e) => setCurPass(e.target.value)} style={inputStyle} autoComplete="current-password" />
         </Field>
@@ -130,7 +131,7 @@ export default function ProfilePage() {
       {/* MIS COMPRAS */}
       <Card style={{ marginTop: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <h3 style={styles.cardTitle}>🧾 Mis compras</h3>
+          <h3 style={styles.cardTitle}><IconCard size={16} color="#C7F94C" />Mis compras</h3>
           {totalSpent > 0 && (
             <span style={{ color: '#94A3B8', fontSize: 12 }}>
               Total: <strong style={{ color: '#C7F94C' }}>{money(totalSpent, purchases?.[0]?.currency ?? 'USD')}</strong>
@@ -171,7 +172,8 @@ export default function ProfilePage() {
 
       {isAdmin && (
         <Link href="/admin" style={styles.adminLink}>
-          ⚙  Ir al Panel Master Study →
+          <IconSettings size={16} />
+          Ir al Panel Master Study →
         </Link>
       )}
 
@@ -188,6 +190,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 22, flexShrink: 0,
   },
   cardTitle: {
+    display: 'flex', alignItems: 'center', gap: 8,
     color: '#F1F5F9', fontSize: 15, fontWeight: 700, margin: '0 0 12px',
     fontFamily: 'var(--font-bricolage), sans-serif',
   },
@@ -196,8 +199,9 @@ const styles: Record<string, React.CSSProperties> = {
     backgroundColor: '#0A0B0E', border: '1px solid #1F222B', borderRadius: 10, padding: '10px 12px',
   },
   adminLink: {
-    display: 'block', marginTop: 16, backgroundColor: 'rgba(199,249,76,0.1)', border: '1px solid rgba(199,249,76,0.3)',
-    color: '#C7F94C', borderRadius: 12, padding: 16, textDecoration: 'none', fontWeight: 600, fontSize: 14, textAlign: 'center',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+    marginTop: 16, backgroundColor: 'rgba(199,249,76,0.1)', border: '1px solid rgba(199,249,76,0.3)',
+    color: '#C7F94C', borderRadius: 12, padding: 16, textDecoration: 'none', fontWeight: 600, fontSize: 14,
   },
   logout: {
     display: 'block', width: '100%', marginTop: 24, background: 'transparent',

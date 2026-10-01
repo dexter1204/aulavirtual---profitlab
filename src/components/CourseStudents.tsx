@@ -5,6 +5,7 @@ import { listUsers, type Enrollment, type Profile } from '@/lib/api';
 import { listCourseEnrollments, adminEnroll, adminUnenroll } from '@/lib/enrollments';
 import { Spinner, Button, Modal, inputStyle, Empty } from './ui';
 import { useToast } from './Toast';
+import { IconUsers, IconX } from './icons';
 
 export function CourseStudents({ courseId }: { courseId: string }) {
   const toast = useToast();
@@ -76,7 +77,7 @@ export function CourseStudents({ courseId }: { courseId: string }) {
       {loading ? (
         <Spinner />
       ) : enrollments.length === 0 ? (
-        <Empty icon="👥" title="Sin alumnos" message="Inscribe alumnos o deja que se auto-inscriban si el curso es gratis." />
+        <Empty icon={<IconUsers size={34} color="#64748B" />} title="Sin alumnos" message="Inscribe alumnos o deja que se auto-inscriban si el curso es gratis." />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {enrollments.map((e) => (
@@ -91,7 +92,9 @@ export function CourseStudents({ courseId }: { courseId: string }) {
               <span style={{ color: '#64748B', fontSize: 10 }}>
                 {new Date(e.enrolled_at).toLocaleDateString('es')}
               </span>
-              <button onClick={() => unenroll(e)} style={styles.removeBtn}>✕</button>
+              <button onClick={() => unenroll(e)} style={styles.removeBtn} aria-label="Quitar alumno">
+                <IconX size={15} />
+              </button>
             </div>
           ))}
         </div>
@@ -99,7 +102,7 @@ export function CourseStudents({ courseId }: { courseId: string }) {
 
       <Modal open={picker} onClose={() => setPicker(false)} title="Inscribir alumno">
         <input
-          placeholder="🔍 Buscar por nombre o email…"
+          placeholder="Buscar por nombre o email…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           style={{ ...inputStyle, marginBottom: 12 }}

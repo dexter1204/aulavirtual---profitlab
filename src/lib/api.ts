@@ -122,6 +122,7 @@ export type Course = {
   position: number;
   created_at: string;
   updated_at: string;
+  students?: number;
   modules?: Module[];
 };
 

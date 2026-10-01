@@ -6,6 +6,7 @@ import { listAllCourses, reorderCourses, deleteCourse, updateCourse } from '@/li
 import type { Course } from '@/lib/api';
 import { youTubeThumbnail } from '@/lib/youtube';
 import { Page, PageTitle, Spinner, Empty, Pill, Button } from '@/components/ui';
+import { IconVideo, IconPencil } from '@/components/icons';
 import { AdminNav } from '@/components/AdminNav';
 import { useToast } from '@/components/Toast';
 
@@ -43,7 +44,7 @@ export default function AdminCoursesPage() {
     try {
       await updateCourse(c.id, { status });
       setCourses((prev) => prev.map((x) => (x.id === c.id ? { ...x, status } : x)));
-      toast(status === 'published' ? 'Curso publicado 🚀' : 'Curso pasado a borrador', 'success');
+      toast(status === 'published' ? 'Curso publicado' : 'Curso pasado a borrador', 'success');
     } catch (e: any) {
       toast(e.message, 'error');
     }
@@ -76,7 +77,7 @@ export default function AdminCoursesPage() {
       {loading ? (
         <Spinner />
       ) : courses.length === 0 ? (
-        <Empty icon="🎬" title="Sin cursos" message="Crea tu primer curso para empezar." cta={{ label: 'Crear curso', href: '/admin/cursos/nuevo' }} />
+        <Empty icon={<IconVideo size={34} color="#64748B" />} title="Sin cursos" message="Crea tu primer curso para empezar." cta={{ label: 'Crear curso', href: '/admin/cursos/nuevo' }} />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {courses.map((c, i) => (
@@ -91,7 +92,7 @@ export default function AdminCoursesPage() {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={c.thumbnail_url} alt="" style={styles.thumb} />
               ) : (
-                <div style={{ ...styles.thumb, ...styles.thumbFallback }}>🎬</div>
+                <div style={{ ...styles.thumb, ...styles.thumbFallback }}><IconVideo size={22} color="#C7F94C" style={{ opacity: 0.55 }} /></div>
               )}
 
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -106,7 +107,7 @@ export default function AdminCoursesPage() {
                   <span style={{ color: '#64748B', fontSize: 11 }}>· {c.access_type === 'free' ? 'Gratis' : 'Por inscripción'}</span>
                 </div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-                  <Link href={`/admin/curso/?id=${c.id}`} style={styles.editLink}>✎ Editar</Link>
+                  <Link href={`/admin/curso/?id=${c.id}`} style={styles.editLink}><IconPencil size={13} /> Editar</Link>
                   <button onClick={() => togglePublish(c)} style={styles.linkBtn}>
                     {c.status === 'published' ? 'Despublicar' : 'Publicar'}
                   </button>
@@ -162,7 +163,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'block',
     lineHeight: '18px',
   },
-  editLink: { color: '#C7F94C', fontSize: 12, fontWeight: 600, textDecoration: 'none' },
+  editLink: { display: 'inline-flex', alignItems: 'center', gap: 5, color: '#C7F94C', fontSize: 12, fontWeight: 600, textDecoration: 'none' },
   linkBtn: {
     background: 'transparent',
     border: 'none',

@@ -12,7 +12,8 @@ import {
 import { parseYouTubeId, youTubeThumbnail } from '@/lib/youtube';
 import { Modal, Field, inputStyle, Button } from './ui';
 import { useToast } from './Toast';
-import { materialIcon, formatBytes } from './materials';
+import { IconX, IconPaperclip, IconUpload, MaterialIcon } from './icons';
+import { formatBytes } from './materials';
 
 export function LessonEditor({
   courseId,
@@ -221,7 +222,10 @@ export function LessonEditor({
 
       {/* ===================== MATERIALES ===================== */}
       <div style={styles.materialsBox}>
-        <h4 style={styles.materialsTitle}>📎 Materiales de la clase</h4>
+        <h4 style={styles.materialsTitle}>
+          <IconPaperclip size={15} color="#C7F94C" />
+          Materiales de la clase
+        </h4>
 
         {!lessonId ? (
           <p style={{ color: '#64748B', fontSize: 12, margin: 0 }}>
@@ -233,14 +237,16 @@ export function LessonEditor({
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 }}>
                 {materials.map((m) => (
                   <div key={m.id} style={styles.matRow}>
-                    <span style={{ fontSize: 15 }}>{materialIcon(m)}</span>
+                    <span style={{ display: 'flex', flexShrink: 0 }}><MaterialIcon m={m} size={16} /></span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ color: '#F1F5F9', fontSize: 12, fontWeight: 600 }} className="clamp-2">{m.title}</div>
                       <div style={{ color: '#64748B', fontSize: 10 }}>
                         {m.kind === 'file' ? `Archivo${m.size ? ' · ' + formatBytes(m.size) : ''}` : 'Enlace'}
                       </div>
                     </div>
-                    <button onClick={() => removeMaterial(m.id)} style={styles.matDel}>✕</button>
+                    <button onClick={() => removeMaterial(m.id)} style={styles.matDel} aria-label="Eliminar material">
+                      <IconX size={14} />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -255,7 +261,7 @@ export function LessonEditor({
               accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.png,.jpg,.jpeg,.gif,.webp,.svg,.mp4,.webm,.mov,.mp3,.wav"
             />
             <Button variant="ghost" size="sm" full onClick={() => fileRef.current?.click()} disabled={uploading} style={{ marginBottom: 10 }}>
-              {uploading ? 'Subiendo…' : '⬆ Subir documento / archivo'}
+              {uploading ? 'Subiendo…' : (<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><IconUpload size={15} />Subir documento / archivo</span>)}
             </Button>
             <p style={{ color: '#64748B', fontSize: 10, margin: '0 0 12px' }}>
               PDF, Word, Excel, PowerPoint, imágenes, ZIP, audio o video (máx. 50 MB).
@@ -286,7 +292,7 @@ const styles: Record<string, React.CSSProperties> = {
   preview: { width: 140, aspectRatio: '16/9', objectFit: 'cover', borderRadius: 8, marginBottom: 12, border: '1px solid #1F222B' },
   checkRow: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, cursor: 'pointer' },
   materialsBox: { marginTop: 8, padding: 14, backgroundColor: '#0A0B0E', border: '1px solid #1F222B', borderRadius: 12 },
-  materialsTitle: { color: '#F1F5F9', fontSize: 13, fontWeight: 700, margin: '0 0 10px' },
+  materialsTitle: { display: 'flex', alignItems: 'center', gap: 8, color: '#F1F5F9', fontSize: 13, fontWeight: 700, margin: '0 0 10px' },
   matRow: { display: 'flex', alignItems: 'center', gap: 10, backgroundColor: '#14161C', border: '1px solid #1F222B', borderRadius: 8, padding: '7px 10px' },
   matDel: { background: 'transparent', border: 'none', color: '#FCA5A5', fontSize: 13, cursor: 'pointer', flexShrink: 0 },
 };
