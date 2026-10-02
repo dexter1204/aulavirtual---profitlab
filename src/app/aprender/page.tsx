@@ -9,7 +9,7 @@ import { getMyEnrollment } from '@/lib/enrollments';
 import { getCourseProgress, setLessonCompleted, countCompleted } from '@/lib/progress';
 import { listLessonMaterials, type Course, type Module, type Lesson, type Enrollment, type Material } from '@/lib/api';
 import { formatBytes } from '@/components/materials';
-import { YouTubePlayer } from '@/components/YouTubePlayer';
+import { VideoPlayer } from '@/components/VideoPlayer';
 import { Spinner, Button, Empty } from '@/components/ui';
 import { IconCheck, IconPlay, IconLock, IconDot, IconDocument, IconVideo, IconClock, IconPaperclip, IconDownload, IconExternal, MaterialIcon } from '@/components/icons';
 import { useToast } from '@/components/Toast';
@@ -152,7 +152,7 @@ function Learn() {
 
       {/* PLAYER */}
       {release.released ? (
-        <YouTubePlayer youtubeId={current.youtube_id} title={current.title} />
+        <VideoPlayer provider={current.video_provider} videoId={current.youtube_id} title={current.title} />
       ) : (
         <div style={styles.locked}>
           <div style={{ marginBottom: 10, color: '#64748B' }}><IconClock size={38} /></div>

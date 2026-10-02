@@ -9,7 +9,7 @@ import {
   deleteMaterial,
   uploadFile,
 } from '@/lib/api';
-import { parseYouTubeId, youTubeThumbnail } from '@/lib/youtube';
+import { parseVideo, videoThumbnail } from '@/lib/youtube';
 import { Modal, Field, inputStyle, Button } from './ui';
 import { useToast } from './Toast';
 import { IconX, IconPaperclip, IconUpload, MaterialIcon } from './icons';
@@ -33,7 +33,14 @@ export function LessonEditor({
   const toast = useToast();
   const [lessonId, setLessonId] = useState<string | null>(lesson?.id ?? null);
   const [title, setTitle] = useState(lesson?.title ?? '');
-  const [youtube, setYoutube] = useState(lesson?.youtube_id ?? '');
+  // Enlace de video: si la clase ya existe, reconstruimos una URL legible según el proveedor.
+  const [videoUrl, setVideoUrl] = useState(
+    lesson?.youtube_id
+      ? lesson.video_provider === 'drive'
+        ? `https://drive.google.com/file/d/${lesson.youtube_id}/view`
+        : `https://youtu.be/${lesson.youtube_id}`
+      : ''
+  );
   const [duration, setDuration] = useState(lesson?.duration ?? '');
   const [description, setDescription] = useState(lesson?.description ?? '');
   const [resources, setResources] = useState(lesson?.resources ?? '');
@@ -50,7 +57,7 @@ export function LessonEditor({
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const ytId = parseYouTubeId(youtube);
+  const video = parseVideo(videoUrl);
 
   const loadMaterials = async (id: string) => {
     try {
@@ -67,14 +74,15 @@ export function LessonEditor({
 
   const save = async () => {
     if (!title.trim()) return toast('Escribe un título', 'error');
-    if (!ytId) return toast('Enlace o ID de YouTube no válido', 'error');
+    if (!video) return toast('Pega un enlace válido de YouTube o Google Drive', 'error');
     setBusy(true);
     try {
       const payload = {
         module_id: moduleId,
         course_id: courseId,
         title: title.trim(),
-        youtube_id: ytId,
+        youtube_id: video.id,
+        video_provider: video.provider,
         duration: duration.trim() || null,
         description: description.trim() || null,
         resources: resources.trim() || null,
@@ -169,14 +177,19 @@ export function LessonEditor({
         <input value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} placeholder="Ej. Qué es el spread" />
       </Field>
 
-      <Field label="Video de YouTube (enlace o ID)" hint="Acepta youtu.be, watch?v=, /embed/, /shorts/ o el ID directo.">
-        <input value={youtube} onChange={(e) => setYoutube(e.target.value)} style={inputStyle} placeholder="https://youtu.be/…" />
+      <Field label="Video de la clase (YouTube o Google Drive)" hint="Pega el enlace de YouTube (youtu.be, watch?v=, /embed/) o de Google Drive (file/d/…/view). En Drive, comparte el archivo como «Cualquiera con el enlace».">
+        <input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} style={inputStyle} placeholder="https://youtu.be/…  o  https://drive.google.com/file/d/…" />
       </Field>
-      {ytId ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={youTubeThumbnail(ytId, 'mq')} alt="preview" style={styles.preview} />
-      ) : youtube ? (
-        <p style={{ color: '#FCA5A5', fontSize: 12, marginTop: -6, marginBottom: 12 }}>Enlace no reconocido</p>
+      {video ? (
+        <div style={styles.previewRow}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={videoThumbnail(video.provider, video.id)} alt="preview" style={styles.preview} />
+          <span style={styles.providerTag}>
+            {video.provider === 'drive' ? 'Google Drive' : 'YouTube'}
+          </span>
+        </div>
+      ) : videoUrl ? (
+        <p style={{ color: '#FCA5A5', fontSize: 12, marginTop: -6, marginBottom: 12 }}>Enlace no reconocido (debe ser de YouTube o Google Drive)</p>
       ) : null}
 
       <Field label="Duración (opcional)" hint="Solo informativo. Ej. 12:34">
@@ -289,7 +302,9 @@ function toLocalInput(iso: string): string {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  preview: { width: 140, aspectRatio: '16/9', objectFit: 'cover', borderRadius: 8, marginBottom: 12, border: '1px solid #1F222B' },
+  previewRow: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 },
+  preview: { width: 140, aspectRatio: '16/9', objectFit: 'cover', borderRadius: 8, border: '1px solid #1F222B', backgroundColor: '#0A0B0E' },
+  providerTag: { fontSize: 11, fontWeight: 700, color: '#C7F94C', border: '1px solid rgba(199,249,76,0.4)', borderRadius: 999, padding: '3px 10px' },
   checkRow: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, cursor: 'pointer' },
   materialsBox: { marginTop: 8, padding: 14, backgroundColor: '#0A0B0E', border: '1px solid #1F222B', borderRadius: 12 },
   materialsTitle: { display: 'flex', alignItems: 'center', gap: 8, color: '#F1F5F9', fontSize: 13, fontWeight: 700, margin: '0 0 10px' },

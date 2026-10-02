@@ -366,12 +366,13 @@ try {
         if (empty($b[$req])) fail("$req requerido");
       }
       $id = uuid();
+      $provider = ($b['video_provider'] ?? 'youtube') === 'drive' ? 'drive' : 'youtube';
       db()->prepare('INSERT INTO lessons
-          (id,module_id,course_id,title,description,youtube_id,duration,position,is_preview,release_type,release_at,drip_days,resources)
-          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)')
+          (id,module_id,course_id,title,description,youtube_id,video_provider,duration,position,is_preview,release_type,release_at,drip_days,resources)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)')
         ->execute([
           $id, $b['module_id'], $b['course_id'], $b['title'], $b['description'] ?? null,
-          $b['youtube_id'], $b['duration'] ?? null, (int)($b['position'] ?? 0),
+          $b['youtube_id'], $provider, $b['duration'] ?? null, (int)($b['position'] ?? 0),
           !empty($b['is_preview']) ? 1 : 0, $b['release_type'] ?? 'immediate',
           $b['release_at'] ?? null, isset($b['drip_days']) ? (int)$b['drip_days'] : null,
           $b['resources'] ?? null,
@@ -382,7 +383,7 @@ try {
     if (count($seg) === 2 && $method === 'PUT') {
       require_admin();
       $b = body();
-      $allowed = ['title','description','youtube_id','duration','is_preview','release_type','release_at','drip_days','resources','position','module_id'];
+      $allowed = ['title','description','youtube_id','video_provider','duration','is_preview','release_type','release_at','drip_days','resources','position','module_id'];
       $sets = []; $vals = [];
       foreach ($allowed as $k) {
         if (array_key_exists($k, $b)) {

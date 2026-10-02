@@ -52,3 +52,64 @@ export function youTubeThumbnail(youtubeId: string, quality: 'hq' | 'mq' | 'max'
 export function youTubeEmbedUrl(youtubeId: string): string {
   return `https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0&modestbranding=1`;
 }
+
+// ============================================================
+// Google Drive
+// ============================================================
+
+export type VideoProvider = 'youtube' | 'drive';
+
+/**
+ * Extrae el ID de archivo de un enlace de Google Drive en cualquier formato:
+ *   https://drive.google.com/file/d/ID/view?usp=sharing
+ *   https://drive.google.com/open?id=ID
+ *   https://drive.google.com/uc?id=ID&export=download
+ *   https://docs.google.com/.../d/ID/edit
+ */
+export function parseDriveId(input: string): string | null {
+  if (!input) return null;
+  const value = input.trim();
+  try {
+    const url = new URL(value);
+    const host = url.hostname.replace(/^www\./, '');
+    if (host !== 'drive.google.com' && host !== 'docs.google.com') return null;
+
+    // /file/d/ID/...  o  /d/ID/...
+    const m = url.pathname.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
+    if (m) return m[1];
+
+    // ?id=ID
+    const id = url.searchParams.get('id');
+    if (id && /^[a-zA-Z0-9_-]{10,}$/.test(id)) return id;
+  } catch {
+    // no era una URL válida
+  }
+  return null;
+}
+
+/**
+ * Detecta el proveedor (YouTube o Google Drive) a partir de un enlace y
+ * devuelve { provider, id }. Devuelve null si no se reconoce.
+ */
+export function parseVideo(input: string): { provider: VideoProvider; id: string } | null {
+  const yt = parseYouTubeId(input);
+  if (yt) return { provider: 'youtube', id: yt };
+  const dr = parseDriveId(input);
+  if (dr) return { provider: 'drive', id: dr };
+  return null;
+}
+
+/** URL de reproducción embebida de Google Drive (reproductor propio de Drive). */
+export function driveEmbedUrl(fileId: string): string {
+  return `https://drive.google.com/file/d/${fileId}/preview`;
+}
+
+/** Miniatura de Google Drive (requiere que el archivo sea accesible por enlace). */
+export function driveThumbnail(fileId: string, width = 480): string {
+  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${width}`;
+}
+
+/** Miniatura según proveedor. */
+export function videoThumbnail(provider: VideoProvider | undefined, id: string): string {
+  return provider === 'drive' ? driveThumbnail(id) : youTubeThumbnail(id, 'mq');
+}

@@ -8,7 +8,7 @@ import { getCourseBySlug, getCurriculum } from '@/lib/courses';
 import { enrollMe, getMyEnrollment, unenrollMe } from '@/lib/enrollments';
 import { getCourseProgress, countCompleted } from '@/lib/progress';
 import { getCourseStats, startCheckout, type Course, type Module, type Enrollment } from '@/lib/api';
-import { youTubeThumbnail } from '@/lib/youtube';
+import { videoThumbnail } from '@/lib/youtube';
 import { Page, Spinner, Button, Pill, Card, Empty } from '@/components/ui';
 import { useToast } from '@/components/Toast';
 import {
@@ -321,7 +321,7 @@ function CourseDetail() {
                           {isDone ? <IconCheck size={15} /> : unlocked ? <IconPlay size={13} /> : <IconLock size={14} />}
                         </span>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={youTubeThumbnail(l.youtube_id, 'mq')} alt="" style={styles.lessonThumb} />
+                        <img src={videoThumbnail(l.video_provider, l.youtube_id)} alt="" style={styles.lessonThumb} />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={styles.lessonTitle} className="clamp-2">
                             {l.title}

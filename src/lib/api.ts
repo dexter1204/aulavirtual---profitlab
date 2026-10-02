@@ -147,6 +147,7 @@ export type Lesson = {
   title: string;
   description: string | null;
   youtube_id: string;
+  video_provider?: 'youtube' | 'drive';
   duration: string | null;
   position: number;
   is_preview: boolean;
