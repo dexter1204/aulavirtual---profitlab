@@ -134,6 +134,21 @@ a[style*="rgb(20, 22, 28)"]:hover {
   transition: border-color 0.3s ease;
 }
 
+/* Modal · panel SÓLIDO (anula el glass para que no se transparente el fondo) */
+.modalPanel {
+  background-color: #14161C !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.7) !important;
+}
+/* Tarjetas/bloques dentro del modal también sólidos */
+.modalPanel [style*="rgb(20, 22, 28)"],
+.modalPanel [style*="rgb(31, 34, 43)"],
+.modalPanel [style*="rgb(10, 11, 14)"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 /* Inputs · sólidos para escritura cómoda y máxima legibilidad */
 input[style*="rgb(10, 11, 14)"],
 input[style*="rgb(20, 22, 28)"],

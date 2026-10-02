@@ -272,6 +272,7 @@ export function Modal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
+        className="modalPanel"
         style={{
           width: '100%',
           maxWidth: 480,
