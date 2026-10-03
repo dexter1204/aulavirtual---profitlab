@@ -86,7 +86,7 @@ export default function LoginPage() {
               tú mismo desde «Mi perfil».
             </p>
             <a
-              href="https://wa.link/zb0qys"
+              href="https://wa.link/4hlin5"
               target="_blank"
               rel="noopener noreferrer"
               style={styles.waBtn}
