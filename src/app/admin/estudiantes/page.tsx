@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { listUsers, setUserRole, type UserRow } from '@/lib/api';
+import { listUsers, setUserRole, adminResetPassword, type UserRow } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Page, PageTitle, Spinner, Empty, Pill, inputStyle } from '@/components/ui';
 import { AdminNav } from '@/components/AdminNav';
@@ -39,6 +39,26 @@ export default function AdminStudentsPage() {
       await setUserRole(p.id, role);
       setRows((prev) => prev.map((x) => (x.id === p.id ? { ...x, role } : x)));
       toast(role === 'admin' ? `${p.name} ahora es Master Study` : `${p.name} ahora es alumno`, 'success');
+    } catch (e: any) {
+      toast(e.message, 'error');
+    }
+  };
+
+  const resetPass = async (p: Row) => {
+    // Clave temporal sugerida; el admin puede editarla antes de confirmar.
+    const suggested = 'PL-' + Math.random().toString(36).slice(2, 8);
+    const nueva = prompt(
+      `Nueva contraseña temporal para ${p.name} (${p.email}).\n\nCompártesela y pídele que la cambie en «Mi perfil».`,
+      suggested
+    );
+    if (nueva === null) return;
+    if (nueva.trim().length < 6) {
+      toast('La contraseña debe tener al menos 6 caracteres', 'error');
+      return;
+    }
+    try {
+      await adminResetPassword(p.id, nueva.trim());
+      toast(`Contraseña de ${p.name} restablecida a: ${nueva.trim()}`, 'success');
     } catch (e: any) {
       toast(e.message, 'error');
     }
@@ -97,9 +117,14 @@ export default function AdminStudentsPage() {
                 <div style={{ color: '#64748B', fontSize: 11 }}>{p.email}</div>
                 <div style={{ color: '#64748B', fontSize: 11, marginTop: 2 }}>{p.enrollments} inscripción(es)</div>
               </div>
-              <button onClick={() => toggleRole(p)} style={styles.roleBtn}>
-                {p.role === 'admin' ? 'Hacer alumno' : 'Hacer Master'}
-              </button>
+              <div style={styles.actions}>
+                <button onClick={() => toggleRole(p)} style={styles.roleBtn}>
+                  {p.role === 'admin' ? 'Hacer alumno' : 'Hacer Master'}
+                </button>
+                <button onClick={() => resetPass(p)} style={styles.resetBtn}>
+                  Restablecer clave
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -111,5 +136,7 @@ export default function AdminStudentsPage() {
 const styles: Record<string, React.CSSProperties> = {
   row: { display: 'flex', alignItems: 'center', gap: 10, backgroundColor: '#14161C', border: '1px solid #1F222B', borderRadius: 12, padding: '10px 12px' },
   avatar: { width: 36, height: 36, borderRadius: 9, backgroundColor: '#C7F94C', color: '#0A0B0E', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 },
-  roleBtn: { flexShrink: 0, background: 'transparent', border: '1px solid #262932', color: '#94A3B8', borderRadius: 8, padding: '7px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
+  actions: { display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 },
+  roleBtn: { background: 'transparent', border: '1px solid #262932', color: '#94A3B8', borderRadius: 8, padding: '7px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' },
+  resetBtn: { background: 'transparent', border: '1px solid rgba(199,249,76,0.35)', color: '#C7F94C', borderRadius: 8, padding: '7px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' },
 };

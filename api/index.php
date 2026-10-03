@@ -508,6 +508,17 @@ try {
       db()->prepare('UPDATE users SET role = ? WHERE id = ?')->execute([$role, $seg[1]]);
       json_out(['ok' => true]);
     }
+    // PUT /users/{id}/password  — restablecer contraseña (admin da una clave temporal)
+    if (count($seg) === 3 && $seg[2] === 'password' && $method === 'PUT') {
+      $new = (string)(body()['new_password'] ?? '');
+      if (strlen($new) < 6) fail('La contraseña debe tener al menos 6 caracteres');
+      $exists = db()->prepare('SELECT 1 FROM users WHERE id = ?');
+      $exists->execute([$seg[1]]);
+      if (!$exists->fetchColumn()) fail('Usuario no encontrado', 404);
+      db()->prepare('UPDATE users SET password_hash = ? WHERE id = ?')
+          ->execute([password_hash($new, PASSWORD_DEFAULT), $seg[1]]);
+      json_out(['ok' => true]);
+    }
     fail('Ruta de users no encontrada', 404);
   }
 

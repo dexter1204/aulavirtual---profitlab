@@ -13,6 +13,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showForgot, setShowForgot] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,6 +74,30 @@ export default function LoginPage() {
             {loading ? '...' : 'ENTRAR'}
           </button>
         </form>
+
+        <button type="button" onClick={() => setShowForgot((v) => !v)} style={styles.forgotBtn}>
+          ¿Olvidaste tu contraseña?
+        </button>
+
+        {showForgot && (
+          <div style={styles.forgotBox}>
+            <p style={styles.forgotText}>
+              Escríbenos por WhatsApp y restablecemos tu contraseña. Luego podrás cambiarla
+              tú mismo desde «Mi perfil».
+            </p>
+            <a
+              href="https://wa.link/zb0qys"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={styles.waBtn}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2a10 10 0 00-8.5 15.2L2 22l4.9-1.4A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1112 20zm4.6-5.5c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1a6.5 6.5 0 01-3.2-2.8c-.1-.2 0-.3.1-.5l.4-.5c.1-.1.2-.2.2-.4 0-.1 0-.3-.1-.4l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9 0 1.1.8 2.2 1 2.4.1.2 1.6 2.4 3.9 3.4l1.3.5c.5.2 1 .1 1.4.1.4-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1z" />
+              </svg>
+              Pedir ayuda por WhatsApp
+            </a>
+          </div>
+        )}
 
         <Link href="/signup" style={styles.signupRow}>
           ¿No tienes cuenta? <span style={styles.signupLink}>Créala gratis</span>
@@ -153,6 +178,41 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 12,
     marginTop: 18,
     padding: 8,
+  },
+  forgotBtn: {
+    display: 'block',
+    width: '100%',
+    marginTop: 14,
+    background: 'transparent',
+    border: 'none',
+    color: '#94A3B8',
+    fontSize: 12,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    textAlign: 'center',
+    textDecoration: 'underline',
+    padding: 4,
+  },
+  forgotBox: {
+    marginTop: 10,
+    backgroundColor: '#14161C',
+    border: '1px solid #262932',
+    borderRadius: 12,
+    padding: 14,
+  },
+  forgotText: { color: '#CBD5E1', fontSize: 12.5, lineHeight: '18px', margin: '0 0 12px' },
+  waBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#25D366',
+    color: '#0A0B0E',
+    fontSize: 13,
+    fontWeight: 700,
+    borderRadius: 10,
+    padding: '11px 14px',
+    textDecoration: 'none',
   },
   signupLink: { color: '#C7F94C', fontWeight: 600 },
   footer: { textAlign: 'center', color: '#64748B', fontSize: 10, marginTop: 24 },

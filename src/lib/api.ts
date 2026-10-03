@@ -317,6 +317,11 @@ export async function setUserRole(userId: string, role: Role): Promise<void> {
   await api(`/users/${userId}/role`, { method: 'PUT', body: { role } });
 }
 
+/** Restablece la contraseña de un usuario (solo admin). Devuelve la clave temporal fijada. */
+export async function adminResetPassword(userId: string, newPassword: string): Promise<void> {
+  await api(`/users/${userId}/password`, { method: 'PUT', body: { new_password: newPassword } });
+}
+
 export async function getAdminStats(): Promise<AdminStats> {
   return api<AdminStats>('/stats');
 }
