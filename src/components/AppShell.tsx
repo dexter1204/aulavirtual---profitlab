@@ -57,13 +57,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // La ficha de curso usa dos columnas en escritorio → contenedor más ancho.
-  const wide = pathname === '/curso';
+  // Ancho del contenedor según la pantalla:
+  //  · catálogo y "mis cursos" usan rejilla → aprovechan más ancho en tablet/desktop
+  //  · la ficha de curso usa dos columnas
+  //  · el resto (lectura/formularios) se mantiene angosto para buena legibilidad
+  const maxWidth =
+    pathname === '/curso'
+      ? 1040
+      : pathname === '/cursos' || pathname === '/mis-cursos'
+      ? 1120
+      : 760;
 
   return (
     <>
       <AppHeader />
-      <main style={{ maxWidth: wide ? 1040 : 760, margin: '0 auto' }}>{children}</main>
+      <main
+        style={{
+          maxWidth,
+          margin: '0 auto',
+          // Deja espacio para la barra inferior fija (y el área segura del móvil).
+          paddingBottom: 'calc(76px + env(safe-area-inset-bottom, 0px))',
+        }}
+      >
+        {children}
+      </main>
       <BottomNav />
     </>
   );
