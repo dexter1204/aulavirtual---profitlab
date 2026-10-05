@@ -49,7 +49,8 @@ function reorder_table(string $table, array $ids): void {
 try {
   // Raíz
   if (count($seg) === 0) {
-    json_out(['name' => 'Profit Lab Aula Virtual API', 'status' => 'ok']);
+    json_out(['name' => 'Profit Lab Aula Virtual API', 'status' => 'ok',
+              'version' => 'v15-tareas', 'features' => ['assignments', 'submissions']]);
   }
 
   // ============ AUTH ============
