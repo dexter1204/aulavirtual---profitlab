@@ -37,3 +37,6 @@ next-env.d.ts
 
 # API PHP: credenciales locales (NO subir)
 api/config.php
+
+# Bases de datos de prueba locales
+*.sqlite
