@@ -10,6 +10,7 @@ import { getCourseProgress, setLessonCompleted, countCompleted } from '@/lib/pro
 import { listLessonMaterials, type Course, type Module, type Lesson, type Enrollment, type Material } from '@/lib/api';
 import { formatBytes } from '@/components/materials';
 import { VideoPlayer } from '@/components/VideoPlayer';
+import { StudentAssignments } from '@/components/StudentAssignments';
 import { Spinner, Button, Empty } from '@/components/ui';
 import { IconCheck, IconPlay, IconLock, IconDot, IconDocument, IconVideo, IconClock, IconPaperclip, IconDownload, IconExternal, MaterialIcon } from '@/components/icons';
 import { useToast } from '@/components/Toast';
@@ -237,6 +238,9 @@ function Learn() {
           {done}/{total} clases · {pct}%
         </span>
       </div>
+
+      {/* TAREAS DEL CURSO (solo si hay) */}
+      {!isAdmin && <StudentAssignments courseId={courseId} hideWhenEmpty />}
 
       {/* CURRÍCULO */}
       <h2 style={styles.currTitle}>Contenido</h2>
