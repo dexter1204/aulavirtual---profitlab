@@ -171,6 +171,44 @@ export type Material = {
   created_at: string;
 };
 
+// ---------- Tareas (assignments) ----------
+export type SubmissionFile = {
+  id: string;
+  submission_id: string;
+  title: string;
+  url: string;
+  mime: string | null;
+  size: number | null;
+  created_at: string;
+};
+
+export type SubmissionStatus = 'entregada' | 'revisada';
+
+export type Submission = {
+  id: string;
+  assignment_id: string;
+  user_id: string;
+  comment: string | null;
+  status: SubmissionStatus;
+  grade: string | null;
+  feedback: string | null;
+  created_at: string;
+  updated_at: string;
+  files?: SubmissionFile[];
+  user_name?: string;
+  user_email?: string;
+};
+
+export type Assignment = {
+  id: string;
+  course_id: string;
+  title: string;
+  description: string | null;
+  due_date: string | null;
+  position: number;
+  created_at: string;
+};
+
 export type Enrollment = {
   id: string;
   user_id: string;
@@ -342,4 +380,89 @@ export async function startCheckout(courseId: string): Promise<{ init_point: str
 /** Verifica un pago tras volver de Mercado Pago (da acceso al instante). */
 export async function verifyPayment(paymentId: string): Promise<{ ok: boolean }> {
   return api<{ ok: boolean }>('/mp/verify', { method: 'POST', body: { payment_id: paymentId } });
+}
+
+// ============================================================
+// TAREAS (assignments) · alumnos suben archivos; admin califica
+// ============================================================
+
+/** Lista las tareas de un curso (admin o alumno inscrito). */
+export async function listAssignments(courseId: string): Promise<Assignment[]> {
+  return api<Assignment[]>('/assignments', { query: { course_id: courseId } });
+}
+
+export async function createAssignment(input: {
+  course_id: string;
+  title: string;
+  description?: string | null;
+  due_date?: string | null;
+  position?: number;
+}): Promise<string> {
+  const { id } = await api<{ id: string }>('/assignments', { method: 'POST', body: input });
+  return id;
+}
+
+export async function updateAssignment(
+  id: string,
+  input: Partial<Pick<Assignment, 'title' | 'description' | 'due_date' | 'position'>>
+): Promise<void> {
+  await api(`/assignments/${id}`, { method: 'PUT', body: input });
+}
+
+export async function deleteAssignment(id: string): Promise<void> {
+  await api(`/assignments/${id}`, { method: 'DELETE' });
+}
+
+/** Todas las entregas de una tarea con sus archivos (solo admin). */
+export async function listAssignmentSubmissions(assignmentId: string): Promise<Submission[]> {
+  return api<Submission[]>(`/assignments/${assignmentId}/submissions`);
+}
+
+/** La entrega del alumno autenticado para una tarea (o null). */
+export async function getMySubmission(assignmentId: string): Promise<Submission | null> {
+  return api<Submission | null>(`/assignments/${assignmentId}/my-submission`);
+}
+
+/** Sube UN archivo de la entrega (multipart) y devuelve su URL y metadatos. */
+export async function uploadSubmissionFile(
+  assignmentId: string,
+  file: File
+): Promise<{ url: string; name: string; mime: string | null; size: number }> {
+  const fd = new FormData();
+  fd.append('file', file);
+  const token = getToken();
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/assignments/${assignmentId}/upload`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: fd,
+    });
+  } catch {
+    throw new Error('No se pudo conectar con el servidor');
+  }
+  const text = await res.text();
+  const data = text ? safeJson(text) : null;
+  if (!res.ok) throw new Error((data && (data.error as string)) || `Error ${res.status}`);
+  return data;
+}
+
+/** Crea o actualiza la entrega del alumno (comentario + lista de archivos ya subidos). */
+export async function submitAssignment(
+  assignmentId: string,
+  input: { comment?: string | null; files: { title: string; url: string; mime?: string | null; size?: number | null }[] }
+): Promise<string> {
+  const { id } = await api<{ id: string }>(`/assignments/${assignmentId}/submit`, {
+    method: 'POST',
+    body: input,
+  });
+  return id;
+}
+
+/** Califica / marca como revisada una entrega (solo admin). */
+export async function gradeSubmission(
+  submissionId: string,
+  input: Partial<Pick<Submission, 'status' | 'grade' | 'feedback'>>
+): Promise<void> {
+  await api(`/submissions/${submissionId}`, { method: 'PUT', body: input });
 }

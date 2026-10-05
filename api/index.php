@@ -578,6 +578,165 @@ try {
     fail('Ruta de materials no encontrada', 404);
   }
 
+  // ============ TAREAS (assignments) ============
+  if ($seg[0] === 'assignments') {
+    if (count($seg) === 1) {
+      // GET /assignments?course_id=  → tareas del curso (admin o alumno inscrito)
+      if ($method === 'GET') {
+        $courseId = $_GET['course_id'] ?? '';
+        if ($courseId === '') fail('course_id requerido');
+        $me = current_user();
+        $isAdmin = $me && $me['role'] === 'admin';
+        if (!$isAdmin && !($me && is_enrolled($me['id'], $courseId))) fail('No autorizado', 403);
+        $s = db()->prepare('SELECT * FROM assignments WHERE course_id = ? ORDER BY position ASC, created_at ASC');
+        $s->execute([$courseId]);
+        json_out($s->fetchAll());
+      }
+      // POST /assignments  (admin)
+      if ($method === 'POST') {
+        require_admin();
+        $b = body();
+        foreach (['course_id','title'] as $req) if (empty($b[$req])) fail("$req requerido");
+        $id = uuid();
+        db()->prepare('INSERT INTO assignments (id,course_id,title,description,due_date,position) VALUES (?,?,?,?,?,?)')
+            ->execute([$id, $b['course_id'], $b['title'], $b['description'] ?? null,
+                       !empty($b['due_date']) ? $b['due_date'] : null, (int)($b['position'] ?? 0)]);
+        json_out(['id' => $id], 201);
+      }
+    }
+
+    $aid = $seg[1] ?? '';
+    $sub = $seg[2] ?? '';
+
+    // PUT /assignments/{id}  (admin)
+    if (count($seg) === 2 && $method === 'PUT') {
+      require_admin();
+      $b = body();
+      $sets = []; $vals = [];
+      foreach (['title','description','due_date','position'] as $k) {
+        if (array_key_exists($k, $b)) { $sets[] = "$k = ?"; $vals[] = ($k === 'due_date' && empty($b[$k])) ? null : $b[$k]; }
+      }
+      if ($sets) { $vals[] = $aid; db()->prepare('UPDATE assignments SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($vals); }
+      json_out(['ok' => true]);
+    }
+    // DELETE /assignments/{id}  (admin)
+    if (count($seg) === 2 && $method === 'DELETE') {
+      require_admin();
+      db()->prepare('DELETE FROM assignments WHERE id = ?')->execute([$aid]);
+      json_out(['ok' => true]);
+    }
+
+    // Cargar la tarea para los sub-endpoints
+    $aStmt = db()->prepare('SELECT * FROM assignments WHERE id = ?');
+    $aStmt->execute([$aid]);
+    $assignment = $aStmt->fetch();
+    if (!$assignment) fail('Tarea no encontrada', 404);
+    $courseId = $assignment['course_id'];
+
+    // GET /assignments/{id}/submissions  (admin) → todas las entregas + archivos
+    if ($sub === 'submissions' && $method === 'GET') {
+      require_admin();
+      $s = db()->prepare('SELECT s.*, u.name AS user_name, u.email AS user_email
+                          FROM submissions s JOIN users u ON u.id = s.user_id
+                          WHERE s.assignment_id = ? ORDER BY s.updated_at DESC, s.created_at DESC');
+      $s->execute([$aid]);
+      $subs = $s->fetchAll();
+      foreach ($subs as &$row) {
+        $fs = db()->prepare('SELECT * FROM submission_files WHERE submission_id = ? ORDER BY created_at ASC');
+        $fs->execute([$row['id']]);
+        $row['files'] = $fs->fetchAll();
+      }
+      json_out($subs);
+    }
+
+    // GET /assignments/{id}/my-submission  (alumno) → su entrega o null
+    if ($sub === 'my-submission' && $method === 'GET') {
+      $u = require_auth();
+      $s = db()->prepare('SELECT * FROM submissions WHERE assignment_id = ? AND user_id = ?');
+      $s->execute([$aid, $u['id']]);
+      $mine = $s->fetch();
+      if (!$mine) json_out(null);
+      $fs = db()->prepare('SELECT * FROM submission_files WHERE submission_id = ? ORDER BY created_at ASC');
+      $fs->execute([$mine['id']]);
+      $mine['files'] = $fs->fetchAll();
+      json_out($mine);
+    }
+
+    // POST /assignments/{id}/upload  (alumno inscrito) → sube UN archivo, devuelve {url,...}
+    if ($sub === 'upload' && $method === 'POST') {
+      $u = require_auth();
+      if ($u['role'] !== 'admin' && !is_enrolled($u['id'], $courseId)) fail('Debes estar inscrito en el curso', 403);
+      if (empty($_FILES['file'])) fail('No se recibió ningún archivo');
+      $f = $_FILES['file'];
+      if ($f['error'] !== UPLOAD_ERR_OK) fail('Error al subir el archivo (código ' . $f['error'] . ')');
+      if ($f['size'] > 50 * 1024 * 1024) fail('El archivo supera el límite de 50 MB', 413);
+      $ext = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
+      $allowed = ['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','csv','zip','rar',
+                  'png','jpg','jpeg','gif','webp','mp4','mp3','wav'];
+      if (!in_array($ext, $allowed, true)) fail('Tipo de archivo no permitido: .' . $ext, 415);
+      $dir = __DIR__ . '/../uploads';
+      if (!is_dir($dir)) @mkdir($dir, 0755, true);
+      $ht = "$dir/.htaccess";
+      if (!file_exists($ht)) {
+        @file_put_contents($ht,
+          "php_flag engine off\nRemoveHandler .php .phtml .phar\n" .
+          "<FilesMatch \"\\.(php|phtml|phar|cgi|pl|py)$\">\n  Require all denied\n</FilesMatch>\n");
+      }
+      $fname = bin2hex(random_bytes(8)) . '.' . $ext;
+      if (!move_uploaded_file($f['tmp_name'], "$dir/$fname")) fail('No se pudo guardar el archivo', 500);
+      $uriPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+      $pos = strpos($uriPath, '/api');
+      $appBase = $pos !== false ? substr($uriPath, 0, $pos) : '';
+      json_out(['url' => $appBase . '/uploads/' . $fname, 'name' => $f['name'],
+                'mime' => $f['type'] ?: null, 'size' => (int) $f['size']]);
+    }
+
+    // POST /assignments/{id}/submit  (alumno inscrito) → crea/actualiza su entrega
+    if ($sub === 'submit' && $method === 'POST') {
+      $u = require_auth();
+      if ($u['role'] !== 'admin' && !is_enrolled($u['id'], $courseId)) fail('Debes estar inscrito en el curso', 403);
+      $b = body();
+      $files = is_array($b['files'] ?? null) ? $b['files'] : [];
+      $ex = db()->prepare('SELECT id FROM submissions WHERE assignment_id = ? AND user_id = ?');
+      $ex->execute([$aid, $u['id']]);
+      $sid = $ex->fetchColumn();
+      if ($sid) {
+        db()->prepare('UPDATE submissions SET comment = ?, status = ?, updated_at = ? WHERE id = ?')
+            ->execute([$b['comment'] ?? null, 'entregada', date('Y-m-d H:i:s'), $sid]);
+      } else {
+        $sid = uuid();
+        db()->prepare('INSERT INTO submissions (id,assignment_id,user_id,comment,status) VALUES (?,?,?,?,?)')
+            ->execute([$sid, $aid, $u['id'], $b['comment'] ?? null, 'entregada']);
+      }
+      db()->prepare('DELETE FROM submission_files WHERE submission_id = ?')->execute([$sid]);
+      $ins = db()->prepare('INSERT INTO submission_files (id,submission_id,title,url,mime,size) VALUES (?,?,?,?,?,?)');
+      foreach ($files as $ff) {
+        if (empty($ff['url'])) continue;
+        $ins->execute([uuid(), $sid, $ff['title'] ?? 'archivo', $ff['url'],
+                       $ff['mime'] ?? null, isset($ff['size']) ? (int) $ff['size'] : null]);
+      }
+      json_out(['id' => $sid], 201);
+    }
+
+    fail('Ruta de assignments no encontrada', 404);
+  }
+
+  // ============ SUBMISSIONS (calificar · admin) ============
+  if ($seg[0] === 'submissions') {
+    // PUT /submissions/{id}  (admin) → status / grade / feedback
+    if (count($seg) === 2 && $method === 'PUT') {
+      require_admin();
+      $b = body();
+      $sets = []; $vals = [];
+      foreach (['status','grade','feedback'] as $k) {
+        if (array_key_exists($k, $b)) { $sets[] = "$k = ?"; $vals[] = $b[$k]; }
+      }
+      if ($sets) { $vals[] = $seg[1]; db()->prepare('UPDATE submissions SET ' . implode(', ', $sets) . ' WHERE id = ?')->execute($vals); }
+      json_out(['ok' => true]);
+    }
+    fail('Ruta de submissions no encontrada', 404);
+  }
+
   // ============ CHECKOUT · Mercado Pago ============
   // POST /checkout  → crea una preferencia y devuelve el enlace de pago
   if ($seg[0] === 'checkout' && count($seg) === 1 && $method === 'POST') {

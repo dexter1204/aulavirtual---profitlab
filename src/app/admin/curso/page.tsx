@@ -19,10 +19,11 @@ import { Page, Spinner, Button, Pill, Empty } from '@/components/ui';
 import { CourseForm, type CourseFormValues } from '@/components/CourseForm';
 import { LessonEditor } from '@/components/LessonEditor';
 import { CourseStudents } from '@/components/CourseStudents';
+import { CourseAssignments } from '@/components/CourseAssignments';
 import { useToast } from '@/components/Toast';
 import { IconPencil, IconTrash, IconSearch, IconEye, IconLayers } from '@/components/icons';
 
-type Tab = 'contenido' | 'ajustes' | 'alumnos';
+type Tab = 'contenido' | 'tareas' | 'ajustes' | 'alumnos';
 
 export default function EditCoursePage() {
   return (
@@ -183,13 +184,13 @@ function EditCourse() {
 
       {/* TABS */}
       <div style={styles.tabs}>
-        {(['contenido', 'ajustes', 'alumnos'] as Tab[]).map((t) => (
+        {(['contenido', 'tareas', 'ajustes', 'alumnos'] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             style={{ ...styles.tab, backgroundColor: tab === t ? '#C7F94C' : '#14161C', color: tab === t ? '#0A0B0E' : '#94A3B8', borderColor: tab === t ? '#C7F94C' : '#1F222B' }}
           >
-            {t === 'contenido' ? 'Contenido' : t === 'ajustes' ? 'Ajustes' : 'Alumnos'}
+            {t === 'contenido' ? 'Contenido' : t === 'tareas' ? 'Tareas' : t === 'ajustes' ? 'Ajustes' : 'Alumnos'}
           </button>
         ))}
       </div>
@@ -261,6 +262,9 @@ function EditCourse() {
           </Button>
         </>
       )}
+
+      {/* TAREAS */}
+      {tab === 'tareas' && <CourseAssignments courseId={course.id} />}
 
       {/* AJUSTES */}
       {tab === 'ajustes' && (

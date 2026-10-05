@@ -253,6 +253,13 @@ export const IconPaperclip = ({ size, color, style, strokeWidth }: P) => (
     <path d="M21 8.5 11.5 18a4 4 0 0 1-5.7-5.7l9-9a2.6 2.6 0 0 1 3.7 3.7l-9 9a1.3 1.3 0 0 1-1.8-1.8l8-8" />
   </svg>
 );
+export const IconClipboard = ({ size, color, style, strokeWidth }: P) => (
+  <svg {...base(size, color, strokeWidth, style)}>
+    <rect x="8" y="2" width="8" height="4" rx="1" />
+    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+    <path d="M9 12h6M9 16h6" />
+  </svg>
+);
 export const IconInfo = ({ size, color, style, strokeWidth }: P) => (
   <svg {...base(size, color, strokeWidth, style)}>
     <circle cx="12" cy="12" r="9" />
