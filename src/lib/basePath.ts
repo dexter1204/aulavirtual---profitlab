@@ -2,7 +2,8 @@
 // trailingSlash, usePathname() devuelve la ruta CON el prefijo y CON barra
 // final (p.ej. /aulavirtual/login/). Normalizamos a la forma canónica
 // (sin prefijo y sin barra final) para que las comprobaciones funcionen.
-export const BASE_PATH = '/aulavirtual';
+// Debe coincidir con el basePath de next.config.ts (web: /aulavirtual, app: '').
+export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '/aulavirtual';
 
 export function stripBase(pathname: string): string {
   let p = pathname || '/';

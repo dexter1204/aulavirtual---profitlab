@@ -4,13 +4,39 @@ require_once __DIR__ . '/jwt.php';
 
 // ---------- CORS + JSON ----------
 function send_cors_headers(): void {
-  $origin = config()['cors_origin'] ?? '';
-  if ($origin !== '') {
-    header("Access-Control-Allow-Origin: $origin");
+  $reqOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+  // Orígenes permitidos. La web del Aula es mismo-origen (no necesita CORS),
+  // pero la APP NATIVA (Capacitor) hace peticiones desde estos orígenes de
+  // WebView, así que hay que permitirlos para que la app funcione.
+  $allowed = [
+    'capacitor://localhost', // iOS (Capacitor)
+    'ionic://localhost',     // iOS (legacy)
+    'http://localhost',      // Android (Capacitor) / desarrollo
+    'https://localhost',     // Android (Capacitor, servidor https)
+  ];
+  // Orígenes extra configurables (coma-separados) en config.php → 'cors_origin'.
+  $cfg = config()['cors_origin'] ?? '';
+  foreach (explode(',', $cfg) as $o) {
+    $o = trim($o);
+    if ($o !== '') $allowed[] = $o;
+  }
+
+  $allowOrigin = '';
+  if ($reqOrigin !== '' && in_array($reqOrigin, $allowed, true)) {
+    $allowOrigin = $reqOrigin;
+  } elseif (in_array('*', $allowed, true)) {
+    $allowOrigin = '*';
+  }
+
+  if ($allowOrigin !== '') {
+    header("Access-Control-Allow-Origin: $allowOrigin");
     header('Vary: Origin');
     header('Access-Control-Allow-Headers: Content-Type, Authorization');
     header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Max-Age: 86400');
   }
+
   if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
     http_response_code(204);
     exit;

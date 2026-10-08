@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getCourseById, getCurriculum, isLessonReleased } from '@/lib/courses';
 import { getMyEnrollment } from '@/lib/enrollments';
 import { getCourseProgress, setLessonCompleted, countCompleted } from '@/lib/progress';
-import { listLessonMaterials, type Course, type Module, type Lesson, type Enrollment, type Material } from '@/lib/api';
+import { listLessonMaterials, materialHref, type Course, type Module, type Lesson, type Enrollment, type Material } from '@/lib/api';
 import { formatBytes } from '@/components/materials';
 import { VideoPlayer } from '@/components/VideoPlayer';
 import { StudentAssignments } from '@/components/StudentAssignments';
@@ -191,7 +191,7 @@ function Learn() {
               {materials.map((m) => (
                 <a
                   key={m.id}
-                  href={m.url}
+                  href={materialHref(m.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   download={m.kind === 'file' ? m.title : undefined}

@@ -34,7 +34,13 @@ export const viewport: Viewport = {
   themeColor: '#0A0B0E',
   width: 'device-width',
   initialScale: 1,
+  maximumScale: 1,
+  // Ocupar toda la pantalla incluidas las zonas seguras (notch) en app/PWA.
+  viewportFit: 'cover',
 };
+
+// Prefijo según el destino del build (web: /aulavirtual, app: '').
+const BP = process.env.NEXT_PUBLIC_BASE_PATH ?? '/aulavirtual';
 
 export default function RootLayout({
   children,
@@ -43,6 +49,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`${bricolage.variable} ${manrope.variable}`}>
+      <head>
+        <link rel="manifest" href={`${BP}/manifest.webmanifest`} />
+        <link rel="apple-touch-icon" href={`${BP}/icons/apple-touch-icon.png`} />
+        <link rel="icon" type="image/png" href={`${BP}/icons/icon-192.png`} />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-title" content="ProfitLab" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+      </head>
       <body
         className="bg-[#0A0B0E] text-[#F1F5F9] min-h-screen"
         style={{ fontFamily: 'var(--font-manrope), -apple-system, sans-serif', paddingBottom: 60 }}

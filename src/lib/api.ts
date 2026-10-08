@@ -5,6 +5,12 @@
 const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? '/api').replace(/\/$/, '');
 const TOKEN_KEY = 'pl_token';
 
+// Origen del servidor (solo cuando la API es absoluta, p. ej. en la app
+// nativa de Capacitor). En la web queda vacío y las rutas relativas se usan
+// tal cual. Sirve para que los archivos subidos (/aulavirtual/uploads/…) se
+// abran contra el dominio real desde el WebView.
+const API_ORIGIN = /^https?:\/\//i.test(API_BASE) ? new URL(API_BASE).origin : '';
+
 // ---------- Token (localStorage) ----------
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -341,8 +347,13 @@ export async function uploadFile(
   return data;
 }
 
-/** URL absoluta usable en el navegador para un material (rutas root-relative tal cual). */
+/** URL usable en el navegador/app para un material o archivo subido.
+ *  En la web deja las rutas relativas tal cual; en la app nativa (API
+ *  absoluta) les antepone el dominio para que abran contra el servidor. */
 export function materialHref(url: string): string {
+  if (!url) return url;
+  if (/^(https?:|data:|blob:)/i.test(url)) return url;
+  if (API_ORIGIN && url.startsWith('/')) return API_ORIGIN + url;
   return url;
 }
 
