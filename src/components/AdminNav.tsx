@@ -8,6 +8,7 @@ const tabs = [
   { href: '/admin', label: 'Resumen' },
   { href: '/admin/cursos', label: 'Cursos' },
   { href: '/admin/estudiantes', label: 'Alumnos' },
+  { href: '/admin/mercados', label: 'Mercados' },
 ];
 
 export function AdminNav() {

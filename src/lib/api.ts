@@ -394,6 +394,68 @@ export async function verifyPayment(paymentId: string): Promise<{ ok: boolean }>
 }
 
 // ============================================================
+// QUANT · acceso a la sección "Mercados" (gamma/beta)
+// ============================================================
+
+export type QuantState = {
+  authenticated: boolean;
+  user: { id: string; name: string; email: string; role: Role } | null;
+  has_access: boolean;
+  access_until: string | null;
+  lifetime: boolean;
+  price: number;
+  currency: string;
+  days: number;
+};
+
+export type QuantCoupon = {
+  id: string;
+  code: string;
+  days: number;
+  max_uses: number;
+  uses: number;
+  active: number;
+  expires_at: string | null;
+  note: string | null;
+  created_at: string;
+};
+
+/** URL del dashboard del quant que se embebe en la sección Mercados.
+ *  Web: /quantsistem (mismo dominio). App: dominio absoluto + /quantsistem. */
+export const QUANT_URL =
+  (process.env.NEXT_PUBLIC_QUANT_URL ?? (API_ORIGIN ? `${API_ORIGIN}/quantsistem/` : '/quantsistem/'))
+    .replace(/\/*$/, '/');
+
+export async function getQuantState(): Promise<QuantState> {
+  return api<QuantState>('/quant/me');
+}
+
+export async function redeemQuantCoupon(code: string): Promise<{ ok: boolean; has_access: boolean; access_until: string | null; lifetime: boolean }> {
+  return api('/quant/redeem', { method: 'POST', body: { code } });
+}
+
+export async function quantCheckout(): Promise<{ init_point: string }> {
+  return api<{ init_point: string }>('/quant/checkout', { method: 'POST' });
+}
+
+// Admin · cupones del quant
+export async function listQuantCoupons(): Promise<QuantCoupon[]> {
+  return api<QuantCoupon[]>('/quant/coupons');
+}
+
+export async function createQuantCoupon(input: { code?: string; days?: number; max_uses?: number; expires_at?: string | null; note?: string | null }): Promise<{ id: string; code: string }> {
+  return api('/quant/coupons', { method: 'POST', body: input });
+}
+
+export async function deleteQuantCoupon(id: string): Promise<void> {
+  await api(`/quant/coupons/${id}`, { method: 'DELETE' });
+}
+
+export async function grantQuantAccess(userId: string, days: number): Promise<void> {
+  await api('/quant/grant', { method: 'POST', body: { user_id: userId, days } });
+}
+
+// ============================================================
 // TAREAS (assignments) · alumnos suben archivos; admin califica
 // ============================================================
 

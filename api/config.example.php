@@ -40,4 +40,12 @@ return [
   'mp_currency' => 'PEN',
   // true = modo PRUEBA (sandbox, no mueve dinero). false = producción (cobra).
   'mp_sandbox' => false,
+
+  // ── Acceso al QUANT (sección "Mercados" · gamma/beta) ──
+  // Precio del acceso (0 = no se puede comprar, solo por cupón).
+  'quant_price' => 0,
+  // Moneda del acceso al quant (por defecto, la de Mercado Pago).
+  'quant_currency' => 'PEN',
+  // Días de acceso que otorga una compra (0 = acceso vitalicio).
+  'quant_access_days' => 30,
 ];

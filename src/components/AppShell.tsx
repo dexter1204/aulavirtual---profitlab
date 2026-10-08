@@ -64,7 +64,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const maxWidth =
     pathname === '/curso'
       ? 1040
-      : pathname === '/cursos' || pathname === '/mis-cursos'
+      : pathname === '/cursos' || pathname === '/mis-cursos' || pathname === '/mercados'
       ? 1120
       : 760;
 

@@ -738,6 +738,132 @@ try {
     fail('Ruta de submissions no encontrada', 404);
   }
 
+  // ============ QUANT · acceso a "Mercados" (gamma/beta) ============
+  if ($seg[0] === 'quant') {
+    $cfg = config();
+    $qPrice = (float) ($cfg['quant_price'] ?? 0);
+    $qCurrency = $cfg['quant_currency'] ?? ($cfg['mp_currency'] ?? 'PEN');
+    $qDays = (int) ($cfg['quant_access_days'] ?? 30); // 0 = vitalicio al comprar
+
+    // GET /quant/me → estado de acceso del usuario autenticado
+    if (($seg[1] ?? '') === 'me' && $method === 'GET') {
+      $u = require_auth();
+      $st = quant_state($u);
+      json_out([
+        'authenticated' => true,
+        'user' => ['id' => $u['id'], 'name' => $u['name'], 'email' => $u['email'], 'role' => $u['role']],
+        'has_access' => $st['has_access'],
+        'access_until' => $st['access_until'],
+        'lifetime' => $st['lifetime'],
+        'price' => $qPrice,
+        'currency' => $qCurrency,
+        'days' => $qDays,
+      ]);
+    }
+
+    // POST /quant/redeem {code} → canjear cupón
+    if (($seg[1] ?? '') === 'redeem' && $method === 'POST') {
+      $u = require_auth();
+      $code = strtoupper(trim((string) (body()['code'] ?? '')));
+      if ($code === '') fail('Ingresa un cupón');
+      $c = db()->prepare('SELECT * FROM quant_coupons WHERE code = ?');
+      $c->execute([$code]);
+      $coupon = $c->fetch();
+      if (!$coupon || !(int) $coupon['active']) fail('Cupón inválido');
+      if (!empty($coupon['expires_at']) && strtotime($coupon['expires_at']) < time()) fail('Cupón expirado');
+      if ((int) $coupon['max_uses'] > 0 && (int) $coupon['uses'] >= (int) $coupon['max_uses']) fail('Cupón agotado');
+      $used = db()->prepare('SELECT 1 FROM quant_coupon_uses WHERE coupon_id = ? AND user_id = ?');
+      $used->execute([$coupon['id'], $u['id']]);
+      if ($used->fetchColumn()) fail('Ya canjeaste este cupón');
+
+      grant_quant_access($u['id'], (int) $coupon['days'], 'coupon');
+      db()->prepare('INSERT INTO quant_coupon_uses (id,coupon_id,user_id) VALUES (?,?,?)')->execute([uuid(), $coupon['id'], $u['id']]);
+      db()->prepare('UPDATE quant_coupons SET uses = uses + 1 WHERE id = ?')->execute([$coupon['id']]);
+      $st = quant_state($u);
+      json_out(['ok' => true, 'has_access' => $st['has_access'], 'access_until' => $st['access_until'], 'lifetime' => $st['lifetime']]);
+    }
+
+    // POST /quant/checkout → preferencia de pago (Mercado Pago)
+    if (($seg[1] ?? '') === 'checkout' && $method === 'POST') {
+      $u = require_auth();
+      $token = $cfg['mp_access_token'] ?? '';
+      if ($token === '') fail('Pagos no configurados (falta el Access Token de Mercado Pago).', 503);
+      if ($qPrice <= 0) fail('El precio del acceso no está configurado (quant_price en config.php).', 503);
+      $st = quant_state($u);
+      if ($st['has_access']) fail('Ya tienes acceso al dashboard');
+      $site = rtrim($cfg['site_url'] ?? '', '/');
+      $pref = [
+        'items' => [[
+          'title'       => 'ProfitLab Quant — Acceso Mercados',
+          'quantity'    => 1,
+          'currency_id' => $qCurrency,
+          'unit_price'  => $qPrice,
+        ]],
+        'payer' => ['email' => $u['email']],
+        'external_reference' => $u['id'] . ':quant',
+        'metadata' => ['user_id' => $u['id'], 'kind' => 'quant'],
+        'back_urls' => [
+          'success' => $site . '/mercados/?pago=ok',
+          'failure' => $site . '/mercados/?pago=error',
+          'pending' => $site . '/mercados/?pago=pendiente',
+        ],
+        'auto_return'      => 'approved',
+        'notification_url' => $site . '/api/mp/webhook',
+        'statement_descriptor' => 'PROFITLAB',
+      ];
+      [$code, $data] = mp_request('POST', 'https://api.mercadopago.com/checkout/preferences', $token, $pref);
+      if ($code >= 200 && $code < 300 && !empty($data['init_point'])) {
+        $sandbox = !empty($cfg['mp_sandbox']) || str_starts_with($token, 'TEST-');
+        $link = $sandbox ? ($data['sandbox_init_point'] ?? $data['init_point']) : $data['init_point'];
+        json_out(['init_point' => $link, 'id' => $data['id'] ?? null, 'sandbox' => $sandbox]);
+      }
+      $detail = $data['message'] ?? ($data['error'] ?? '');
+      fail('No se pudo iniciar el pago' . ($detail ? ": $detail" : ''), 502);
+    }
+
+    // ----- Admin: cupones -----
+    if (($seg[1] ?? '') === 'coupons') {
+      if (count($seg) === 2 && $method === 'GET') {
+        require_admin();
+        json_out(db()->query('SELECT * FROM quant_coupons ORDER BY created_at DESC')->fetchAll());
+      }
+      if (count($seg) === 2 && $method === 'POST') {
+        require_admin();
+        $b = body();
+        $code = strtoupper(trim((string) ($b['code'] ?? '')));
+        if ($code === '') $code = 'QT' . strtoupper(bin2hex(random_bytes(3)));
+        $exists = db()->prepare('SELECT 1 FROM quant_coupons WHERE code = ?');
+        $exists->execute([$code]);
+        if ($exists->fetchColumn()) fail('Ya existe un cupón con ese código', 409);
+        $id = uuid();
+        db()->prepare('INSERT INTO quant_coupons (id,code,days,max_uses,active,expires_at,note) VALUES (?,?,?,?,1,?,?)')
+            ->execute([$id, $code, (int) ($b['days'] ?? 30), (int) ($b['max_uses'] ?? 0),
+                       !empty($b['expires_at']) ? $b['expires_at'] : null, $b['note'] ?? null]);
+        json_out(['id' => $id, 'code' => $code], 201);
+      }
+      if (count($seg) === 3 && $method === 'DELETE') {
+        require_admin();
+        db()->prepare('DELETE FROM quant_coupons WHERE id = ?')->execute([$seg[2]]);
+        json_out(['ok' => true]);
+      }
+    }
+
+    // POST /quant/grant {user_id,days}  (admin) → otorgar acceso manual
+    if (($seg[1] ?? '') === 'grant' && $method === 'POST') {
+      require_admin();
+      $b = body();
+      $uid = (string) ($b['user_id'] ?? '');
+      if ($uid === '') fail('user_id requerido');
+      $uq = db()->prepare('SELECT 1 FROM users WHERE id = ?');
+      $uq->execute([$uid]);
+      if (!$uq->fetchColumn()) fail('Usuario no encontrado', 404);
+      grant_quant_access($uid, (int) ($b['days'] ?? 0), 'admin');
+      json_out(['ok' => true]);
+    }
+
+    fail('Ruta de quant no encontrada', 404);
+  }
+
   // ============ CHECKOUT · Mercado Pago ============
   // POST /checkout  → crea una preferencia y devuelve el enlace de pago
   if ($seg[0] === 'checkout' && count($seg) === 1 && $method === 'POST') {
@@ -846,6 +972,47 @@ function respond_with_token(string $userId): void {
   json_out(['token' => $token, 'profile' => $s->fetch()]);
 }
 
+// ── Acceso al QUANT (Mercados) ──────────────────────────────────────────────
+function quant_state(array $u): array {
+  // Los administradores siempre tienen acceso.
+  if (($u['role'] ?? '') === 'admin') {
+    return ['has_access' => true, 'access_until' => null, 'lifetime' => true];
+  }
+  $s = db()->prepare('SELECT lifetime, access_until FROM quant_access WHERE user_id = ?');
+  $s->execute([$u['id']]);
+  $row = $s->fetch();
+  if (!$row) return ['has_access' => false, 'access_until' => null, 'lifetime' => false];
+  $life = (int) $row['lifetime'] === 1;
+  $until = $row['access_until'] ?? null;
+  $has = $life || ($until && strtotime($until) > time());
+  return ['has_access' => $has, 'access_until' => $until, 'lifetime' => $life];
+}
+
+/** Otorga/extiende el acceso al quant. $days <= 0 → vitalicio. */
+function grant_quant_access(string $userId, int $days, string $source): void {
+  $cur = db()->prepare('SELECT lifetime, access_until FROM quant_access WHERE user_id = ?');
+  $cur->execute([$userId]);
+  $row = $cur->fetch();
+  if ($row && (int) $row['lifetime'] === 1) return; // ya es vitalicio
+
+  if ($days <= 0) {
+    $lifetime = 1; $until = null;
+  } else {
+    $base = time();
+    if ($row && !empty($row['access_until']) && strtotime($row['access_until']) > $base) {
+      $base = strtotime($row['access_until']); // extiende desde el acceso vigente
+    }
+    $lifetime = 0; $until = date('Y-m-d H:i:s', $base + $days * 86400);
+  }
+  if ($row) {
+    db()->prepare('UPDATE quant_access SET lifetime = ?, access_until = ?, source = ?, updated_at = ? WHERE user_id = ?')
+        ->execute([$lifetime, $until, $source, date('Y-m-d H:i:s'), $userId]);
+  } else {
+    db()->prepare('INSERT INTO quant_access (user_id, lifetime, access_until, source) VALUES (?,?,?,?)')
+        ->execute([$userId, $lifetime, $until, $source]);
+  }
+}
+
 function upsert_enrollment(
   string $userId,
   string $courseId,
@@ -899,10 +1066,26 @@ function mp_settle_payment(string $paymentId, string $token): bool {
   if (count($parts) !== 2) return false;
   [$userId, $courseId] = $parts;
 
-  // Validar que el usuario y el curso existen
+  // Validar que el usuario existe
   $uq = db()->prepare('SELECT 1 FROM users WHERE id = ?');
   $uq->execute([$userId]);
   if (!$uq->fetchColumn()) return false;
+
+  // Compra de acceso al QUANT (Mercados), no un curso.
+  if ($courseId === 'quant') {
+    $payRef = 'mp_' . $paymentId;
+    $r = db()->prepare('SELECT 1 FROM purchases WHERE reference = ? LIMIT 1');
+    $r->execute([$payRef]);
+    if ($r->fetchColumn()) return true; // ya procesado (idempotente)
+    $days = (int) (config()['quant_access_days'] ?? 30);
+    grant_quant_access($userId, $days, 'mercadopago');
+    db()->prepare('INSERT INTO purchases (id,user_id,course_id,course_title,amount,currency,status,provider,reference) VALUES (?,?,?,?,?,?,?,?,?)')
+        ->execute([uuid(), $userId, null, 'ProfitLab Quant — Acceso Mercados',
+                   (float) ($p['transaction_amount'] ?? 0), $p['currency_id'] ?? 'USD',
+                   'completed', 'mercadopago', $payRef]);
+    return true;
+  }
+
   if (!fetch_course($courseId)) return false;
 
   upsert_enrollment(

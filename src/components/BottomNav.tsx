@@ -18,6 +18,7 @@ export function BottomNav() {
     { href: '/cursos', label: 'Catálogo', icon: 'catalog' },
     { href: '/mis-cursos', label: 'Mis cursos', icon: 'learning' },
     ...(isAdmin ? [] : [{ href: '/tareas', label: 'Tareas', icon: 'tasks' as IconType }]),
+    { href: '/mercados', label: 'Mercados', icon: 'markets' },
     ...(isAdmin ? [{ href: '/admin', label: 'Master', icon: 'admin' as IconType }] : []),
     { href: '/perfil', label: 'Perfil', icon: 'profile' },
   ];
@@ -53,7 +54,7 @@ export function BottomNav() {
   );
 }
 
-type IconType = 'catalog' | 'learning' | 'tasks' | 'admin' | 'profile';
+type IconType = 'catalog' | 'learning' | 'tasks' | 'markets' | 'admin' | 'profile';
 
 function Icon({ type, active }: { type: IconType; active: boolean }) {
   const color = active ? '#C7F94C' : '#94A3B8';
@@ -85,6 +86,14 @@ function Icon({ type, active }: { type: IconType; active: boolean }) {
         <rect x="8" y="3" width="8" height="4" rx="1" stroke={color} strokeWidth={s} fill={fill} fillOpacity={fo} />
         <path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2" stroke={color} strokeWidth={s} strokeLinecap="round" strokeLinejoin="round" />
         <path d="M9 12l2 2 4-4" stroke={color} strokeWidth={s} strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+  if (type === 'markets') {
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M4 20V10M9 20V4M14 20v-7M19 20V8" stroke={color} strokeWidth={s} strokeLinecap="round" />
+        <path d="M3 20h18" stroke={color} strokeWidth={s} strokeLinecap="round" />
       </svg>
     );
   }
