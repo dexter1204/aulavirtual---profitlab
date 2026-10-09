@@ -16,10 +16,27 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Firma de release leída desde variables de entorno (las inyecta el
+    // workflow de GitHub desde los Secrets). Si no están, no se firma
+    // (p. ej. en builds de debug locales).
+    signingConfigs {
+        release {
+            def ksFile = System.getenv("ANDROID_KEYSTORE_FILE")
+            if (ksFile != null && !ksFile.isEmpty()) {
+                storeFile file(ksFile)
+                storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (System.getenv("ANDROID_KEYSTORE_FILE") != null && !System.getenv("ANDROID_KEYSTORE_FILE").isEmpty()) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

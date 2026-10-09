@@ -20,6 +20,12 @@ const config: CapacitorConfig = {
     iosScheme: 'capacitor',
   },
   plugins: {
+    // Enruta window.fetch/XMLHttpRequest por HTTP NATIVO (no por el WebView).
+    // Evita CORS y la cabecera Origin (que el WAF de SiteGround puede bloquear),
+    // así el login y las llamadas a la API funcionan desde la app.
+    CapacitorHttp: {
+      enabled: true,
+    },
     SplashScreen: {
       launchShowDuration: 1200,
       backgroundColor: '#0A0B0E',
