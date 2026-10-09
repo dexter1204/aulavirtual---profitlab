@@ -10,11 +10,14 @@ import {
   verifyPayment,
   getToken,
   QUANT_URL,
+  PREAPERTURA_URL,
   type QuantState,
 } from '@/lib/api';
 import { Page, PageTitle, Spinner, Button, inputStyle } from '@/components/ui';
 import { useToast } from '@/components/Toast';
 import { IconChart, IconLock, IconCheck } from '@/components/icons';
+
+type SubTab = 'exposiciones' | 'preapertura';
 
 export default function MercadosPage() {
   return (
@@ -44,7 +47,6 @@ function Mercados() {
   useEffect(() => {
     if (!session) return;
     (async () => {
-      // Retorno de Mercado Pago tras comprar el acceso.
       const pago = search.get('pago');
       const paymentId = search.get('payment_id') || search.get('collection_id');
       if (pago === 'ok' && paymentId) {
@@ -60,15 +62,19 @@ function Mercados() {
 
   if (loading) return <Spinner />;
   if (!state) return null;
-
-  if (state.has_access) return <QuantEmbed state={state} />;
-  return <Paywall state={state} onRedeemed={load} />;
+  if (state.has_access) return <MercadosHub state={state} />;
+  return <Paywall onRedeemed={load} state={state} />;
 }
 
-function QuantEmbed({ state }: { state: QuantState }) {
+function MercadosHub({ state }: { state: QuantState }) {
+  const [tab, setTab] = useState<SubTab>('exposiciones');
   const token = getToken() ?? '';
-  // El dashboard embebido toma la sesión del aula vía el hash #plq=<token>.
-  const src = `${QUANT_URL}#plq=${encodeURIComponent(token)}`;
+  // Exposiciones (quant): token por hash. Pre-Apertura (Node): token por la
+  // ruta /sso para que su servidor fije la sesión (SSO).
+  const src = tab === 'exposiciones'
+    ? `${QUANT_URL}#plq=${encodeURIComponent(token)}`
+    : `${PREAPERTURA_URL}sso?token=${encodeURIComponent(token)}`;
+
   const until = state.lifetime
     ? 'Acceso vitalicio'
     : state.access_until
@@ -77,17 +83,31 @@ function QuantEmbed({ state }: { state: QuantState }) {
 
   return (
     <div style={{ padding: '14px 12px 0' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
         <h1 style={styles.h1}><IconChart size={20} color="#C7F94C" /> Mercados</h1>
         {until && <span style={{ color: '#64748B', fontSize: 12 }}>{until}</span>}
       </div>
+
+      <div style={styles.tabs}>
+        {([['exposiciones', 'Exposiciones'], ['preapertura', 'Pre-Apertura']] as [SubTab, string][]).map(([t, label]) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            style={{ ...styles.tab, backgroundColor: tab === t ? '#C7F94C' : '#14161C', color: tab === t ? '#0A0B0E' : '#94A3B8', borderColor: tab === t ? '#C7F94C' : '#1F222B' }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <iframe
+        key={tab}
         src={src}
-        title="ProfitLab Quant — Exposiciones"
+        title={tab === 'exposiciones' ? 'ProfitLab Quant — Exposiciones' : 'ProfitLab — Pre-Apertura'}
         style={{
           width: '100%',
-          height: 'calc(100vh - 150px)',
-          minHeight: 480,
+          height: 'calc(100vh - 200px)',
+          minHeight: 460,
           border: '1px solid #1F222B',
           borderRadius: 14,
           background: '#0A0B0E',
@@ -137,13 +157,14 @@ function Paywall({ state, onRedeemed }: { state: QuantState; onRedeemed: () => v
 
   return (
     <Page>
-      <PageTitle title="Mercados" subtitle="Dashboard de exposiciones de dealers (gamma/beta): GEX, DEX, niveles clave, régimen e IV." />
+      <PageTitle title="Mercados" subtitle="Exposiciones de dealers (gamma/beta) + Pre-Apertura US (noticias, futuros y plan por índice)." />
 
       <div style={styles.card}>
         <div style={styles.lockIcon}><IconLock size={26} color="#C7F94C" /></div>
         <h2 style={styles.cardTitle}>Activa tu acceso</h2>
         <p style={styles.cardText}>
-          El dashboard de Mercados es un acceso aparte. Canjea tu cupón o adquiérelo para entrar.
+          Un solo acceso abre <b style={{ color: '#CBD5E1' }}>Exposiciones</b> y <b style={{ color: '#CBD5E1' }}>Pre-Apertura</b>.
+          Canjea tu cupón o adquiérelo para entrar.
         </p>
 
         <label style={styles.label}>Tengo un cupón</label>
@@ -175,6 +196,8 @@ function Paywall({ state, onRedeemed }: { state: QuantState; onRedeemed: () => v
 
 const styles: Record<string, React.CSSProperties> = {
   h1: { color: '#F1F5F9', fontSize: 22, fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-bricolage), sans-serif', letterSpacing: -0.4 },
+  tabs: { display: 'flex', gap: 8, marginBottom: 12 },
+  tab: { flex: 1, maxWidth: 200, textAlign: 'center', border: '1px solid', borderRadius: 10, padding: '9px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
   card: { backgroundColor: '#14161C', border: '1px solid #1F222B', borderRadius: 16, padding: 24, maxWidth: 440, margin: '0 auto', textAlign: 'center' },
   lockIcon: { width: 52, height: 52, borderRadius: 13, backgroundColor: 'rgba(199,249,76,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' },
   cardTitle: { color: '#F1F5F9', fontSize: 18, fontWeight: 700, margin: '0 0 6px', fontFamily: 'var(--font-bricolage), sans-serif' },

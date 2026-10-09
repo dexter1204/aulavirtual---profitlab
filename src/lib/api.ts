@@ -426,6 +426,12 @@ export const QUANT_URL =
   (process.env.NEXT_PUBLIC_QUANT_URL ?? (API_ORIGIN ? `${API_ORIGIN}/quantsistem/` : '/quantsistem/'))
     .replace(/\/*$/, '/');
 
+/** URL de la plataforma Pre-Apertura (app Node, subdominio). Comparte el
+ *  acceso con el quant. Configurable con NEXT_PUBLIC_PREAPERTURA_URL. */
+export const PREAPERTURA_URL =
+  (process.env.NEXT_PUBLIC_PREAPERTURA_URL ?? 'https://quant.profitlab-academy.com/')
+    .replace(/\/*$/, '/');
+
 export async function getQuantState(): Promise<QuantState> {
   return api<QuantState>('/quant/me');
 }
