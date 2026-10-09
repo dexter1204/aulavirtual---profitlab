@@ -1,0 +1,65 @@
+name: Build Android APK
+
+# Genera el APK de Android en la nube (sin instalar nada localmente).
+# Cómo usarlo:
+#   1. En GitHub → pestaña "Actions" → "Build Android APK" → "Run workflow".
+#   2. Espera a que termine (unos minutos).
+#   3. Entra al run → sección "Artifacts" → descarga "ProfitLab-Academy-apk".
+#   4. Copia el .apk a tu teléfono Android e instálalo (permite "orígenes
+#      desconocidos"). Es un build de PRUEBA, ideal para probar la app.
+# Para publicar en Google Play se usa un .aab firmado (ver APP_NATIVA.md).
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - claude/aula-virtual-youtube-cursos-0dx0yu
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'android/**'
+      - 'capacitor.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/android.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Java (JDK 21)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web + sync Capacitor
+        run: npm run sync:app
+
+      - name: Build debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ProfitLab-Academy-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
