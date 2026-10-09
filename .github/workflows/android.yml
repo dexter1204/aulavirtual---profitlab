@@ -54,7 +54,16 @@ jobs:
         run: npm run build:app
 
       - name: Sync Capacitor (Android only)
-        run: npx cap sync android
+        run: |
+          set +e
+          npx cap sync android > sync.log 2>&1
+          code=$?
+          echo "---- cap sync android output ----"
+          cat sync.log
+          if [ $code -ne 0 ]; then
+            echo "::error::cap sync falló (exit $code): $(tail -c 900 sync.log | tr '\n' ' ')"
+          fi
+          exit $code
 
       - name: Build debug APK
         run: |
