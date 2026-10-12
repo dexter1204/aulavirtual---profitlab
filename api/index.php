@@ -50,7 +50,7 @@ try {
   // Raíz
   if (count($seg) === 0) {
     json_out(['name' => 'Profit Lab Aula Virtual API', 'status' => 'ok',
-              'version' => 'v15-tareas', 'features' => ['assignments', 'submissions']]);
+              'version' => 'v16-senales', 'features' => ['assignments', 'submissions', 'signals', 'projections', 'sessions']]);
   }
 
   // ============ AUTH ============
@@ -864,6 +864,252 @@ try {
     fail('Ruta de quant no encontrada', 404);
   }
 
+  // ============ SEÑALES DE TRADING ============
+  if ($seg[0] === 'signals') {
+    $cfg = config();
+    $sPrice = (float) ($cfg['signals_price'] ?? ($cfg['quant_price'] ?? 0));
+    $sCurrency = $cfg['signals_currency'] ?? ($cfg['mp_currency'] ?? 'PEN');
+    $sDays = (int) ($cfg['signals_access_days'] ?? 30);
+    $sub = $seg[1] ?? '';
+
+    // ----- Acceso (cupón o compra), mismo patrón que Mercados -----
+    if ($sub === 'me' && $method === 'GET') {
+      $u = require_auth();
+      $st = signals_state($u);
+      json_out([
+        'authenticated' => true,
+        'user' => ['id' => $u['id'], 'name' => $u['name'], 'email' => $u['email'], 'role' => $u['role']],
+        'has_access' => $st['has_access'], 'access_until' => $st['access_until'], 'lifetime' => $st['lifetime'],
+        'price' => $sPrice, 'currency' => $sCurrency, 'days' => $sDays,
+      ]);
+    }
+    if ($sub === 'redeem' && $method === 'POST') {
+      $u = require_auth();
+      $code = strtoupper(trim((string) (body()['code'] ?? '')));
+      if ($code === '') fail('Ingresa un cupón');
+      $c = db()->prepare('SELECT * FROM signals_coupons WHERE code = ?'); $c->execute([$code]);
+      $coupon = $c->fetch();
+      if (!$coupon || !(int) $coupon['active']) fail('Cupón inválido');
+      if (!empty($coupon['expires_at']) && strtotime($coupon['expires_at']) < time()) fail('Cupón expirado');
+      if ((int) $coupon['max_uses'] > 0 && (int) $coupon['uses'] >= (int) $coupon['max_uses']) fail('Cupón agotado');
+      $used = db()->prepare('SELECT 1 FROM signals_coupon_uses WHERE coupon_id = ? AND user_id = ?');
+      $used->execute([$coupon['id'], $u['id']]);
+      if ($used->fetchColumn()) fail('Ya canjeaste este cupón');
+      grant_signals_access($u['id'], (int) $coupon['days'], 'coupon');
+      db()->prepare('INSERT INTO signals_coupon_uses (id,coupon_id,user_id) VALUES (?,?,?)')->execute([uuid(), $coupon['id'], $u['id']]);
+      db()->prepare('UPDATE signals_coupons SET uses = uses + 1 WHERE id = ?')->execute([$coupon['id']]);
+      $st = signals_state($u);
+      json_out(['ok' => true, 'has_access' => $st['has_access'], 'access_until' => $st['access_until'], 'lifetime' => $st['lifetime']]);
+    }
+    if ($sub === 'checkout' && $method === 'POST') {
+      $u = require_auth();
+      $token = $cfg['mp_access_token'] ?? '';
+      if ($token === '') fail('Pagos no configurados (falta el Access Token de Mercado Pago).', 503);
+      if ($sPrice <= 0) fail('El precio del acceso no está configurado (signals_price en config.php).', 503);
+      $st = signals_state($u);
+      if ($st['has_access']) fail('Ya tienes acceso a las señales');
+      $site = rtrim($cfg['site_url'] ?? '', '/');
+      $pref = [
+        'items' => [['title' => 'ProfitLab — Acceso Señales', 'quantity' => 1, 'currency_id' => $sCurrency, 'unit_price' => $sPrice]],
+        'payer' => ['email' => $u['email']],
+        'external_reference' => $u['id'] . ':signals',
+        'metadata' => ['user_id' => $u['id'], 'kind' => 'signals'],
+        'back_urls' => [
+          'success' => $site . '/senales/?pago=ok',
+          'failure' => $site . '/senales/?pago=error',
+          'pending' => $site . '/senales/?pago=pendiente',
+        ],
+        'auto_return' => 'approved',
+        'notification_url' => $site . '/api/mp/webhook',
+        'statement_descriptor' => 'PROFITLAB',
+      ];
+      [$code, $data] = mp_request('POST', 'https://api.mercadopago.com/checkout/preferences', $token, $pref);
+      if ($code >= 200 && $code < 300 && !empty($data['init_point'])) {
+        $sandbox = !empty($cfg['mp_sandbox']) || str_starts_with($token, 'TEST-');
+        $link = $sandbox ? ($data['sandbox_init_point'] ?? $data['init_point']) : $data['init_point'];
+        json_out(['init_point' => $link, 'id' => $data['id'] ?? null, 'sandbox' => $sandbox]);
+      }
+      $detail = $data['message'] ?? ($data['error'] ?? '');
+      fail('No se pudo iniciar el pago' . ($detail ? ": $detail" : ''), 502);
+    }
+    if ($sub === 'coupons') {
+      if (count($seg) === 2 && $method === 'GET') { require_admin(); json_out(db()->query('SELECT * FROM signals_coupons ORDER BY created_at DESC')->fetchAll()); }
+      if (count($seg) === 2 && $method === 'POST') {
+        require_admin(); $b = body();
+        $code = strtoupper(trim((string) ($b['code'] ?? '')));
+        if ($code === '') $code = 'SG' . strtoupper(bin2hex(random_bytes(3)));
+        $e = db()->prepare('SELECT 1 FROM signals_coupons WHERE code = ?'); $e->execute([$code]);
+        if ($e->fetchColumn()) fail('Ya existe un cupón con ese código', 409);
+        $id = uuid();
+        db()->prepare('INSERT INTO signals_coupons (id,code,days,max_uses,active,expires_at,note) VALUES (?,?,?,?,1,?,?)')
+            ->execute([$id, $code, (int) ($b['days'] ?? 30), (int) ($b['max_uses'] ?? 0), !empty($b['expires_at']) ? $b['expires_at'] : null, $b['note'] ?? null]);
+        json_out(['id' => $id, 'code' => $code], 201);
+      }
+      if (count($seg) === 3 && $method === 'DELETE') { require_admin(); db()->prepare('DELETE FROM signals_coupons WHERE id = ?')->execute([$seg[2]]); json_out(['ok' => true]); }
+    }
+    if ($sub === 'grant' && $method === 'POST') {
+      require_admin(); $b = body();
+      $uid = (string) ($b['user_id'] ?? '');
+      if ($uid === '') fail('user_id requerido');
+      $uq = db()->prepare('SELECT 1 FROM users WHERE id = ?'); $uq->execute([$uid]);
+      if (!$uq->fetchColumn()) fail('Usuario no encontrado', 404);
+      grant_signals_access($uid, (int) ($b['days'] ?? 0), 'admin');
+      json_out(['ok' => true]);
+    }
+    // ----- Mentores disponibles (admins) -----
+    if ($sub === 'traders' && $method === 'GET') {
+      require_admin();
+      json_out(db()->query("SELECT id, name, role FROM users WHERE role = 'admin' ORDER BY name ASC")->fetchAll());
+    }
+    // ----- Estadísticas -----
+    if ($sub === 'stats' && $method === 'GET') {
+      $u = require_auth(); signals_require_access($u);
+      json_out(signals_stats($_GET['period'] ?? 'all', $_GET['trader_id'] ?? null));
+    }
+    // ----- Listado -----
+    if ($sub === '' && $method === 'GET') {
+      $u = require_auth(); signals_require_access($u);
+      $rows = db()->query('SELECT * FROM signals ORDER BY created_at DESC')->fetchAll();
+      json_out(array_map('signal_to_json', $rows));
+    }
+    // ----- Crear (admin) -----
+    if ($sub === '' && $method === 'POST') {
+      $u = require_admin(); $b = body();
+      $id = create_signal_row($u, $b);
+      $row = db()->prepare('SELECT * FROM signals WHERE id = ?'); $row->execute([$id]); $r = $row->fetch();
+      json_out(signal_to_json($r), 201);
+    }
+    // ----- Rutas por ID numérico -----
+    if (ctype_digit((string) $sub)) {
+      $sid = (int) $sub;
+      $action = $seg[2] ?? '';
+      if ($action === '' && $method === 'GET') {
+        $u = require_auth(); signals_require_access($u);
+        $row = db()->prepare('SELECT * FROM signals WHERE id = ?'); $row->execute([$sid]); $r = $row->fetch();
+        if (!$r) fail('Señal no encontrada', 404);
+        json_out(signal_to_json($r));
+      }
+      if ($action === '' && $method === 'PUT') {
+        require_admin(); $b = body();
+        update_signal_row($sid, $b);
+        $row = db()->prepare('SELECT * FROM signals WHERE id = ?'); $row->execute([$sid]); $r = $row->fetch();
+        json_out(signal_to_json($r));
+      }
+      if ($action === '' && $method === 'DELETE') {
+        require_admin();
+        db()->prepare('DELETE FROM signals WHERE id = ?')->execute([$sid]);
+        json_out(['ok' => true]);
+      }
+      if ($action === 'be' && $method === 'POST') {
+        require_admin();
+        db()->prepare("UPDATE signals SET status='be' WHERE id = ?")->execute([$sid]);
+        signal_add_update($sid, 'be_moved', 'SL movido a entry · riesgo cero', null);
+        json_out(['ok' => true]);
+      }
+      if ($action === 'checkpoint' && $method === 'POST') {
+        require_admin(); $b = body();
+        $type = (string) ($b['type'] ?? '');
+        if (!in_array($type, ['tp1_hit','tp2_hit','tp3_hit'], true)) fail('Checkpoint inválido');
+        $rr = isset($b['result_r']) ? (float) $b['result_r'] : null;
+        db()->prepare('UPDATE signals SET status = ?, result_r = ? WHERE id = ?')->execute([$type, $rr, $sid]);
+        signal_add_update($sid, $type, $b['message'] ?? null, ['result_r' => $rr]);
+        json_out(['ok' => true]);
+      }
+      if ($action === 'close' && $method === 'POST') {
+        require_admin(); $b = body();
+        $type = (string) ($b['type'] ?? '');
+        if (!in_array($type, ['tp4_hit','sl_hit','closed_manual'], true)) fail('Cierre inválido');
+        $status = $type === 'closed_manual' ? 'closed' : $type;
+        $rr = isset($b['result_r']) ? (float) $b['result_r'] : null;
+        db()->prepare('UPDATE signals SET status = ?, result_r = ? WHERE id = ?')->execute([$status, $rr, $sid]);
+        signal_add_update($sid, $type, $b['message'] ?? null, ['result_r' => $rr]);
+        json_out(['ok' => true]);
+      }
+    }
+    fail('Ruta de señales no encontrada', 404);
+  }
+
+  // ============ PROYECCIONES ============
+  if ($seg[0] === 'projections') {
+    $sub = $seg[1] ?? '';
+    if ($sub === 'traders' && $method === 'GET') {
+      require_admin();
+      json_out(db()->query("SELECT id, name, role FROM users WHERE role = 'admin' ORDER BY name ASC")->fetchAll());
+    }
+    if ($sub === '' && $method === 'GET') {
+      $u = require_auth(); signals_require_access($u);
+      $rows = db()->query('SELECT * FROM projections ORDER BY created_at DESC')->fetchAll();
+      json_out(array_map('projection_to_json', $rows));
+    }
+    if ($sub === '' && $method === 'POST') {
+      $u = require_admin(); $b = body();
+      $id = create_projection_row($u, $b);
+      $row = db()->prepare('SELECT * FROM projections WHERE id = ?'); $row->execute([$id]); $r = $row->fetch();
+      json_out(projection_to_json($r), 201);
+    }
+    if (ctype_digit((string) $sub)) {
+      $pid = (int) $sub; $action = $seg[2] ?? '';
+      if ($action === '' && $method === 'GET') {
+        $u = require_auth(); signals_require_access($u);
+        $row = db()->prepare('SELECT * FROM projections WHERE id = ?'); $row->execute([$pid]); $r = $row->fetch();
+        if (!$r) fail('Proyección no encontrada', 404);
+        json_out(projection_to_json($r));
+      }
+      if ($action === '' && $method === 'PUT') {
+        require_admin(); $b = body();
+        update_projection_row($pid, $b);
+        $row = db()->prepare('SELECT * FROM projections WHERE id = ?'); $row->execute([$pid]); $r = $row->fetch();
+        json_out(projection_to_json($r));
+      }
+      if ($action === '' && $method === 'DELETE') {
+        require_admin(); db()->prepare('DELETE FROM projections WHERE id = ?')->execute([$pid]); json_out(['ok' => true]);
+      }
+      if ($action === 'archive' && $method === 'POST') {
+        require_admin();
+        db()->prepare("UPDATE projections SET status='archived' WHERE id = ?")->execute([$pid]);
+        db()->prepare('INSERT INTO projection_updates (projection_id,type,message) VALUES (?,?,?)')->execute([$pid, 'archived', 'Proyección archivada']);
+        json_out(['ok' => true]);
+      }
+    }
+    fail('Ruta de proyecciones no encontrada', 404);
+  }
+
+  // ============ CONTEO · SESIONES OPERATIVAS ============
+  if ($seg[0] === 'sessions') {
+    $sub = $seg[1] ?? '';
+    if ($sub === '' && $method === 'GET') {
+      $u = require_auth(); signals_require_access($u);
+      $limit = max(1, min(200, (int) ($_GET['limit'] ?? 60)));
+      $st = db()->prepare('SELECT * FROM operating_sessions ORDER BY session_date DESC, created_at DESC LIMIT ?');
+      $st->bindValue(1, $limit, PDO::PARAM_INT); $st->execute();
+      json_out(array_map('session_to_json', $st->fetchAll()));
+    }
+    if ($sub === '' && $method === 'POST') {
+      $u = require_admin(); $b = body();
+      if (empty($b['session_date'])) fail('Falta la fecha');
+      $type = in_array($b['session_type'] ?? 'ny', ['ny','asia','backtesting','otra'], true) ? $b['session_type'] : 'ny';
+      db()->prepare('INSERT INTO operating_sessions (author_id,session_date,session_type,result_rr,trades_count,note,audience) VALUES (?,?,?,?,?,?,?)')
+        ->execute([$u['id'], $b['session_date'], $type, (float) ($b['result_rr'] ?? 0), (int) ($b['trades_count'] ?? 0),
+                   $b['note'] ?? null, in_array($b['audience'] ?? 'all', ['free','premium','all'], true) ? $b['audience'] : 'all']);
+      $id = (int) db()->lastInsertId();
+      $row = db()->prepare('SELECT * FROM operating_sessions WHERE id = ?'); $row->execute([$id]);
+      json_out(session_to_json($row->fetch()), 201);
+    }
+    if (ctype_digit((string) $sub)) {
+      $sid = (int) $sub;
+      if ($method === 'PUT') {
+        require_admin(); $b = body();
+        $allowed = ['session_date','session_type','result_rr','trades_count','note','audience'];
+        $sets = []; $vals = [];
+        foreach ($allowed as $f) if (array_key_exists($f, $b)) { $v = $b[$f] === '' ? null : $b[$f]; $sets[] = "$f = ?"; $vals[] = $v; }
+        if ($sets) { $vals[] = $sid; db()->prepare('UPDATE operating_sessions SET ' . implode(',', $sets) . ' WHERE id = ?')->execute($vals); }
+        json_out(['ok' => true]);
+      }
+      if ($method === 'DELETE') { require_admin(); db()->prepare('DELETE FROM operating_sessions WHERE id = ?')->execute([$sid]); json_out(['ok' => true]); }
+    }
+    fail('Ruta de sesiones no encontrada', 404);
+  }
+
   // ============ CHECKOUT · Mercado Pago ============
   // POST /checkout  → crea una preferencia y devuelve el enlace de pago
   if ($seg[0] === 'checkout' && count($seg) === 1 && $method === 'POST') {
@@ -1013,6 +1259,226 @@ function grant_quant_access(string $userId, int $days, string $source): void {
   }
 }
 
+// ============================================================
+// SEÑALES / PROYECCIONES — helpers
+// ============================================================
+
+/** Estado de acceso a señales (cupón/compra). Admin siempre tiene. */
+function signals_state(array $u): array {
+  if (($u['role'] ?? '') === 'admin') return ['has_access' => true, 'access_until' => null, 'lifetime' => true];
+  $s = db()->prepare('SELECT lifetime, access_until FROM signals_access WHERE user_id = ?');
+  $s->execute([$u['id']]);
+  $row = $s->fetch();
+  if (!$row) return ['has_access' => false, 'access_until' => null, 'lifetime' => false];
+  $life = (int) $row['lifetime'] === 1;
+  $until = $row['access_until'] ?? null;
+  $has = $life || ($until && strtotime($until) > time());
+  return ['has_access' => $has, 'access_until' => $until, 'lifetime' => $life];
+}
+
+function signals_require_access(array $u): void {
+  $st = signals_state($u);
+  if (!$st['has_access']) fail('Necesitas acceso a las señales (cupón o compra).', 403);
+}
+
+/** Otorga/extiende acceso a señales. $days <= 0 → vitalicio. */
+function grant_signals_access(string $userId, int $days, string $source): void {
+  $cur = db()->prepare('SELECT lifetime, access_until FROM signals_access WHERE user_id = ?');
+  $cur->execute([$userId]);
+  $row = $cur->fetch();
+  if ($row && (int) $row['lifetime'] === 1) return;
+  if ($days <= 0) { $lifetime = 1; $until = null; }
+  else {
+    $base = time();
+    if ($row && !empty($row['access_until']) && strtotime($row['access_until']) > $base) $base = strtotime($row['access_until']);
+    $lifetime = 0; $until = date('Y-m-d H:i:s', $base + $days * 86400);
+  }
+  if ($row) db()->prepare('UPDATE signals_access SET lifetime=?, access_until=?, source=?, updated_at=? WHERE user_id=?')->execute([$lifetime, $until, $source, date('Y-m-d H:i:s'), $userId]);
+  else db()->prepare('INSERT INTO signals_access (user_id,lifetime,access_until,source) VALUES (?,?,?,?)')->execute([$userId, $lifetime, $until, $source]);
+}
+
+function user_mini(?string $id): ?array {
+  if (!$id) return null;
+  $q = db()->prepare('SELECT id, name, role FROM users WHERE id = ?');
+  $q->execute([$id]);
+  $r = $q->fetch();
+  if (!$r) return null;
+  $r['avatar_url'] = null;
+  return $r;
+}
+
+function signal_add_update(int $sid, string $type, ?string $message, $payload): void {
+  db()->prepare('INSERT INTO signal_updates (signal_id,type,message,payload) VALUES (?,?,?,?)')
+      ->execute([$sid, $type, $message, $payload !== null ? json_encode($payload) : null]);
+}
+
+function signal_to_json(array $r): array {
+  $r['author'] = user_mini($r['author_id'] ?? null);
+  $r['trader'] = user_mini($r['trader_id'] ?? null);
+  $up = db()->prepare('SELECT id,signal_id,type,message,payload,created_at FROM signal_updates WHERE signal_id = ? ORDER BY created_at ASC');
+  $up->execute([$r['id']]);
+  $r['updates'] = array_map(function ($x) { $x['payload'] = !empty($x['payload']) ? json_decode($x['payload'], true) : null; return $x; }, $up->fetchAll());
+  return $r;
+}
+
+function create_signal_row(array $u, array $b): int {
+  foreach (['asset','direction','entry_price','stop_loss','take_profit_1'] as $f) {
+    if (!isset($b[$f]) || $b[$f] === '' || $b[$f] === null) fail("Falta el campo $f");
+  }
+  if (!in_array($b['direction'], ['long','short'], true)) fail('Dirección inválida');
+  $num = fn($v) => ($v === '' || $v === null) ? null : (float) $v;
+  $traderId = !empty($b['trader_id']) ? (string) $b['trader_id'] : $u['id'];
+  db()->prepare('INSERT INTO signals
+      (author_id,trader_id,asset,direction,entry_price,stop_loss,take_profit_1,take_profit_2,take_profit_3,take_profit_4,tradingview_url,image_url,notes,recommendations,audience,status)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,\'active\')')
+    ->execute([
+      $u['id'], $traderId, strtoupper(trim((string) $b['asset'])), $b['direction'],
+      $num($b['entry_price']), $num($b['stop_loss']), $num($b['take_profit_1']),
+      $num($b['take_profit_2'] ?? null), $num($b['take_profit_3'] ?? null), $num($b['take_profit_4'] ?? null),
+      $b['tradingview_url'] ?? null, $b['image_url'] ?? null, $b['notes'] ?? null, $b['recommendations'] ?? null,
+      in_array($b['audience'] ?? 'all', ['free','premium','all'], true) ? $b['audience'] : 'all',
+    ]);
+  $id = (int) db()->lastInsertId();
+  signal_add_update($id, 'published', 'Señal publicada', null);
+  return $id;
+}
+
+function update_signal_row(int $sid, array $b): void {
+  $allowed = ['asset','direction','entry_price','stop_loss','take_profit_1','take_profit_2','take_profit_3','take_profit_4','tradingview_url','notes','recommendations','trader_id','audience','image_url'];
+  $sets = []; $vals = [];
+  foreach ($allowed as $f) {
+    if (array_key_exists($f, $b)) {
+      $v = $b[$f];
+      if (in_array($f, ['entry_price','stop_loss','take_profit_1','take_profit_2','take_profit_3','take_profit_4'], true)) $v = ($v === '' || $v === null) ? null : (float) $v;
+      elseif ($v === '') $v = null;
+      if ($f === 'asset' && $v !== null) $v = strtoupper(trim((string) $v));
+      $sets[] = "$f = ?"; $vals[] = $v;
+    }
+  }
+  if ($sets) { $vals[] = $sid; db()->prepare('UPDATE signals SET ' . implode(',', $sets) . ' WHERE id = ?')->execute($vals); }
+  signal_add_update($sid, 'edited', $b['changes_summary'] ?? 'Trade actualizado por el mentor', null);
+}
+
+function signal_real_r(array $s): float {
+  $entry = (float) $s['entry_price']; $sl = (float) $s['stop_loss']; $risk = abs($entry - $sl);
+  if ($risk <= 0) return 0.0;
+  $signo = ($s['direction'] === 'long') ? 1 : -1;
+  $status = $s['status'];
+  if ($status === 'sl_hit') return -1.0;
+  if (in_array($status, ['closed','be','active'], true)) return 0.0;
+  $tpMap = ['tp1_hit' => $s['take_profit_1'], 'tp2_hit' => $s['take_profit_2'], 'tp3_hit' => $s['take_profit_3'], 'tp4_hit' => $s['take_profit_4']];
+  $tp = $tpMap[$status] ?? null;
+  if ($tp === null) return 0.0;
+  return round((((float) $tp - $entry) * $signo) / $risk, 2);
+}
+
+function signal_partial_r(string $eventType, array $s): float {
+  $entry = (float) $s['entry_price']; $sl = (float) $s['stop_loss']; $risk = abs($entry - $sl);
+  if ($risk <= 0) return 0.0;
+  $signo = ($s['direction'] === 'long') ? 1 : -1;
+  $tpMap = ['tp1_hit' => $s['take_profit_1'], 'tp2_hit' => $s['take_profit_2'], 'tp3_hit' => $s['take_profit_3']];
+  $tp = $tpMap[$eventType] ?? null;
+  if ($tp === null) return 0.0;
+  return round((((float) $tp - $entry) * $signo) / $risk, 2);
+}
+
+function signals_stats(string $period, ?string $traderId): array {
+  $sql = 'SELECT id,asset,status,direction,entry_price,stop_loss,take_profit_1,take_profit_2,take_profit_3,take_profit_4,trader_id,created_at,updated_at FROM signals';
+  $args = [];
+  if ($traderId) { $sql .= ' WHERE trader_id = ?'; $args[] = $traderId; }
+  $st = db()->prepare($sql); $st->execute($args); $signals = $st->fetchAll();
+
+  $periodStart = null;
+  $now = time();
+  if ($period === 'week') $periodStart = strtotime('-7 days', strtotime(date('Y-m-d 00:00:00')));
+  elseif ($period === 'month') $periodStart = strtotime(date('Y-m-01 00:00:00'));
+  elseif ($period === 'year') $periodStart = strtotime(date('Y-01-01 00:00:00'));
+  $inPeriod = fn($d) => $periodStart === null ? true : strtotime($d) >= $periodStart;
+
+  $closedStatuses = ['tp1_hit','tp2_hit','tp3_hit','tp4_hit','sl_hit','closed'];
+  $closed = array_values(array_filter($signals, fn($s) => in_array($s['status'], $closedStatuses, true) && $inPeriod($s['updated_at'])));
+  $active = array_values(array_filter($signals, fn($s) => !in_array($s['status'], $closedStatuses, true) && $inPeriod($s['created_at'])));
+
+  $rTotal = array_sum(array_map('signal_real_r', $closed));
+  $winners = count(array_filter($closed, fn($s) => signal_real_r($s) > 0));
+  $winRate = count($closed) > 0 ? (int) round($winners / count($closed) * 100) : 0;
+
+  $cnt = fn($arr, $st2) => count(array_filter($arr, fn($s) => $s['status'] === $st2));
+  $breakdown = [
+    'tp4_hit' => $cnt($closed, 'tp4_hit'), 'tp3_hit' => $cnt($closed, 'tp3_hit'),
+    'tp2_hit' => $cnt($closed, 'tp2_hit'), 'tp1_hit' => $cnt($closed, 'tp1_hit'),
+    'sl_hit' => $cnt($closed, 'sl_hit'), 'closed' => $cnt($closed, 'closed'),
+    'be' => $cnt($active, 'be'), 'active' => $cnt($active, 'active'),
+  ];
+
+  // Parciales (desde signal_updates)
+  $byId = []; foreach ($signals as $s) $byId[$s['id']] = $s;
+  $partialsCount = 0; $rPartials = 0.0;
+  if ($signals) {
+    $ids = array_keys($byId);
+    $ph = implode(',', array_fill(0, count($ids), '?'));
+    $pe = db()->prepare("SELECT type, signal_id FROM signal_updates WHERE signal_id IN ($ph) AND type IN ('tp1_hit','tp2_hit','tp3_hit') AND created_at >= ?");
+    $pe->execute(array_merge($ids, [$periodStart ? date('Y-m-d H:i:s', $periodStart) : '2000-01-01 00:00:00']));
+    foreach ($pe->fetchAll() as $ev) {
+      $partialsCount++;
+      if (isset($byId[$ev['signal_id']])) $rPartials += signal_partial_r($ev['type'], $byId[$ev['signal_id']]);
+    }
+  }
+  $rAvgPerPartial = $partialsCount > 0 ? round($rPartials / $partialsCount, 2) : 0;
+
+  $sorted = $closed;
+  usort($sorted, fn($a, $b) => strcmp($a['updated_at'], $b['updated_at']));
+  $evolution = []; $acc = 0.0;
+  foreach ($sorted as $s) {
+    $tr = signal_real_r($s); $acc += $tr;
+    $evolution[] = ['date' => $s['updated_at'], 'r' => round($acc, 2), 'tradeR' => round($tr, 2), 'asset' => $s['asset'], 'id' => (int) $s['id']];
+  }
+
+  return [
+    'rTotal' => round($rTotal, 2), 'winRate' => $winRate,
+    'closedCount' => count($closed), 'activeCount' => count($active),
+    'partialsCount' => $partialsCount, 'rAvgPerPartial' => $rAvgPerPartial,
+    'breakdown' => $breakdown, 'evolution' => $evolution,
+  ];
+}
+
+// ----- Proyecciones -----
+function projection_to_json(array $r): array {
+  $r['author'] = user_mini($r['author_id'] ?? null);
+  $r['trader'] = user_mini($r['trader_id'] ?? null);
+  $up = db()->prepare('SELECT id,projection_id,type,message,payload,created_at FROM projection_updates WHERE projection_id = ? ORDER BY created_at ASC');
+  $up->execute([$r['id']]);
+  $r['updates'] = array_map(function ($x) { $x['payload'] = !empty($x['payload']) ? json_decode($x['payload'], true) : null; return $x; }, $up->fetchAll());
+  return $r;
+}
+
+function create_projection_row(array $u, array $b): int {
+  foreach (['title','direction','probability'] as $f) if (empty($b[$f])) fail("Falta el campo $f");
+  if (!in_array($b['direction'], ['alcista','bajista'], true)) fail('Dirección inválida');
+  if (!in_array($b['probability'], ['alta','media','baja'], true)) fail('Probabilidad inválida');
+  $traderId = !empty($b['trader_id']) ? (string) $b['trader_id'] : $u['id'];
+  db()->prepare('INSERT INTO projections (author_id,trader_id,title,direction,probability,description,image_url,tradingview_url,audience,status) VALUES (?,?,?,?,?,?,?,?,?,\'active\')')
+    ->execute([$u['id'], $traderId, trim((string) $b['title']), $b['direction'], $b['probability'],
+               $b['description'] ?? null, $b['image_url'] ?? null, $b['tradingview_url'] ?? null,
+               in_array($b['audience'] ?? 'all', ['free','premium','all'], true) ? $b['audience'] : 'all']);
+  $id = (int) db()->lastInsertId();
+  db()->prepare('INSERT INTO projection_updates (projection_id,type,message) VALUES (?,?,?)')->execute([$id, 'published', 'Proyección publicada']);
+  return $id;
+}
+
+function update_projection_row(int $pid, array $b): void {
+  $allowed = ['title','direction','probability','description','image_url','tradingview_url','trader_id','audience','status'];
+  $sets = []; $vals = [];
+  foreach ($allowed as $f) if (array_key_exists($f, $b)) { $v = $b[$f] === '' ? null : $b[$f]; $sets[] = "$f = ?"; $vals[] = $v; }
+  if ($sets) { $vals[] = $pid; db()->prepare('UPDATE projections SET ' . implode(',', $sets) . ' WHERE id = ?')->execute($vals); }
+  db()->prepare('INSERT INTO projection_updates (projection_id,type,message) VALUES (?,?,?)')->execute([$pid, 'edited', $b['changes_summary'] ?? 'Proyección actualizada']);
+}
+
+function session_to_json(array $r): array {
+  $r['author'] = user_mini($r['author_id'] ?? null);
+  return $r;
+}
+
 function upsert_enrollment(
   string $userId,
   string $courseId,
@@ -1081,6 +1547,21 @@ function mp_settle_payment(string $paymentId, string $token): bool {
     grant_quant_access($userId, $days, 'mercadopago');
     db()->prepare('INSERT INTO purchases (id,user_id,course_id,course_title,amount,currency,status,provider,reference) VALUES (?,?,?,?,?,?,?,?,?)')
         ->execute([uuid(), $userId, null, 'ProfitLab Quant — Acceso Mercados',
+                   (float) ($p['transaction_amount'] ?? 0), $p['currency_id'] ?? 'USD',
+                   'completed', 'mercadopago', $payRef]);
+    return true;
+  }
+
+  // Compra de acceso a SEÑALES.
+  if ($courseId === 'signals') {
+    $payRef = 'mp_' . $paymentId;
+    $r = db()->prepare('SELECT 1 FROM purchases WHERE reference = ? LIMIT 1');
+    $r->execute([$payRef]);
+    if ($r->fetchColumn()) return true;
+    $days = (int) (config()['signals_access_days'] ?? 30);
+    grant_signals_access($userId, $days, 'mercadopago');
+    db()->prepare('INSERT INTO purchases (id,user_id,course_id,course_title,amount,currency,status,provider,reference) VALUES (?,?,?,?,?,?,?,?,?)')
+        ->execute([uuid(), $userId, null, 'ProfitLab — Acceso Señales',
                    (float) ($p['transaction_amount'] ?? 0), $p['currency_id'] ?? 'USD',
                    'completed', 'mercadopago', $payRef]);
     return true;

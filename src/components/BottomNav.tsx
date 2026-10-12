@@ -19,6 +19,7 @@ export function BottomNav() {
     { href: '/mis-cursos', label: 'Mis cursos', icon: 'learning' },
     ...(isAdmin ? [] : [{ href: '/tareas', label: 'Tareas', icon: 'tasks' as IconType }]),
     { href: '/mercados', label: 'Mercados', icon: 'markets' },
+    { href: '/senales', label: 'Señales', icon: 'signals' },
     ...(isAdmin ? [{ href: '/admin', label: 'Master', icon: 'admin' as IconType }] : []),
     { href: '/perfil', label: 'Perfil', icon: 'profile' },
   ];
@@ -54,7 +55,7 @@ export function BottomNav() {
   );
 }
 
-type IconType = 'catalog' | 'learning' | 'tasks' | 'markets' | 'admin' | 'profile';
+type IconType = 'catalog' | 'learning' | 'tasks' | 'markets' | 'signals' | 'admin' | 'profile';
 
 function Icon({ type, active }: { type: IconType; active: boolean }) {
   const color = active ? '#C7F94C' : '#94A3B8';
@@ -94,6 +95,14 @@ function Icon({ type, active }: { type: IconType; active: boolean }) {
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <path d="M4 20V10M9 20V4M14 20v-7M19 20V8" stroke={color} strokeWidth={s} strokeLinecap="round" />
         <path d="M3 20h18" stroke={color} strokeWidth={s} strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (type === 'signals') {
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M3 17l5-5 3 3 6-7" stroke={color} strokeWidth={s} strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M17 8h4v4" stroke={color} strokeWidth={s} strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     );
   }
