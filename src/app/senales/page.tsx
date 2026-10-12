@@ -13,6 +13,7 @@ import { verifyPayment } from '@/lib/api';
 import { Page, PageTitle, Spinner, Button, inputStyle } from '@/components/ui';
 import { useToast } from '@/components/Toast';
 import { IconChart, IconLock, IconCheck } from '@/components/icons';
+import { SignalsTabs } from '@/components/SignalsTabs';
 
 export default function SenalesPage() {
   return <Suspense fallback={<Spinner />}><Senales /></Suspense>;
@@ -95,6 +96,7 @@ function SignalsFeed() {
 
   return (
     <div style={{ padding: '14px 12px 90px', maxWidth: 760, margin: '0 auto' }}>
+      <SignalsTabs />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 4 }}>
         <h1 style={styles.h1}><IconChart size={20} color="#C7F94C" /> Señales</h1>
         <span style={styles.countPill}>{counts.all}</span>
