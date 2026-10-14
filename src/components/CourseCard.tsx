@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import type { Course } from '@/lib/api';
-import { IconVideo, IconArrowRight, IconUsers } from './icons';
+import { IconArrowRight, IconUsers } from './icons';
+import { LogoMark } from './Logo';
 
 const levelLabel: Record<string, string> = {
   principiante: 'Principiante',
@@ -61,7 +62,9 @@ export function CourseCard({
           <img src={course.thumbnail_url} alt={course.title} className="courseThumb" style={styles.thumb} loading="lazy" />
         ) : (
           <div style={styles.thumbFallback} aria-hidden="true">
-            <IconVideo size={34} color="#C7F94C" style={{ opacity: 0.55 }} />
+            <span style={styles.thumbGlow} />
+            <LogoMark size={40} />
+            <span style={styles.thumbWordmark}>PROFITLAB ACADEMY</span>
           </div>
         )}
         <span style={styles.category}>{course.category}</span>
@@ -144,12 +147,34 @@ const styles: Record<string, React.CSSProperties> = {
   },
   thumb: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   thumbFallback: {
+    position: 'relative',
     width: '100%',
     height: '100%',
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    background: 'linear-gradient(135deg, rgba(199,249,76,0.12), rgba(59,130,246,0.12))',
+    gap: 8,
+    background: 'linear-gradient(135deg, #171A21 0%, #0E1117 55%, #0B111A 100%)',
+    overflow: 'hidden',
+  },
+  thumbGlow: {
+    position: 'absolute',
+    top: '-30%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: '120%',
+    height: '90%',
+    background: 'radial-gradient(60% 70% at 50% 50%, rgba(199,249,76,0.14), rgba(199,249,76,0) 70%)',
+    pointerEvents: 'none',
+  },
+  thumbWordmark: {
+    position: 'relative',
+    color: '#64748B',
+    fontSize: 9.5,
+    fontWeight: 700,
+    letterSpacing: 2,
+    fontFamily: 'var(--font-bricolage), sans-serif',
   },
   category: {
     position: 'absolute',

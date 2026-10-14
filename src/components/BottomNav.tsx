@@ -30,7 +30,7 @@ export function BottomNav() {
 
   return (
     <nav style={styles.nav} aria-label="Navegación principal">
-      <div style={{ ...styles.container, gridTemplateColumns: `repeat(${items.length}, 1fr)` }}>
+      <div style={{ ...styles.container, gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
         {items.map((it) => {
           const active = isActive(it.href);
           return (
@@ -156,9 +156,18 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: 3,
+    minWidth: 0,
+    paddingInline: 2,
     textDecoration: 'none',
   },
-  label: { fontSize: 10, letterSpacing: 0.3 },
+  label: {
+    fontSize: 9.5,
+    letterSpacing: 0,
+    whiteSpace: 'nowrap',
+    maxWidth: '100%',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
   indicator: {
     position: 'absolute',
     top: 0,
