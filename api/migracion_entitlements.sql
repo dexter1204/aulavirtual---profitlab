@@ -7,8 +7,41 @@
 -- "espeja" desde la lógica PHP, así nada existente se rompe.
 -- Importar en: Site Tools → phpMyAdmin → (tu base) → SQL → pegar y ejecutar.
 -- Seguro de re-ejecutar: usa IF NOT EXISTS + ON DUPLICATE KEY.
--- Requiere que ya existan: users, quant_access, signals_access.
+-- Requiere que ya exista: users.
 -- ============================================================
+
+-- ------------------------------------------------------------
+-- PREREQUISITO · tablas legacy con el esquema canónico.
+-- El backfill y el "espejo" PHP leen/escriben lifetime, access_until,
+-- source y updated_at en quant_access / signals_access. Estas CREATE las
+-- dejan listas en instalaciones nuevas (no-op si ya existen).
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS quant_access (
+  user_id      CHAR(36)    NOT NULL,
+  lifetime     TINYINT(1)  NOT NULL DEFAULT 0,
+  access_until DATETIME    NULL,
+  source       VARCHAR(40) NULL,
+  updated_at   DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id),
+  CONSTRAINT fk_quant_access_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS signals_access (
+  user_id      CHAR(36)    NOT NULL,
+  lifetime     TINYINT(1)  NOT NULL DEFAULT 0,
+  access_until DATETIME    NULL,
+  source       VARCHAR(40) NULL,
+  updated_at   DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id),
+  CONSTRAINT fk_signals_access_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- OJO · instalación ANTIGUA: si quant_access (o signals_access) ya existía
+-- SIN la columna 'lifetime', el CREATE de arriba NO la añade (IF NOT EXISTS).
+-- En ese caso ejecuta UNA vez (conserva las filas; quedan con lifetime=0):
+--   ALTER TABLE quant_access   ADD COLUMN lifetime TINYINT(1) NOT NULL DEFAULT 0 AFTER user_id;
+--   ALTER TABLE signals_access ADD COLUMN lifetime TINYINT(1) NOT NULL DEFAULT 0 AFTER user_id;
+-- (Producción se alineó así el 2026-10-13: 21 accesos de quant migrados.)
 
 -- Entitlement por usuario y producto.
 --   product: 'quant' | 'signals' | 'news' | 'courses'
