@@ -31,6 +31,7 @@ export default function AdminAccesos() {
   const [scopes, setScopes] = useState<ProductKey[]>(['quant', 'signals', 'news']);
   const [days, setDays] = useState('30');
   const [maxUses, setMaxUses] = useState('0');
+  const [expiresAt, setExpiresAt] = useState(''); // fecha límite para canjear el cupón (YYYY-MM-DD)
   const [note, setNote] = useState('');
   const [creating, setCreating] = useState(false);
 
@@ -54,10 +55,13 @@ export default function AdminAccesos() {
         scopes,
         days: parseInt(days, 10) || 0,
         max_uses: parseInt(maxUses, 10) || 0,
+        // El canje valida contra expires_at: enviamos fin del día para que el
+        // cupón siga válido durante toda la fecha elegida.
+        expires_at: expiresAt ? `${expiresAt} 23:59:59` : null,
         note: note.trim() || null,
       });
       toast(`Cupón ${r.code} creado`, 'success');
-      setCode(''); setNote(''); setDays('30'); setMaxUses('0'); setScopes(['quant', 'signals', 'news']);
+      setCode(''); setNote(''); setDays('30'); setMaxUses('0'); setExpiresAt(''); setScopes(['quant', 'signals', 'news']);
       await load();
     } catch (e: any) { toast(e.message, 'error'); }
     finally { setCreating(false); }
@@ -108,8 +112,21 @@ export default function AdminAccesos() {
 
         <div style={styles.grid}>
           <label style={styles.field}><span style={styles.lbl}>Código (opcional)</span><input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="Se genera solo si lo dejas vacío" style={inputStyle} /></label>
-          <label style={styles.field}><span style={styles.lbl}>Días de acceso (0 = vitalicio)</span><input value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ''))} inputMode="numeric" style={inputStyle} /></label>
-          <label style={styles.field}><span style={styles.lbl}>Usos máx. (0 = ilimitado)</span><input value={maxUses} onChange={(e) => setMaxUses(e.target.value.replace(/\D/g, ''))} inputMode="numeric" style={inputStyle} /></label>
+          <label style={styles.field}>
+            <span style={styles.lbl}>Cantidad de activaciones</span>
+            <input value={maxUses} onChange={(e) => setMaxUses(e.target.value.replace(/\D/g, ''))} inputMode="numeric" placeholder="0" style={inputStyle} />
+            <span style={styles.help}>Cuántos alumnos pueden canjearlo. 0 = ilimitado.</span>
+          </label>
+          <label style={styles.field}>
+            <span style={styles.lbl}>Vence el (opcional)</span>
+            <input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} style={inputStyle} />
+            <span style={styles.help}>Último día para canjear el cupón. Vacío = sin caducidad.</span>
+          </label>
+          <label style={styles.field}>
+            <span style={styles.lbl}>Días de acceso</span>
+            <input value={days} onChange={(e) => setDays(e.target.value.replace(/\D/g, ''))} inputMode="numeric" placeholder="30" style={inputStyle} />
+            <span style={styles.help}>Cuánto dura el acceso del alumno tras canjear. 0 = vitalicio.</span>
+          </label>
           <label style={styles.field}><span style={styles.lbl}>Nota (opcional)</span><input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ej. Promo octubre" style={inputStyle} /></label>
         </div>
         <Button onClick={create} disabled={creating} style={{ marginTop: 6 }}>{creating ? 'Creando…' : '+ Crear cupón'}</Button>
@@ -122,6 +139,10 @@ export default function AdminAccesos() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {coupons.map((c) => {
             const agotado = c.max_uses > 0 && c.uses >= c.max_uses;
+            const vencido = !!c.expires_at && new Date(c.expires_at).getTime() < Date.now();
+            const venceTxt = c.expires_at
+              ? new Date(c.expires_at).toLocaleDateString('es', { day: '2-digit', month: 'short', year: 'numeric' })
+              : null;
             const list = c.scopes.split(',').map((s) => s.trim()).filter(Boolean);
             return (
               <div key={c.id} style={styles.row}>
@@ -129,6 +150,7 @@ export default function AdminAccesos() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     <span style={styles.code}>{c.code}</span>
                     <Pill color={c.days > 0 ? '#F59E0B' : '#C7F94C'}>{c.days > 0 ? `${c.days} días` : 'Vitalicio'}</Pill>
+                    {venceTxt && <Pill color={vencido ? '#EF4444' : '#64748B'}>{vencido ? 'Vencido' : `Vence ${venceTxt}`}</Pill>}
                     {agotado && <Pill color="#EF4444">Agotado</Pill>}
                     {!c.active && <Pill color="#64748B">Inactivo</Pill>}
                   </div>
@@ -142,7 +164,7 @@ export default function AdminAccesos() {
                       );
                     })}
                   </div>
-                  <div style={{ color: '#64748B', fontSize: 11, marginTop: 5 }}>Usos: {c.uses}{c.max_uses > 0 ? ` / ${c.max_uses}` : ' (ilimitado)'}{c.note ? ` · ${c.note}` : ''}</div>
+                  <div style={{ color: '#64748B', fontSize: 11, marginTop: 5 }}>Activaciones: {c.uses}{c.max_uses > 0 ? ` / ${c.max_uses}` : ' (ilimitado)'}{c.note ? ` · ${c.note}` : ''}</div>
                 </div>
                 <button onClick={() => remove(c)} style={styles.del} aria-label="Eliminar cupón"><IconTrash size={15} /></button>
               </div>
@@ -166,6 +188,7 @@ const styles: Record<string, React.CSSProperties> = {
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 6 },
   field: { display: 'block' },
   lbl: { display: 'block', color: '#94A3B8', fontSize: 12, fontWeight: 600, marginBottom: 6 },
+  help: { display: 'block', color: '#64748B', fontSize: 10.5, lineHeight: 1.4, marginTop: 5 },
   row: { display: 'flex', alignItems: 'center', gap: 10, backgroundColor: '#14161C', border: '1px solid #1F222B', borderRadius: 10, padding: '10px 12px' },
   code: { color: '#F1F5F9', fontSize: 14, fontWeight: 700, fontFamily: 'var(--font-bricolage), monospace', letterSpacing: 1 },
   scopeTag: { fontSize: 10.5, fontWeight: 700, border: '1px solid', borderRadius: 6, padding: '2px 7px' },

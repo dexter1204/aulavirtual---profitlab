@@ -18,12 +18,29 @@ const manrope = Manrope({
   variable: '--font-manrope',
 });
 
+// Modo super-app (destino /app): el título y los textos de marca cambian de
+// "Aula Virtual" a la app unificada. En el build por defecto (/aulavirtual)
+// se mantiene el Aula de siempre.
+const IS_SUPERAPP = process.env.NEXT_PUBLIC_SUPERAPP === '1';
+
+const BRAND = IS_SUPERAPP
+  ? {
+      title: 'Profit Lab Academy',
+      description: 'Tus productos Profit Lab en una sola app: cursos, Quant, Señales y Pre-Apertura.',
+      ogDescription: 'Cursos, Quant, Señales y Pre-Apertura de Profit Lab Academy en una sola app.',
+    }
+  : {
+      title: 'Profit Lab · Aula Virtual',
+      description: 'Aula virtual de Profit Lab Academy — cursos de trading en video.',
+      ogDescription: 'Cursos de trading de Profit Lab Academy.',
+    };
+
 export const metadata: Metadata = {
-  title: 'Profit Lab · Aula Virtual',
-  description: 'Aula virtual de Profit Lab Academy — cursos de trading en video.',
+  title: BRAND.title,
+  description: BRAND.description,
   openGraph: {
-    title: 'Profit Lab · Aula Virtual',
-    description: 'Cursos de trading de Profit Lab Academy.',
+    title: BRAND.title,
+    description: BRAND.ogDescription,
     siteName: 'Profit Lab Academy',
     locale: 'es_PE',
     type: 'website',

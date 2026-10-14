@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogoMark, LogoWordmark } from './Logo';
 import { IconGraduation, IconGrid, IconUser, IconSettings, IconChevronDown } from './icons';
+import { SUPERAPP, HOME_ROUTE } from '@/lib/basePath';
 
 export function AppHeader() {
   const { profile, isAdmin, logout } = useAuth();
@@ -25,10 +26,10 @@ export function AppHeader() {
 
   return (
     <header style={styles.header}>
-      <Link href="/cursos" style={styles.brandRow}>
+      <Link href={HOME_ROUTE} style={styles.brandRow}>
         <LogoMark size={26} />
         <LogoWordmark />
-        <span style={styles.tag}>Aula</span>
+        <span style={styles.tag}>{SUPERAPP ? 'App' : 'Aula'}</span>
       </Link>
 
       <div style={styles.right}>

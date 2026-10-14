@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogoMark } from '@/components/Logo';
 import { IconMail } from '@/components/icons';
+import { SUPERAPP, HOME_ROUTE } from '@/lib/basePath';
 
 export default function SignupPage() {
   const { signUp, login } = useAuth();
@@ -34,7 +35,7 @@ export default function SignupPage() {
       // Si el proyecto no exige confirmación por email, iniciamos sesión directo.
       try {
         await login(email.trim(), password);
-        router.replace('/cursos');
+        router.replace(HOME_ROUTE);
         return;
       } catch {
         setDone(true);
@@ -73,12 +74,12 @@ export default function SignupPage() {
           <LogoMark size={34} />
           <div>
             <h1 style={styles.brand}>Profit Lab</h1>
-            <p style={styles.brandSub}>Aula Virtual · Academy</p>
+            <p style={styles.brandSub}>{SUPERAPP ? 'Academy' : 'Aula Virtual · Academy'}</p>
           </div>
         </div>
 
         <h2 style={styles.title}>Crea tu cuenta.</h2>
-        <p style={styles.subtitle}>Accede a los cursos de la academia.</p>
+        <p style={styles.subtitle}>{SUPERAPP ? 'Accede a todos los productos de la academia.' : 'Accede a los cursos de la academia.'}</p>
 
         <form onSubmit={handleSignup}>
           <input

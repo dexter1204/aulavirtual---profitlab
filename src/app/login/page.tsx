@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogoMark } from '@/components/Logo';
+import { SUPERAPP, HOME_ROUTE } from '@/lib/basePath';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -25,7 +26,7 @@ export default function LoginPage() {
     setError('');
     try {
       await login(email.trim(), password);
-      router.replace('/cursos');
+      router.replace(HOME_ROUTE);
     } catch (err: any) {
       setError(traducirError(err?.message) ?? 'No pudimos iniciar sesión');
     } finally {
@@ -40,7 +41,7 @@ export default function LoginPage() {
           <LogoMark size={34} />
           <div>
             <h1 style={styles.brand}>Profit Lab</h1>
-            <p style={styles.brandSub}>Aula Virtual · Academy</p>
+            <p style={styles.brandSub}>{SUPERAPP ? 'Academy' : 'Aula Virtual · Academy'}</p>
           </div>
         </div>
 
@@ -49,7 +50,7 @@ export default function LoginPage() {
           <br />
           de vuelta.
         </h2>
-        <p style={styles.subtitle}>Ingresa para continuar tus cursos.</p>
+        <p style={styles.subtitle}>{SUPERAPP ? 'Ingresa para acceder a tus productos.' : 'Ingresa para continuar tus cursos.'}</p>
 
         <form onSubmit={handleLogin}>
           <input
