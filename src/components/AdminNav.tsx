@@ -10,6 +10,7 @@ const tabs = [
   { href: '/admin/estudiantes', label: 'Alumnos' },
   { href: '/admin/mercados', label: 'Mercados' },
   { href: '/admin/senales', label: 'Señales' },
+  { href: '/admin/accesos', label: 'Accesos' },
 ];
 
 export function AdminNav() {
