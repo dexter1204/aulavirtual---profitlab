@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { stripBase } from '@/lib/basePath';
+import { stripBase, SUPERAPP } from '@/lib/basePath';
 
 const tabs = [
   { href: '/admin', label: 'Resumen' },
@@ -10,7 +10,8 @@ const tabs = [
   { href: '/admin/estudiantes', label: 'Alumnos' },
   { href: '/admin/mercados', label: 'Mercados' },
   { href: '/admin/senales', label: 'Señales' },
-  { href: '/admin/accesos', label: 'Accesos' },
+  // El panel de cupones unificados solo aplica al super-app.
+  ...(SUPERAPP ? [{ href: '/admin/accesos', label: 'Accesos' }] : []),
 ];
 
 export function AdminNav() {

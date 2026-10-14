@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { stripBase } from '@/lib/basePath';
+import { stripBase, SUPERAPP } from '@/lib/basePath';
 
 export function BottomNav() {
   const pathname = stripBase(usePathname());
@@ -15,7 +15,7 @@ export function BottomNav() {
   };
 
   const items: { href: string; label: string; icon: IconType }[] = [
-    { href: '/inicio', label: 'Inicio', icon: 'home' },
+    ...(SUPERAPP ? [{ href: '/inicio', label: 'Inicio', icon: 'home' as IconType }] : []),
     { href: '/cursos', label: 'Catálogo', icon: 'catalog' },
     { href: '/mis-cursos', label: 'Mis cursos', icon: 'learning' },
     ...(isAdmin ? [] : [{ href: '/tareas', label: 'Tareas', icon: 'tasks' as IconType }]),

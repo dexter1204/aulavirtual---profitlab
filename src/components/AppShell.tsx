@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AppHeader } from './AppHeader';
 import { BottomNav } from './BottomNav';
 import { LogoMark } from './Logo';
-import { stripBase } from '@/lib/basePath';
+import { stripBase, HOME_ROUTE } from '@/lib/basePath';
 
 // Rutas accesibles sin sesión
 const PUBLIC_PATHS = ['/login', '/signup'];
@@ -26,7 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (!session && !isPublic) {
       router.replace('/login');
     } else if (session && isPublic) {
-      router.replace('/inicio');
+      router.replace(HOME_ROUTE);
     } else if (session && isAdminArea && !isAdmin) {
       router.replace('/cursos');
     }
