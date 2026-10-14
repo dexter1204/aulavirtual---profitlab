@@ -7,7 +7,7 @@ import { Spinner } from '@/components/ui';
 export default function HomePage() {
   const router = useRouter();
   useEffect(() => {
-    router.replace('/cursos');
+    router.replace('/inicio');
   }, [router]);
   return <Spinner />;
 }

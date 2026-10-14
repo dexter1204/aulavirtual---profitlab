@@ -15,6 +15,7 @@ export function BottomNav() {
   };
 
   const items: { href: string; label: string; icon: IconType }[] = [
+    { href: '/inicio', label: 'Inicio', icon: 'home' },
     { href: '/cursos', label: 'Catálogo', icon: 'catalog' },
     { href: '/mis-cursos', label: 'Mis cursos', icon: 'learning' },
     ...(isAdmin ? [] : [{ href: '/tareas', label: 'Tareas', icon: 'tasks' as IconType }]),
@@ -55,7 +56,7 @@ export function BottomNav() {
   );
 }
 
-type IconType = 'catalog' | 'learning' | 'tasks' | 'markets' | 'signals' | 'admin' | 'profile';
+type IconType = 'home' | 'catalog' | 'learning' | 'tasks' | 'markets' | 'signals' | 'admin' | 'profile';
 
 function Icon({ type, active }: { type: IconType; active: boolean }) {
   const color = active ? '#C7F94C' : '#94A3B8';
@@ -63,6 +64,14 @@ function Icon({ type, active }: { type: IconType; active: boolean }) {
   const fill = active ? color : 'none';
   const fo = active ? 0.15 : 0;
 
+  if (type === 'home') {
+    return (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M4 11l8-7 8 7" stroke={color} strokeWidth={s} strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M6 10v9h12v-9" stroke={color} strokeWidth={s} strokeLinecap="round" strokeLinejoin="round" fill={fill} fillOpacity={fo} />
+      </svg>
+    );
+  }
   if (type === 'catalog') {
     return (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">

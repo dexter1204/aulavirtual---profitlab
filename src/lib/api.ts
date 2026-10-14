@@ -462,6 +462,74 @@ export async function grantQuantAccess(userId: string, days: number): Promise<vo
 }
 
 // ============================================================
+// ACCESO UNIFICADO (entitlements + cupón general) · super-app
+// Un solo modelo para los productos premium (quant, signals, news).
+// ============================================================
+
+export type ProductKey = 'quant' | 'signals' | 'news';
+
+export type ProductAccess = {
+  has_access: boolean;
+  access_until: string | null;
+  lifetime: boolean;
+};
+
+export type AccessState = {
+  authenticated: boolean;
+  user: { id: string; name: string; email: string; role: Role } | null;
+  products: Record<ProductKey, ProductAccess>;
+};
+
+export type AccessCoupon = {
+  id: string;
+  code: string;
+  scopes: string;          // lista separada por comas, p.ej. "quant,signals,news"
+  days: number;
+  max_uses: number;
+  uses: number;
+  active: number;
+  expires_at: string | null;
+  note: string | null;
+  created_at: string;
+};
+
+/** Estado de acceso por producto del usuario autenticado. */
+export async function getAccess(): Promise<AccessState> {
+  return api<AccessState>('/access/me');
+}
+
+/** Canjea un cupón (multi-scope). Devuelve los productos desbloqueados. */
+export async function redeemAccessCoupon(
+  code: string,
+): Promise<{ ok: boolean; unlocked: ProductKey[]; products: Record<ProductKey, ProductAccess> }> {
+  return api('/access/redeem', { method: 'POST', body: { code } });
+}
+
+// Admin · cupones unificados
+export async function listAccessCoupons(): Promise<AccessCoupon[]> {
+  return api<AccessCoupon[]>('/access/coupons');
+}
+
+export async function createAccessCoupon(input: {
+  code?: string;
+  scopes?: ProductKey[] | string;
+  days?: number;
+  max_uses?: number;
+  expires_at?: string | null;
+  note?: string | null;
+}): Promise<{ id: string; code: string; scopes: ProductKey[] }> {
+  return api('/access/coupons', { method: 'POST', body: input });
+}
+
+export async function deleteAccessCoupon(id: string): Promise<void> {
+  await api(`/access/coupons/${id}`, { method: 'DELETE' });
+}
+
+export async function grantAccess(userId: string, products: ProductKey[], days: number): Promise<void> {
+  await api('/access/grant', { method: 'POST', body: { user_id: userId, products, days } });
+}
+
+// ============================================================
 // TAREAS (assignments) · alumnos suben archivos; admin califica
 // ============================================================
 

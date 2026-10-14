@@ -5,6 +5,7 @@
 // ============================================================
 
 require_once __DIR__ . '/lib/helpers.php';
+require_once __DIR__ . '/lib/entitlements.php';
 
 send_cors_headers();
 
@@ -50,7 +51,7 @@ try {
   // Raíz
   if (count($seg) === 0) {
     json_out(['name' => 'Profit Lab Aula Virtual API', 'status' => 'ok',
-              'version' => 'v16-senales', 'features' => ['assignments', 'submissions', 'signals', 'projections', 'sessions']]);
+              'version' => 'v17-entitlements', 'features' => ['assignments', 'submissions', 'signals', 'projections', 'sessions', 'access']]);
   }
 
   // ============ AUTH ============
@@ -739,6 +740,11 @@ try {
   }
 
   // ============ QUANT · acceso a "Mercados" (gamma/beta) ============
+  // ============ ACCESO UNIFICADO (entitlements + cupón general) ============
+  if ($seg[0] === 'access') {
+    handle_access($seg, $method);
+  }
+
   if ($seg[0] === 'quant') {
     $cfg = config();
     $qPrice = (float) ($cfg['quant_price'] ?? 0);

@@ -26,7 +26,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (!session && !isPublic) {
       router.replace('/login');
     } else if (session && isPublic) {
-      router.replace('/cursos');
+      router.replace('/inicio');
     } else if (session && isAdminArea && !isAdmin) {
       router.replace('/cursos');
     }
