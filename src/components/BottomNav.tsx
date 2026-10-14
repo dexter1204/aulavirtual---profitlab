@@ -19,8 +19,11 @@ export function BottomNav() {
     { href: '/cursos', label: 'Catálogo', icon: 'catalog' },
     { href: '/mis-cursos', label: 'Mis cursos', icon: 'learning' },
     ...(isAdmin ? [] : [{ href: '/tareas', label: 'Tareas', icon: 'tasks' as IconType }]),
-    { href: '/mercados', label: 'Mercados', icon: 'markets' },
-    { href: '/senales', label: 'Señales', icon: 'signals' },
+    // Mercados y Señales solo en el super-app; el aula puro es solo cursos.
+    ...(SUPERAPP ? [
+      { href: '/mercados', label: 'Mercados', icon: 'markets' as IconType },
+      { href: '/senales', label: 'Señales', icon: 'signals' as IconType },
+    ] : []),
     ...(isAdmin ? [{ href: '/admin', label: 'Master', icon: 'admin' as IconType }] : []),
     { href: '/perfil', label: 'Perfil', icon: 'profile' },
   ];

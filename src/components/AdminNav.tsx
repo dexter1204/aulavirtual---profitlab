@@ -8,10 +8,12 @@ const tabs = [
   { href: '/admin', label: 'Resumen' },
   { href: '/admin/cursos', label: 'Cursos' },
   { href: '/admin/estudiantes', label: 'Alumnos' },
-  { href: '/admin/mercados', label: 'Mercados' },
-  { href: '/admin/senales', label: 'Señales' },
-  // El panel de cupones unificados solo aplica al super-app.
-  ...(SUPERAPP ? [{ href: '/admin/accesos', label: 'Accesos' }] : []),
+  // Mercados, Señales y Accesos solo aplican al super-app; el aula puro es solo cursos.
+  ...(SUPERAPP ? [
+    { href: '/admin/mercados', label: 'Mercados' },
+    { href: '/admin/senales', label: 'Señales' },
+    { href: '/admin/accesos', label: 'Accesos' },
+  ] : []),
 ];
 
 export function AdminNav() {
