@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "build:app": "cross-env NEXT_PUBLIC_BASE_PATH= NEXT_PUBLIC_API_URL=https://profitlab-academy.com/aulavirtual/api next build --webpack",
+    "build:app": "cross-env NEXT_PUBLIC_SUPERAPP=1 NEXT_PUBLIC_BASE_PATH= NEXT_PUBLIC_API_URL=https://profitlab-academy.com/aulavirtual/api next build --webpack",
     "sync:app": "npm run build:app && npx cap sync",
     "open:android": "npx cap open android",
     "open:ios": "npx cap open ios"
