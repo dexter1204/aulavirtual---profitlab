@@ -1,0 +1,324 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   BASE
+   ============================================================ */
+html, body {
+  background-color: #0A0B0E;
+  color: #F1F5F9;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  position: relative;
+  overflow-x: hidden;
+}
+
+* { -webkit-tap-highlight-color: transparent; }
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #C7F94C;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1F222B; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #262932; }
+
+/* ============================================================
+   AURORA BACKGROUND · gradientes animados futuristas
+   ============================================================ */
+
+/* Capa 1 · Aurora principal LIME · cobertura DOMINANTE */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image:
+    radial-gradient(ellipse 100% 80% at 15% 5%,  rgba(199, 249, 76, 0.50) 0%, transparent 70%),
+    radial-gradient(ellipse 100% 80% at 85% 95%, rgba(199, 249, 76, 0.40) 0%, transparent 70%),
+    radial-gradient(ellipse 120% 90% at 50% 50%, rgba(199, 249, 76, 0.28) 0%, transparent 75%);
+  animation: aurora-1 18s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+/* Capa 2 · Aurora secundaria AZUL/CYAN/ÍNDIGO · cobertura DOMINANTE */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(ellipse 120% 90% at 90% 15%, rgba(59, 130, 246, 0.38) 0%, transparent 65%),
+    radial-gradient(ellipse 100% 80% at 5% 85%,  rgba(34, 211, 238, 0.30) 0%, transparent 65%),
+    radial-gradient(ellipse 110% 80% at 50% 60%, rgba(99, 102, 241, 0.25) 0%, transparent 70%);
+  animation: aurora-2 22s ease-in-out infinite alternate-reverse;
+  will-change: transform, opacity;
+}
+
+@keyframes aurora-1 {
+  0%   { transform: translate3d(0, 0, 0) scale(1); opacity: 0.85; }
+  50%  { transform: translate3d(-2%, 3%, 0) scale(1.1); opacity: 1; }
+  100% { transform: translate3d(3%, -2%, 0) scale(1.05); opacity: 0.9; }
+}
+
+@keyframes aurora-2 {
+  0%   { transform: translate3d(0, 0, 0) scale(1); opacity: 0.7; }
+  50%  { transform: translate3d(2%, -3%, 0) scale(1.08); opacity: 0.95; }
+  100% { transform: translate3d(-3%, 2%, 0) scale(1.03); opacity: 0.8; }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Accesibilidad: reducir animación si el usuario lo prefiere */
+@media (prefers-reduced-motion: reduce) {
+  body::before, body::after { animation: none; }
+}
+
+/* Móvil: animación más lenta para ahorrar batería */
+@media (max-width: 768px) {
+  body::before, body::after { animation-duration: 30s, 35s; }
+}
+
+/* ============================================================
+   GLASSMORPHISM · cards translúcidas con blur
+   Targeting con rgb() porque React serializa #hex → rgb()
+   ============================================================ */
+
+/* <main> transparente para mostrar la aurora */
+main {
+  background-color: transparent !important;
+}
+
+/* Header sticky · glass medio (debe ser legible) */
+header[style*="position: sticky"],
+header[style*="position:sticky"] {
+  background-color: rgba(10, 11, 14, 0.55) !important;
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom-color: rgba(31, 34, 43, 0.5) !important;
+}
+
+/* Cards principales · #14161C → rgb(20, 22, 28) */
+[style*="rgb(20, 22, 28)"] {
+  background-color: rgba(20, 22, 28, 0.5) !important;
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border-color: rgba(31, 34, 43, 0.4) !important;
+}
+
+/* Cards secundarias · #1F222B → rgb(31, 34, 43) */
+[style*="rgb(31, 34, 43)"] {
+  background-color: rgba(31, 34, 43, 0.5) !important;
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+
+/* Cards anidadas con fondo #0A0B0E (bloques) · NO afecta botones */
+[style*="rgb(10, 11, 14)"][style*="border-radius"]:not(button):not(a) {
+  background-color: rgba(10, 11, 14, 0.45) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-color: rgba(31, 34, 43, 0.4) !important;
+}
+
+/* Hover sutil para cards enlazables */
+a[style*="rgb(20, 22, 28)"]:hover {
+  border-color: rgba(199, 249, 76, 0.25) !important;
+  transition: border-color 0.3s ease;
+}
+
+/* Modal · panel SÓLIDO (anula el glass para que no se transparente el fondo) */
+.modalPanel {
+  background-color: #14161C !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.7) !important;
+}
+/* Tarjetas/bloques dentro del modal también sólidos */
+.modalPanel [style*="rgb(20, 22, 28)"],
+.modalPanel [style*="rgb(31, 34, 43)"],
+.modalPanel [style*="rgb(10, 11, 14)"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Inputs · sólidos para escritura cómoda y máxima legibilidad */
+input[style*="rgb(10, 11, 14)"],
+input[style*="rgb(20, 22, 28)"],
+textarea[style*="rgb(10, 11, 14)"],
+textarea[style*="rgb(20, 22, 28)"],
+select[style*="rgb(10, 11, 14)"],
+select[style*="rgb(20, 22, 28)"] {
+  background-color: #0A0B0E !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ============================================================
+   BOTONES LIME · proteger SOLO los que tienen fondo lime
+   ============================================================ */
+
+[style*="background-color: rgb(199, 249, 76)"],
+[style*="background-color:rgb(199, 249, 76)"],
+[style*="background: rgb(199, 249, 76)"],
+[style*="background:rgb(199, 249, 76)"] {
+  background-color: #C7F94C !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ============================================================
+   PÁGINA DE CURSO · dos columnas en escritorio, una en móvil
+   ============================================================ */
+.courseGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "hero"
+    "side"
+    "desc"
+    "curriculum";
+  gap: 20px;
+  align-items: start;
+}
+.courseGrid .ca-side {
+  grid-area: side;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 900px) {
+  .courseGrid {
+    grid-template-columns: minmax(0, 1fr) 352px;
+    grid-template-areas:
+      "hero       side"
+      "desc       side"
+      "curriculum side";
+    column-gap: 28px;
+    row-gap: 24px;
+  }
+  .courseGrid .ca-side {
+    position: sticky;
+    top: 84px;
+  }
+}
+
+/* ============================================================
+   TARJETA DE CURSO · hover, foco y zoom de miniatura
+   ============================================================ */
+.courseCard {
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  will-change: transform;
+}
+.courseCard:hover {
+  transform: translateY(-3px);
+  border-color: rgba(199, 249, 76, 0.35) !important;
+}
+.courseCard:focus-visible {
+  outline: 2px solid #C7F94C;
+  outline-offset: 2px;
+  border-color: rgba(199, 249, 76, 0.5) !important;
+}
+.courseThumb {
+  transition: transform 0.4s ease;
+}
+.courseCard:hover .courseThumb {
+  transform: scale(1.045);
+}
+.courseCardCta > span {
+  transition: transform 0.2s ease;
+}
+.courseCard:hover .courseCardCta > span {
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .courseCard,
+  .courseThumb,
+  .courseCardCta > span {
+    transition: none;
+  }
+  .courseCard:hover {
+    transform: none;
+  }
+  .courseCard:hover .courseThumb,
+  .courseCard:hover .courseCardCta > span {
+    transform: none;
+  }
+}
+
+/* Buscador con ícono · campo de catálogo */
+.searchField {
+  position: relative;
+}
+.searchField .searchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748B;
+  pointer-events: none;
+  display: flex;
+}
+.searchField input {
+  padding-left: 42px !important;
+  padding-right: 42px !important;
+}
+.searchField input[type="search"]::-webkit-search-cancel-button,
+.searchField input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.searchField .searchClear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #94A3B8;
+  cursor: pointer;
+}
+.searchField .searchClear:hover {
+  background: #1F222B;
+  color: #F1F5F9;
+}
+
+/* Foco visible accesible (teclado) */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #C7F94C;
+  outline-offset: 2px;
+}
+
+/* Clamp de texto multilínea */
+.clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

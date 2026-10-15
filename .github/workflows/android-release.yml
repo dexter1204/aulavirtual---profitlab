@@ -1,0 +1,73 @@
+name: Build Android AAB (Google Play)
+
+# Genera el .aab FIRMADO para subir a Google Play.
+# Requisitos (una sola vez): añade estos 4 Secrets en GitHub
+#   Settings → Secrets and variables → Actions → New repository secret
+#     ANDROID_KEYSTORE_BASE64     (el contenido de upload-keystore.b64)
+#     ANDROID_KEYSTORE_PASSWORD   (la contraseña del keystore)
+#     ANDROID_KEY_ALIAS           (upload)
+#     ANDROID_KEY_PASSWORD        (la misma contraseña)
+# Luego: Actions → "Build Android AAB (Google Play)" → Run workflow.
+# Descarga el artifact "ProfitLab-Academy-aab" y súbelo en Play Console.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Comprobar que el keystore está configurado
+        run: |
+          if [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "::error::Falta el Secret ANDROID_KEYSTORE_BASE64 (y los demás). Añádelos en Settings → Secrets and variables → Actions. Ver FIRMA-ANDROID.md."
+            exit 1
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Setup Java (JDK 21)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Accept Android SDK licenses
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web (Next export)
+        run: npm run build:app
+
+      - name: Sync Capacitor (Android)
+        run: npx cap sync android
+
+      - name: Decodificar keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/upload-keystore.jks"
+
+      - name: Build AAB firmado
+        env:
+          ANDROID_KEYSTORE_FILE: ${{ runner.temp }}/upload-keystore.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew bundleRelease --no-daemon --stacktrace
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: ProfitLab-Academy-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error

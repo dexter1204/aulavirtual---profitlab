@@ -1,0 +1,24 @@
+# Enruta todas las peticiones /api/* al front controller index.php
+# (salvo archivos/carpetas que existan físicamente).
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /aulavirtual/api/
+
+  # No reescribir si el recurso existe (por si sirves algo estático)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  RewriteRule ^ index.php [L]
+</IfModule>
+
+# Cabecera Authorization (algunos servidores la ocultan a PHP)
+<IfModule mod_setenvif.c>
+  SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+</IfModule>
+
+# Proteger archivos sensibles
+<FilesMatch "^(config\.php|config\.example\.php|schema\.sql)$">
+  Require all denied
+</FilesMatch>
