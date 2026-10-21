@@ -322,3 +322,22 @@ textarea:focus-visible {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* ============================================================
+   Reproductor de video (YouTubePlayer)
+   El API de YouTube reemplaza el <div> host por un <iframe> con
+   tamaño fijo 640x360. Forzamos que llene el recuadro 16:9 en
+   cualquier pantalla (clave en móvil / WebView de la app) y que
+   nunca reciba pulsaciones directas (el overlay las captura, así
+   el toque no abre YouTube ni saca de la app).
+   ============================================================ */
+.yt-stage,
+.yt-stage iframe,
+.yt-stage > div {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  border: 0;
+  pointer-events: none;
+}

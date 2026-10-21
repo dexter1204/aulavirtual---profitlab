@@ -1,11 +1,13 @@
 'use client';
 
 import { YouTubePlayer } from './YouTubePlayer';
-import { driveEmbedUrl, type VideoProvider } from '@/lib/youtube';
+import { DrivePlayer } from './DrivePlayer';
+import { type VideoProvider } from '@/lib/youtube';
 
 /**
- * Reproductor unificado: usa el reproductor propio de YouTube o, para Google
- * Drive, el visor embebido de Drive (que trae sus propios controles).
+ * Reproductor unificado: enruta cada tipo de enlace a su reproductor propio.
+ *   · YouTube → YouTubePlayer (controles propios: play, −10/+10, barra táctil…)
+ *   · Drive   → DrivePlayer   (visor de Drive encuadrado y blindado)
  */
 export function VideoPlayer({
   provider,
@@ -17,36 +19,7 @@ export function VideoPlayer({
   title?: string;
 }) {
   if (provider === 'drive') {
-    return (
-      <div style={styles.wrap}>
-        <iframe
-          src={driveEmbedUrl(videoId)}
-          title={title || 'Video'}
-          allow="autoplay; fullscreen"
-          allowFullScreen
-          style={styles.iframe}
-        />
-      </div>
-    );
+    return <DrivePlayer fileId={videoId} title={title} />;
   }
   return <YouTubePlayer youtubeId={videoId} title={title} />;
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  wrap: {
-    position: 'relative',
-    width: '100%',
-    aspectRatio: '16 / 9',
-    backgroundColor: '#000',
-    borderRadius: 14,
-    overflow: 'hidden',
-    border: '1px solid #1F222B',
-  },
-  iframe: {
-    position: 'absolute',
-    inset: 0,
-    width: '100%',
-    height: '100%',
-    border: 'none',
-  },
-};
