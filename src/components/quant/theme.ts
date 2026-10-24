@@ -6,7 +6,7 @@ export const C = {
   bg: '#0A0B0E', panel: '#14161C', grid: '#1F222B', border: '#1F222B',
   text: '#CBD5E1', muted: '#94A3B8', lime: '#C7F94C',
   green: '#22c55e', red: '#ef4444', purple: '#a855f7',
-  cyan: '#06b6d4', amber: '#f59e0b', yellow: '#facc15',
+  cyan: '#06b6d4', amber: '#f59e0b', yellow: '#facc15', white: '#e8eef7',
 };
 
 export const FONT = { color: C.muted, family: 'Manrope, sans-serif', size: 11 };

@@ -2,21 +2,24 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Plot } from './Plot';
+import { LwcCandles, type LwcCandle, type LwcPriceLine, type LwcOverlay } from './LwcCandles';
 import {
   quantApi, quantPaths, QuantError,
   type AnalyzeData, type ChartData, type FlowData, type OiData,
   type HeatmapData, type DeltaSurfaceData, type NetDriftData, type VolDriftData, type VolSurfaceData,
+  type VolumeProfileData, type LevelsChartData, type VolatilityDriftData,
 } from '@/lib/quant';
 import {
   QUANT_GROUPS, QUANT_DEFAULT_TICKER, resolveTicker, isFutures, tickerLabel,
 } from '@/lib/quantUniverse';
 import {
-  gammaFigure, chartFigure, oiFigure, flowFigure, deltaSurfaceFigure,
-  netDriftFigure, volDriftFigure, volSurfaceFigure, spectrumFigure, type Figure,
+  gammaFigure, oiFigure, flowFigure, deltaSurfaceFigure,
+  netDriftFigure, volDriftFigure, volSurfaceFigure, spectrumFigure,
+  volatilityDriftFigure, type Figure,
 } from './figures';
 import { C, fmtPrice, fmtLevel, fmtBig, heatColor, fmtHeat, webglOK } from './theme';
 
-type ViewKey = 'gamma' | 'chart' | 'gexheat' | 'spectrum' | 'oi' | 'flow' | 'dsurf' | 'drift' | 'vol';
+type ViewKey = 'gamma' | 'chart' | 'gexheat' | 'spectrum' | 'oi' | 'flow' | 'dsurf' | 'drift' | 'voldrift' | 'levels' | 'vp' | 'vol';
 const TABS: { key: ViewKey; label: string }[] = [
   { key: 'gamma', label: 'Gamma & Flow' },
   { key: 'chart', label: 'Chart' },
@@ -26,6 +29,9 @@ const TABS: { key: ViewKey; label: string }[] = [
   { key: 'flow', label: 'Big Trades' },
   { key: 'dsurf', label: 'Delta Surface' },
   { key: 'drift', label: 'Net Drift' },
+  { key: 'voldrift', label: 'Volatility Drift' },
+  { key: 'levels', label: 'Niveles γ/Δ' },
+  { key: 'vp', label: 'Volume Profile' },
   { key: 'vol', label: 'Volatilidad' },
 ];
 const TIMEFRAMES: string[] = ['1m', '5m', '15m', '1h', '1D'];
@@ -60,6 +66,9 @@ export function QuantView() {
       case 'flow': return quantPaths.flow(symbol);
       case 'dsurf': return quantPaths.deltaSurface(symbol, deltaKind);
       case 'drift': return quantPaths.netDrift(symbol);
+      case 'voldrift': return quantPaths.volatilityDrift(symbol);
+      case 'vp': return quantPaths.volumeProfile(symbol);
+      case 'levels': return quantPaths.levelsChart(symbol);
       case 'vol': return volMode === 'surface' ? quantPaths.volSurface(symbol) : quantPaths.volDrift(symbol);
     }
   }, [view, symbol, timeframe, deltaKind, volMode]);
@@ -76,17 +85,17 @@ export function QuantView() {
 
   const use3d = surf3d && (typeof window !== 'undefined' ? webglOK() : false);
 
-  // figura Plotly derivada de data + toggles de solo-render
+  // figura Plotly derivada de data + toggles de solo-render (vistas Plotly)
   const figure: Figure | null = useMemo(() => {
     if (!data) return null;
     switch (view) {
       case 'gamma': return gammaFigure(data as AnalyzeData);
-      case 'chart': return chartFigure(data as ChartData);
       case 'spectrum': return spectrumFigure(data as HeatmapData, spectrumMode, use3d);
       case 'oi': return oiFigure(data as OiData, oiMode === 'pct');
       case 'flow': return flowFigure(data as FlowData);
       case 'dsurf': return deltaSurfaceFigure(data as DeltaSurfaceData, use3d);
       case 'drift': return netDriftFigure(data as NetDriftData);
+      case 'voldrift': return volatilityDriftFigure(data as VolatilityDriftData);
       case 'vol': return volMode === 'surface'
         ? volSurfaceFigure(data as VolSurfaceData, use3d)
         : volDriftFigure(data as VolDriftData);
@@ -94,7 +103,90 @@ export function QuantView() {
     }
   }, [data, view, spectrumMode, oiMode, use3d, volMode]);
 
+  // datos para las vistas lightweight-charts (chart / vp / levels)
+  const lwc = useMemo(() => {
+    if (!data) return null;
+    if (view === 'chart') {
+      const d = data as ChartData;
+      const seen = new Set<number>();
+      const candles: LwcCandle[] = (d.bars || [])
+        .filter((b) => b.c != null)
+        .map((b) => ({ time: Math.floor(new Date(b.t).getTime() / 1000), open: b.o, high: b.h, low: b.l, close: b.c }))
+        .filter((c) => isFinite(c.time))
+        .sort((a, b) => a.time - b.time)
+        .filter((c) => { if (seen.has(c.time)) return false; seen.add(c.time); return true; });
+      const L = d.levels || {};
+      const lines: LwcPriceLine[] = ([
+        [L.call_wall, '#26a69a', 'Call Wall'], [L.put_wall, '#ef5350', 'Put Wall'], [L.gamma_flip, '#a855f7', 'γ Flip'],
+      ] as [number | undefined, string, string][]).filter(([p]) => p != null && isFinite(p!)).map(([p, color, title]) => ({ price: p!, color, title }));
+      const gex = d.gex || [], strikes = d.strikes || [];
+      const overlay: LwcOverlay = (ctx, { series, chart, width, height }) => {
+        if (!gex.length || !strikes.length) return;
+        const psW = chart.priceScale('right').width() || 0;
+        const rightEdge = width - psW - 2;
+        const maxBarW = Math.min(0.16 * (width - psW), 120);
+        const maxAbs = Math.max.apply(null, gex.map((v) => Math.abs(v))) || 1;
+        const step = strikes.length > 1 ? Math.abs(strikes[1] - strikes[0]) : 1;
+        for (let i = 0; i < strikes.length; i++) {
+          const yC = series.priceToCoordinate(strikes[i]); if (yC == null) continue;
+          const yT = series.priceToCoordinate(strikes[i] + step / 2), yB = series.priceToCoordinate(strikes[i] - step / 2);
+          const bh = (yT != null && yB != null) ? Math.max(2, Math.abs(yB - yT) - 1) : 4;
+          const bw = (Math.abs(gex[i]) / maxAbs) * maxBarW;
+          ctx.fillStyle = gex[i] >= 0 ? 'rgba(38,166,154,0.55)' : 'rgba(239,83,80,0.55)';
+          ctx.fillRect(rightEdge - bw, yC - bh / 2, bw, bh);
+        }
+      };
+      return { candles, lines, overlay, fitKey: `${d.ticker}:${timeframe}`, stats: null as string | null };
+    }
+    if (view === 'vp') {
+      const d = data as VolumeProfileData;
+      const candles = (d.candles || []) as LwcCandle[];
+      const lines: LwcPriceLine[] = [
+        { price: d.poc, color: '#f5c451', title: 'POC', solid: true },
+        { price: d.vah, color: '#3b82f6', title: 'VAH' },
+        { price: d.val, color: '#3b82f6', title: 'VAL' },
+      ].filter((l) => l.price != null && isFinite(l.price));
+      const price = d.price || [], volume = d.volume || [];
+      const overlay: LwcOverlay = (ctx, { series, chart, width, height }) => {
+        const psW = chart.priceScale('right').width() || 0;
+        const rightEdge = width - psW - 2;
+        const maxBarW = Math.min(0.42 * (width - psW), 320);
+        const maxVol = Math.max.apply(null, volume) || 1;
+        const step = price.length > 1 ? Math.abs(price[1] - price[0]) : 1;
+        for (let i = 0; i < price.length; i++) {
+          const yC = series.priceToCoordinate(price[i]); if (yC == null) continue;
+          const yT = series.priceToCoordinate(price[i] + step / 2), yB = series.priceToCoordinate(price[i] - step / 2);
+          const bh = (yT != null && yB != null) ? Math.max(1, Math.abs(yB - yT) - 1) : 3;
+          const bw = (volume[i] / maxVol) * maxBarW;
+          const inVA = price[i] >= d.val && price[i] <= d.vah;
+          const isPOC = Math.abs(price[i] - d.poc) <= step / 2;
+          ctx.fillStyle = isPOC ? 'rgba(245,196,81,0.88)' : (inVA ? 'rgba(59,130,246,0.45)' : 'rgba(130,145,165,0.28)');
+          ctx.fillRect(rightEdge - bw, yC - bh / 2, bw, bh);
+        }
+      };
+      const f = (x: number) => Number(x).toLocaleString('es', { maximumFractionDigits: 2 });
+      const stats = `${d.ticker} · POC ${f(d.poc)} · Value Area ${f(d.val)}–${f(d.vah)} (70%) · rango ${f(d.low)}–${f(d.high)} · ${d.bins} niveles`;
+      return { candles, lines, overlay, fitKey: d.ticker, stats };
+    }
+    if (view === 'levels') {
+      const d = data as LevelsChartData;
+      const candles = ((d.candles || []).filter((c) => c.close != null && isFinite(c.time))) as LwcCandle[];
+      const L = d.levels || {};
+      const defs: [number | undefined, string, string, boolean][] = [
+        [L.call_wall, '#26a69a', 'Call Wall', true], [L.put_wall, '#ef5350', 'Put Wall', true],
+        [L.gamma_flip, '#a855f7', 'γ Flip', true], [L.delta_wall, '#f59e0b', 'Δ Wall', true],
+        [L.major_neg_delta, '#3b82f6', 'Δ− mayor', false], [L.max_pain, '#8b98a9', 'Max Pain', false],
+      ];
+      const lines: LwcPriceLine[] = defs.filter(([p]) => p != null && isFinite(p!)).map(([p, color, title, solid]) => ({ price: p!, color, title, solid }));
+      const f = (x: any) => (x == null || !isFinite(x)) ? '—' : Number(x).toLocaleString('es', { maximumFractionDigits: 2 });
+      const stats = `${d.ticker} · spot ${f(d.spot)} · Call Wall ${f(L.call_wall)} · Put Wall ${f(L.put_wall)} · γ Flip ${f(L.gamma_flip)} · Δ Wall ${f(L.delta_wall)}`;
+      return { candles, lines, overlay: undefined as LwcOverlay | undefined, fitKey: d.ticker, stats };
+    }
+    return null;
+  }, [data, view, timeframe]);
+
   const isSurfaceView = view === 'dsurf' || view === 'spectrum' || (view === 'vol' && volMode === 'surface');
+  const isLwcView = view === 'chart' || view === 'vp' || view === 'levels';
 
   return (
     <div style={s.wrap}>
@@ -166,6 +258,13 @@ export function QuantView() {
         <>
           <FlowRibbon d={data as FlowData} />
           <div style={{ ...s.panelBox, height: PLOT_H }}>{figure && <Plot {...figure} style={{ height: '100%' }} />}</div>
+        </>
+      ) : isLwcView && lwc ? (
+        <>
+          {lwc.stats && <div style={s.lwcStats}>{lwc.stats}</div>}
+          <div style={{ ...s.panelBox, height: PLOT_H }}>
+            <LwcCandles key={view} candles={lwc.candles} priceLines={lwc.lines} overlay={lwc.overlay} fitKey={lwc.fitKey} style={{ height: '100%' }} />
+          </div>
         </>
       ) : figure ? (
         <div style={{ ...s.panelBox, height: PLOT_H }}>
@@ -356,6 +455,7 @@ const s: Record<string, React.CSSProperties> = {
   segBtn: { background: 'transparent', color: 'var(--text-muted)', border: 'none', padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' },
   segBtnActive: { backgroundColor: 'var(--primary)', color: '#0A0B0E' },
   panelBox: { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)' },
+  lwcStats: { color: 'var(--text-muted)', fontSize: 12, fontFamily: 'ui-monospace, monospace', padding: '2px 2px 2px' },
   gammaGrid: { display: 'grid', gridTemplateColumns: 'minmax(0,1fr)', gap: 12 },
   // ribbon
   ribbon: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(118px, 1fr))', gap: 1,

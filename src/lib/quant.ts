@@ -90,6 +90,21 @@ export interface VolDriftData {
 export interface VolSurfaceData {
   ticker: string; spot: number; strikes: number[]; expiries: string[]; dte: number[]; z: number[][];
 }
+export type Candle = { time: number; open: number; high: number; low: number; close: number };
+export interface VolumeProfileData {
+  ticker: string; spot: number; bins: number; price: number[]; volume: number[];
+  poc: number; vah: number; val: number; value_area?: number; total_volume?: number;
+  low: number; high: number; candles: Candle[];
+}
+export interface LevelsChartData {
+  ticker: string; spot: number;
+  levels: { call_wall?: number; put_wall?: number; gamma_flip?: number; delta_flip?: number;
+    delta_wall?: number; major_neg_delta?: number; max_pain?: number };
+  regime?: any; candles: Candle[];
+}
+export interface VolatilityDriftData {
+  ticker: string; window?: number; t: string[]; price: number[]; arv: number[]; iv?: number;
+}
 
 // ── timeframes del Chart → (interval, period) ─────────────────────────────
 export const TIMEFRAMES: Record<string, { interval: string; period: string }> = {
@@ -115,4 +130,7 @@ export const quantPaths = {
   netDrift: (s: string) => `/api/net_drift/${s}`,
   volDrift: (s: string) => `/api/vol_drift/${s}`,
   volSurface: (s: string) => `/api/vol_surface/${s}`,
+  volatilityDrift: (s: string) => `/api/volatility_drift/${s}`,
+  volumeProfile: (s: string) => `/api/volume_profile/${s}?bins=48`,
+  levelsChart: (s: string) => `/api/levels_chart/${s}?window=24`,
 };

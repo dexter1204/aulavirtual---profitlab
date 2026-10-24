@@ -238,6 +238,40 @@ export function volSurfaceFigure(d: any, use3d: boolean): Figure {
   return { data: [heat], layout, config: CONFIG };
 }
 
+// ── Volatility Drift (ARV intradía + IV ATM + precio) ─────────────────────
+export function volatilityDriftFigure(d: any): Figure {
+  const x = d.t || [], arv = d.arv || [], price = d.price || [];
+  const ivv = (d.iv == null || !isFinite(d.iv)) ? null : d.iv;
+  const lastArv = arv.length ? arv[arv.length - 1] : null;
+  const lastPx = price.length ? price[price.length - 1] : null;
+  const pctTxt = (v: any) => (v == null || !isFinite(v)) ? '—' : `${v.toFixed(1)}%`;
+  const traces: any[] = [{
+    type: 'scatter', mode: 'lines', x, y: arv, yaxis: 'y',
+    name: `ARV ${d.window || 20}d (${pctTxt(lastArv)})`,
+    line: { color: C.amber, width: 2 }, fill: 'tozeroy', fillcolor: 'rgba(255,164,24,.12)',
+    hovertemplate: '%{x}<br>ARV %{y:.1f}%<extra></extra>',
+  }];
+  if (ivv != null) {
+    traces.push({ type: 'scatter', mode: 'lines', x, y: x.map(() => ivv), yaxis: 'y',
+      name: `IV ATM (${pctTxt(ivv)})`, line: { color: C.cyan, width: 1.8, dash: 'dash' },
+      hovertemplate: 'IV ATM %{y:.1f}%<extra></extra>' });
+  }
+  traces.push({ type: 'scatter', mode: 'lines', x, y: price, yaxis: 'y2',
+    name: `${d.ticker || ''} (${fmtPrice(lastPx)})`, line: { color: C.white, width: 1.5 },
+    hovertemplate: `%{x}<br>${d.ticker || ''} $%{y:,.2f}<extra></extra>` });
+  const layout = Object.assign({}, BASE_LAYOUT, {
+    margin: { l: 56, r: 62, t: 64, b: 44 }, hovermode: 'x unified',
+    annotations: [{ xref: 'paper', yref: 'paper', x: 0.5, xanchor: 'center', y: 1.14, yanchor: 'bottom',
+      showarrow: false, text: `Volatility Drift · ${d.ticker || ''}`, font: { size: 12, color: C.text } }],
+    showlegend: true, legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: 1.02, font: { color: C.text, size: 11 } },
+    xaxis: { type: 'category', tickmode: 'auto', nticks: 12, gridcolor: C.grid, tickfont: { size: 9 }, showgrid: true },
+    yaxis: { title: { text: 'Volatilidad anual (%)', font: { size: 10 } }, gridcolor: C.grid, zeroline: false, ticksuffix: '%', tickfont: { size: 9 } },
+    yaxis2: { title: { text: `Precio ${d.ticker || ''}`, font: { size: 10, color: C.white } }, overlaying: 'y', side: 'right',
+      zeroline: false, showgrid: false, tickprefix: '$', tickfont: { size: 9, color: C.text } },
+  });
+  return { data: traces, layout, config: CONFIG };
+}
+
 // ── Espectro 3D (superficie GEX/DEX Net sobre strike × expiry) ────────────
 const specDisp = (v: number, R: number) => Math.tanh((Number(v) || 0) / R);
 export function spectrumFigure(d: any, mode: 'gex' | 'dex', use3d: boolean): Figure {
