@@ -47,19 +47,19 @@ export default function SesionesPage() {
   const summary = summarizeSessions(shown);
 
   return (
-    <div style={{ maxWidth: 760, margin: '0 auto', padding: '14px 12px 100px' }}>
+    <div style={{ maxWidth: 1120, margin: '0 auto', padding: '14px 12px 100px' }}>
       <SignalsTabs />
-      <Link href="/senales/conteo" style={{ color: '#94A3B8', fontSize: 13, textDecoration: 'none' }}>← Conteo</Link>
-      <h1 style={styles.h1}>Sesiones operativas</h1>
+      <Link href="/senales/conteo" className="pl-pressable" style={{ color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none' }}>← Conteo</Link>
+      <h1 className="pl-title" style={styles.h1}>Sesiones operativas</h1>
 
-      <div style={styles.filters}>{PERIODS.map(([p, label]) => <button key={p} onClick={() => setPeriod(p)} style={{ ...styles.pill, backgroundColor: period === p ? '#C7F94C' : '#14161C', color: period === p ? '#0A0B0E' : '#94A3B8', borderColor: period === p ? '#C7F94C' : '#1F222B' }}>{label}</button>)}</div>
+      <div style={styles.filters}>{PERIODS.map(([p, label]) => <button key={p} onClick={() => setPeriod(p)} className="pl-pressable" style={{ ...styles.pill, backgroundColor: period === p ? 'var(--primary)' : 'var(--surface)', color: period === p ? '#0A0B0E' : 'var(--text-muted)', borderColor: period === p ? 'var(--primary)' : 'var(--border)' }}>{label}</button>)}</div>
 
       {denied ? (
-        <div style={styles.denied}>Necesitas acceso a las señales. <Link href="/senales" style={{ color: '#C7F94C' }}>Activar</Link></div>
+        <div style={styles.denied}>Necesitas acceso a las señales. <Link href="/senales" style={{ color: 'var(--primary)' }}>Activar</Link></div>
       ) : loading ? <Spinner /> : (
         <>
           <div style={styles.summary}>
-            <SB label="RR total" value={`${summary.totalRR >= 0 ? '+' : ''}${summary.totalRR}`} color={summary.totalRR >= 0 ? '#C7F94C' : '#f87171'} />
+            <SB label="RR total" value={`${summary.totalRR >= 0 ? '+' : ''}${summary.totalRR}`} color={summary.totalRR >= 0 ? 'var(--primary)' : '#f87171'} />
             <SB label="Sesiones" value={String(summary.sessionsCount)} />
             <SB label="Positivas" value={String(summary.positiveCount)} color="#4ade80" />
             <SB label="Negativas" value={String(summary.negativeCount)} color="#f87171" />
@@ -67,7 +67,7 @@ export default function SesionesPage() {
 
           {isAdmin && (showForm
             ? <SessionForm onDone={() => { setShowForm(false); load(); }} onCancel={() => setShowForm(false)} />
-            : <button onClick={() => setShowForm(true)} style={styles.addBtn}>+ Registrar sesión del día</button>)}
+            : <button onClick={() => setShowForm(true)} className="pl-pressable" style={styles.addBtn}>+ Registrar sesión del día</button>)}
 
           <div style={styles.secLabel}>Historial · {PERIODS.find(([p]) => p === period)?.[1]}</div>
           {shown.length === 0 ? <div style={styles.empty}>Sin sesiones en este periodo.</div> : (
@@ -80,12 +80,12 @@ export default function SesionesPage() {
                     <div style={{ ...styles.icon, background: `${meta.color}22` }}>{meta.icon}</div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ color: meta.color, fontSize: 13, fontWeight: 700 }}>{meta.label}{s.audience === 'premium' && ' · 💎'}</div>
-                      <div style={{ color: '#94A3B8', fontSize: 12 }}>{new Date(s.session_date).toLocaleDateString('es-PE', { weekday: 'short', day: '2-digit', month: 'short' })}{s.trades_count ? ` · ${s.trades_count} trades` : ''}{s.author ? ` · ★ ${s.author.name.split(' ')[0]}` : ''}</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: 12 }}>{new Date(s.session_date).toLocaleDateString('es-PE', { weekday: 'short', day: '2-digit', month: 'short' })}{s.trades_count ? ` · ${s.trades_count} trades` : ''}{s.author ? ` · ★ ${s.author.name.split(' ')[0]}` : ''}</div>
                       {s.note && <div style={{ color: '#CBD5E1', fontSize: 12.5, marginTop: 4 }}>{s.note}</div>}
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ color: rr > 0 ? '#C7F94C' : rr < 0 ? '#f87171' : '#94A3B8', fontWeight: 800, fontFamily: 'ui-monospace, monospace' }}>{rr > 0 ? '+' : ''}{rr.toFixed(2)} RR</div>
-                      {isAdmin && <button onClick={() => { if (confirm('¿Eliminar sesión?')) deleteSession(s.id).then(load).catch((e) => toast(e.message, 'error')); }} style={styles.del}>Eliminar</button>}
+                      <div style={{ color: rr > 0 ? 'var(--primary)' : rr < 0 ? '#f87171' : 'var(--text-muted)', fontWeight: 800, fontFamily: 'ui-monospace, monospace' }}>{rr > 0 ? '+' : ''}{rr.toFixed(2)} RR</div>
+                      {isAdmin && <button onClick={() => { if (confirm('¿Eliminar sesión?')) deleteSession(s.id).then(load).catch((e) => toast(e.message, 'error')); }} className="pl-pressable" style={styles.del}>Eliminar</button>}
                     </div>
                   </div>
                 );
@@ -125,42 +125,42 @@ function SessionForm({ onDone, onCancel }: { onDone: () => void; onCancel: () =>
         <div><label style={styles.lbl}>RR del día</label><input type="number" step="any" value={rr} onChange={(e) => setRr(e.target.value)} style={inputStyle} /></div>
       </div>
       <label style={styles.lbl}>Sesión</label>
-      <div style={styles.sessGrid}>{(Object.keys(SESSION_META) as SessionType[]).map((t) => <button key={t} type="button" onClick={() => setType(t)} style={{ ...styles.sessBtn, borderColor: type === t ? SESSION_META[t].color : '#1F222B', color: type === t ? SESSION_META[t].color : '#94A3B8' }}>{SESSION_META[t].icon} {SESSION_META[t].label}</button>)}</div>
+      <div style={styles.sessGrid}>{(Object.keys(SESSION_META) as SessionType[]).map((t) => <button key={t} type="button" className="pl-pressable" onClick={() => setType(t)} style={{ ...styles.sessBtn, borderColor: type === t ? SESSION_META[t].color : 'var(--border)', color: type === t ? SESSION_META[t].color : 'var(--text-muted)' }}>{SESSION_META[t].icon} {SESSION_META[t].label}</button>)}</div>
       <div style={styles.grid2}>
         <div><label style={styles.lbl}># Trades</label><input type="number" value={trades} onChange={(e) => setTrades(e.target.value)} style={inputStyle} /></div>
         <div><label style={styles.lbl}>Audiencia</label><select value={audience} onChange={(e) => setAudience(e.target.value as Audience)} style={inputStyle}><option value="all">Todos</option><option value="premium">Premium</option><option value="free">Free</option></select></div>
       </div>
       <label style={styles.lbl}>Nota</label><textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} style={{ ...inputStyle, resize: 'vertical' }} />
       <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-        <button onClick={onCancel} style={styles.cancelBtn}>Cancelar</button>
-        <button onClick={save} disabled={saving} style={styles.saveBtn}>{saving ? '…' : 'Guardar'}</button>
+        <button onClick={onCancel} className="pl-pressable" style={styles.cancelBtn}>Cancelar</button>
+        <button onClick={save} disabled={saving} className="pl-pressable" style={styles.saveBtn}>{saving ? '…' : 'Guardar'}</button>
       </div>
     </div>
   );
 }
 
-function SB({ label, value, color = '#F1F5F9' }: { label: string; value: string; color?: string }) {
-  return <div style={styles.sb}><div style={{ color: '#64748B', fontSize: 10, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase' }}>{label}</div><div style={{ color, fontSize: 18, fontWeight: 800, fontFamily: 'ui-monospace, monospace', marginTop: 3 }}>{value}</div></div>;
+function SB({ label, value, color = 'var(--text)' }: { label: string; value: string; color?: string }) {
+  return <div style={styles.sb}><div style={{ color: 'var(--text-dim)', fontSize: 10, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase' }}>{label}</div><div style={{ color, fontSize: 18, fontWeight: 800, fontFamily: 'ui-monospace, monospace', marginTop: 3 }}>{value}</div></div>;
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  h1: { color: '#F1F5F9', fontSize: 22, fontWeight: 800, margin: '8px 0 12px', fontFamily: 'var(--font-bricolage), sans-serif', letterSpacing: -0.4 },
+  h1: { color: 'var(--text)', fontSize: 22, margin: '8px 0 12px' },
   filters: { display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' },
-  pill: { border: '1px solid', borderRadius: 999, padding: '7px 13px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', minHeight: 36 },
-  denied: { background: '#14161C', border: '1px solid #1F222B', borderRadius: 14, padding: 24, textAlign: 'center', color: '#94A3B8', fontSize: 14 },
+  pill: { border: '1px solid', borderRadius: 'var(--r-pill)', padding: '7px 13px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', minHeight: 36, transition: 'background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out)' },
+  denied: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 24, textAlign: 'center', color: 'var(--text-muted)', fontSize: 14 },
   summary: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 14 },
-  sb: { background: '#14161C', border: '1px solid #1F222B', borderRadius: 12, padding: '10px 8px', textAlign: 'center' },
-  addBtn: { width: '100%', background: 'rgba(199,249,76,.12)', color: '#C7F94C', border: '1px solid rgba(199,249,76,.4)', borderRadius: 12, padding: 13, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 14 },
-  secLabel: { color: '#94A3B8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', margin: '4px 0 10px' },
-  empty: { color: '#64748B', fontSize: 14, textAlign: 'center', padding: '30px 0' },
-  card: { display: 'flex', alignItems: 'center', gap: 12, background: '#14161C', border: '1px solid #1F222B', borderRadius: 14, padding: 12 },
-  icon: { width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 },
+  sb: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: '10px 8px', textAlign: 'center', boxShadow: 'var(--shadow-card)' },
+  addBtn: { width: '100%', background: 'rgba(199,249,76,.12)', color: 'var(--primary)', border: '1px solid rgba(199,249,76,.4)', borderRadius: 'var(--r-md)', padding: 13, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', marginBottom: 14 },
+  secLabel: { color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', margin: '4px 0 10px' },
+  empty: { color: 'var(--text-dim)', fontSize: 14, textAlign: 'center', padding: '30px 0' },
+  card: { display: 'flex', alignItems: 'center', gap: 12, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 12, boxShadow: 'var(--shadow-card)' },
+  icon: { width: 40, height: 40, borderRadius: 'var(--r-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 },
   del: { background: 'none', border: 'none', color: '#f87171', fontSize: 11, cursor: 'pointer', marginTop: 4, fontFamily: 'inherit' },
-  form: { background: '#14161C', border: '1px solid #1F222B', borderRadius: 14, padding: 16, marginBottom: 16 },
+  form: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 16, marginBottom: 16, boxShadow: 'var(--shadow-card)' },
   grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 },
-  lbl: { display: 'block', color: '#94A3B8', fontSize: 11, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 6 },
+  lbl: { display: 'block', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 6 },
   sessGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 },
-  sessBtn: { background: '#0A0B0E', border: '1px solid', borderRadius: 10, padding: '10px 8px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
-  cancelBtn: { flex: 1, background: '#14161C', color: '#94A3B8', border: '1px solid #1F222B', borderRadius: 10, padding: 12, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' },
-  saveBtn: { flex: 1, background: '#C7F94C', color: '#0A0B0E', border: 0, borderRadius: 10, padding: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' },
+  sessBtn: { background: 'var(--bg)', border: '1px solid', borderRadius: 'var(--r-sm)', padding: '10px 8px', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out)' },
+  cancelBtn: { flex: 1, background: 'var(--surface)', color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: 12, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit' },
+  saveBtn: { flex: 1, background: 'var(--primary)', color: '#0A0B0E', border: 0, borderRadius: 'var(--r-sm)', padding: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' },
 };

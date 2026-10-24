@@ -103,7 +103,7 @@ export default function AdminStudentsPage() {
       ) : filtered.length === 0 ? (
         <Empty icon={<IconUsers size={34} color="#64748B" />} title="Sin usuarios" message="Los usuarios aparecerán cuando se registren." />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: 8 }}>
           {filtered.map((p) => (
             <div key={p.id} style={styles.row}>
               <div style={styles.avatar}>
@@ -111,17 +111,17 @@ export default function AdminStudentsPage() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <span style={{ color: '#F1F5F9', fontSize: 13, fontWeight: 600 }} className="clamp-2">{p.name}</span>
+                  <span style={{ color: 'var(--text)', fontSize: 13, fontWeight: 600 }} className="clamp-2">{p.name}</span>
                   {p.role === 'admin' && <Pill color="#C7F94C">Master</Pill>}
                 </div>
-                <div style={{ color: '#64748B', fontSize: 11 }}>{p.email}</div>
-                <div style={{ color: '#64748B', fontSize: 11, marginTop: 2 }}>{p.enrollments} inscripción(es)</div>
+                <div style={{ color: 'var(--text-dim)', fontSize: 11 }}>{p.email}</div>
+                <div style={{ color: 'var(--text-dim)', fontSize: 11, marginTop: 2 }}>{p.enrollments} inscripción(es)</div>
               </div>
               <div style={styles.actions}>
-                <button onClick={() => toggleRole(p)} style={styles.roleBtn}>
+                <button onClick={() => toggleRole(p)} className="pl-pressable" style={styles.roleBtn}>
                   {p.role === 'admin' ? 'Hacer alumno' : 'Hacer Master'}
                 </button>
-                <button onClick={() => resetPass(p)} style={styles.resetBtn}>
+                <button onClick={() => resetPass(p)} className="pl-pressable" style={styles.resetBtn}>
                   Restablecer clave
                 </button>
               </div>
@@ -134,9 +134,9 @@ export default function AdminStudentsPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  row: { display: 'flex', alignItems: 'center', gap: 10, backgroundColor: '#14161C', border: '1px solid #1F222B', borderRadius: 12, padding: '10px 12px' },
-  avatar: { width: 36, height: 36, borderRadius: 9, backgroundColor: '#C7F94C', color: '#0A0B0E', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 },
+  row: { display: 'flex', alignItems: 'center', gap: 10, backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: '10px 12px', boxShadow: 'var(--shadow-card)' },
+  avatar: { width: 36, height: 36, borderRadius: 9, backgroundColor: 'var(--primary)', color: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 },
   actions: { display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 },
-  roleBtn: { background: 'transparent', border: '1px solid #262932', color: '#94A3B8', borderRadius: 8, padding: '7px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' },
-  resetBtn: { background: 'transparent', border: '1px solid rgba(199,249,76,0.35)', color: '#C7F94C', borderRadius: 8, padding: '7px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' },
+  roleBtn: { background: 'transparent', border: '1px solid var(--border-hi)', color: 'var(--text-muted)', borderRadius: 8, padding: '7px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' },
+  resetBtn: { background: 'transparent', border: '1px solid rgba(199,249,76,0.35)', color: 'var(--primary)', borderRadius: 8, padding: '7px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' },
 };

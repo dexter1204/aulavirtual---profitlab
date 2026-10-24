@@ -124,7 +124,7 @@ function Learn() {
     return (
       <div style={{ padding: '20px 16px' }}>
         <Empty
-          icon={<IconLock size={34} color="#64748B" />}
+          icon={<IconLock size={34} color="var(--text-dim)" />}
           title="Necesitas inscribirte"
           message="Inscríbete en el curso para acceder a las clases."
           cta={{ label: 'Ver curso', href: course ? `/curso/?slug=${course.slug}` : '/cursos/' }}
@@ -134,7 +134,7 @@ function Learn() {
   if (!current)
     return (
       <div style={{ padding: '20px 16px' }}>
-        <Empty icon={<IconVideo size={34} color="#64748B" />} title="Sin clases todavía" cta={{ label: 'Volver', href: '/cursos/' }} />
+        <Empty icon={<IconVideo size={34} color="var(--text-dim)" />} title="Sin clases todavía" cta={{ label: 'Volver', href: '/cursos/' }} />
       </div>
     );
 
@@ -147,7 +147,7 @@ function Learn() {
 
   return (
     <div style={{ padding: '16px 16px 40px' }}>
-      <Link href={course ? `/curso/?slug=${course.slug}` : '/cursos/'} style={styles.back}>
+      <Link href={course ? `/curso/?slug=${course.slug}` : '/cursos/'} className="pl-pressable" style={styles.back}>
         ← {course?.title ?? 'Curso'}
       </Link>
 
@@ -156,9 +156,9 @@ function Learn() {
         <VideoPlayer provider={current.video_provider} videoId={current.youtube_id} title={current.title} />
       ) : (
         <div style={styles.locked}>
-          <div style={{ marginBottom: 10, color: '#64748B' }}><IconClock size={38} /></div>
-          <p style={{ color: '#F1F5F9', fontWeight: 600, margin: 0 }}>Clase bloqueada por goteo</p>
-          <p style={{ color: '#94A3B8', fontSize: 13, marginTop: 6 }}>
+          <div style={{ marginBottom: 10, color: 'var(--text-dim)' }}><IconClock size={38} /></div>
+          <p style={{ color: 'var(--text)', fontWeight: 600, margin: 0 }}>Clase bloqueada por goteo</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 6 }}>
             Disponible el{' '}
             {release.availableAt?.toLocaleDateString('es', {
               day: 'numeric',
@@ -171,13 +171,13 @@ function Learn() {
 
       {/* INFO CLASE */}
       <div style={{ marginTop: 14 }}>
-        <span style={{ color: '#C7F94C', fontSize: 11, fontWeight: 600 }}>{current.moduleTitle}</span>
-        <h1 style={styles.title}>{current.title}</h1>
+        <span style={{ color: 'var(--primary)', fontSize: 11, fontWeight: 600 }}>{current.moduleTitle}</span>
+        <h1 className="pl-title" style={styles.title}>{current.title}</h1>
         {current.description && <p style={styles.desc}>{current.description}</p>}
 
         {current.resources && (
           <div style={styles.resources}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#94A3B8', fontSize: 12, fontWeight: 600 }}><IconDocument size={14} color="#94A3B8" />Notas</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: 12, fontWeight: 600 }}><IconDocument size={14} color="var(--text-muted)" />Notas</span>
             <p style={{ color: '#CBD5E1', fontSize: 13, whiteSpace: 'pre-wrap', margin: '6px 0 0' }}>
               {current.resources}
             </p>
@@ -186,7 +186,7 @@ function Learn() {
 
         {materials.length > 0 && (
           <div style={styles.resources}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#94A3B8', fontSize: 12, fontWeight: 600 }}><IconPaperclip size={14} color="#94A3B8" />Materiales y recursos</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-muted)', fontSize: 12, fontWeight: 600 }}><IconPaperclip size={14} color="var(--text-muted)" />Materiales y recursos</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 }}>
               {materials.map((m) => (
                 <a
@@ -195,18 +195,19 @@ function Learn() {
                   target="_blank"
                   rel="noopener noreferrer"
                   download={m.kind === 'file' ? m.title : undefined}
+                  className="pl-pressable"
                   style={styles.material}
                 >
                   <span style={{ display: 'flex', flexShrink: 0 }}><MaterialIcon m={m} size={18} /></span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ color: '#F1F5F9', fontSize: 13, fontWeight: 600 }} className="clamp-2">{m.title}</div>
-                    <div style={{ color: '#64748B', fontSize: 11 }}>
+                    <div style={{ color: 'var(--text)', fontSize: 13, fontWeight: 600 }} className="clamp-2">{m.title}</div>
+                    <div style={{ color: 'var(--text-dim)', fontSize: 11 }}>
                       {m.kind === 'file'
                         ? `Descargar${m.size ? ' · ' + formatBytes(m.size) : ''}`
                         : 'Abrir enlace'}
                     </div>
                   </div>
-                  <span style={{ color: '#C7F94C', display: 'flex' }} aria-hidden="true">{m.kind === 'file' ? <IconDownload size={16} /> : <IconExternal size={16} />}</span>
+                  <span style={{ color: 'var(--primary)', display: 'flex' }} aria-hidden="true">{m.kind === 'file' ? <IconDownload size={16} /> : <IconExternal size={16} />}</span>
                 </a>
               ))}
             </div>
@@ -234,7 +235,7 @@ function Learn() {
         <div style={styles.progressTrack}>
           <div style={{ ...styles.progressFill, width: `${pct}%` }} />
         </div>
-        <span style={{ color: '#94A3B8', fontSize: 12, marginTop: 6, display: 'block' }}>
+        <span style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 6, display: 'block' }}>
           {done}/{total} clases · {pct}%
         </span>
       </div>
@@ -243,13 +244,13 @@ function Learn() {
       {!isAdmin && <StudentAssignments courseId={courseId} hideWhenEmpty />}
 
       {/* CURRÍCULO */}
-      <h2 style={styles.currTitle}>Contenido</h2>
+      <h2 className="pl-title" style={styles.currTitle}>Contenido</h2>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {modules.map((m, mi) => (
           <div key={m.id} style={styles.module}>
             <div style={styles.moduleHead}>
               <span style={styles.moduleIdx}>{mi + 1}</span>
-              <span style={{ color: '#F1F5F9', fontSize: 13, fontWeight: 600 }}>{m.title}</span>
+              <span style={{ color: 'var(--text)', fontSize: 13, fontWeight: 600 }}>{m.title}</span>
             </div>
             {(m.lessons ?? []).map((l) => {
               const rel = isLessonReleased(l, enrollment?.enrolled_at ?? null, isAdmin);
@@ -258,6 +259,7 @@ function Learn() {
                 <button
                   key={l.id}
                   onClick={() => goToLesson(l.id)}
+                  className="pl-pressable"
                   style={{
                     ...styles.lessonItem,
                     backgroundColor: active ? 'rgba(199,249,76,0.1)' : 'transparent',
@@ -265,20 +267,20 @@ function Learn() {
                 >
                   <span style={{ display: 'flex', flexShrink: 0 }} aria-hidden="true">
                     {progress[l.id] ? (
-                      <IconCheck size={15} color="#C7F94C" />
+                      <IconCheck size={15} color="var(--primary)" />
                     ) : rel.released ? (
-                      active ? <IconDot size={12} color="#C7F94C" /> : <IconPlay size={12} color="#94A3B8" />
+                      active ? <IconDot size={12} color="var(--primary)" /> : <IconPlay size={12} color="var(--text-muted)" />
                     ) : (
-                      <IconLock size={13} color="#64748B" />
+                      <IconLock size={13} color="var(--text-dim)" />
                     )}
                   </span>
                   <span
                     className="clamp-2"
-                    style={{ flex: 1, textAlign: 'left', color: active ? '#C7F94C' : '#CBD5E1', fontSize: 13, fontWeight: active ? 600 : 400 }}
+                    style={{ flex: 1, textAlign: 'left', color: active ? 'var(--primary)' : '#CBD5E1', fontSize: 13, fontWeight: active ? 600 : 400 }}
                   >
                     {l.title}
                   </span>
-                  {l.duration && <span style={{ color: '#64748B', fontSize: 11 }}>{l.duration}</span>}
+                  {l.duration && <span style={{ color: 'var(--text-dim)', fontSize: 11 }}>{l.duration}</span>}
                 </button>
               );
             })}
@@ -290,13 +292,13 @@ function Learn() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  back: { color: '#94A3B8', fontSize: 13, textDecoration: 'none', display: 'inline-block', marginBottom: 12 },
+  back: { color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none', display: 'inline-block', marginBottom: 12 },
   locked: {
     width: '100%',
     aspectRatio: '16 / 9',
-    borderRadius: 14,
-    border: '1px solid #1F222B',
-    backgroundColor: '#14161C',
+    borderRadius: 'var(--r-md)',
+    border: '1px solid var(--border)',
+    backgroundColor: 'var(--surface)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -305,50 +307,44 @@ const styles: Record<string, React.CSSProperties> = {
     padding: 20,
   },
   title: {
-    color: '#F1F5F9',
+    color: 'var(--text)',
     fontSize: 20,
-    fontWeight: 800,
     margin: '6px 0 0',
-    lineHeight: '25px',
-    fontFamily: 'var(--font-bricolage), sans-serif',
-    letterSpacing: -0.4,
   },
   desc: { color: '#CBD5E1', fontSize: 14, lineHeight: '21px', margin: '10px 0 0', whiteSpace: 'pre-wrap' },
   resources: {
     marginTop: 14,
-    backgroundColor: '#14161C',
-    border: '1px solid #1F222B',
-    borderRadius: 12,
+    backgroundColor: 'var(--surface)',
+    border: '1px solid var(--border)',
+    borderRadius: 'var(--r-md)',
     padding: 14,
   },
   material: {
     display: 'flex',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#0A0B0E',
-    border: '1px solid #1F222B',
-    borderRadius: 10,
+    backgroundColor: 'var(--bg)',
+    border: '1px solid var(--border)',
+    borderRadius: 'var(--r-sm)',
     padding: '10px 12px',
     textDecoration: 'none',
   },
   controls: { display: 'flex', gap: 8, marginTop: 18, justifyContent: 'space-between', flexWrap: 'wrap' },
-  progressTrack: { width: '100%', height: 8, backgroundColor: '#14161C', borderRadius: 999, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: '#C7F94C', borderRadius: 999, boxShadow: '0 0 12px rgba(199,249,76,0.5)' },
+  progressTrack: { width: '100%', height: 8, backgroundColor: 'var(--surface)', borderRadius: 'var(--r-pill)', overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: 'var(--primary)', borderRadius: 'var(--r-pill)', boxShadow: '0 0 12px rgba(199,249,76,0.5)' },
   currTitle: {
-    color: '#F1F5F9',
+    color: 'var(--text)',
     fontSize: 16,
-    fontWeight: 700,
     margin: '26px 0 12px',
-    fontFamily: 'var(--font-bricolage), sans-serif',
   },
-  module: { backgroundColor: '#14161C', border: '1px solid #1F222B', borderRadius: 12, overflow: 'hidden' },
-  moduleHead: { display: 'flex', alignItems: 'center', gap: 10, padding: '11px 12px', borderBottom: '1px solid #1F222B' },
+  module: { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', overflow: 'hidden' },
+  moduleHead: { display: 'flex', alignItems: 'center', gap: 10, padding: '11px 12px', borderBottom: '1px solid var(--border)' },
   moduleIdx: {
     width: 20,
     height: 20,
     borderRadius: 5,
     backgroundColor: 'rgba(199,249,76,0.15)',
-    color: '#C7F94C',
+    color: 'var(--primary)',
     fontSize: 11,
     fontWeight: 700,
     display: 'flex',
@@ -364,7 +360,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '10px 12px',
     background: 'transparent',
     border: 'none',
-    borderBottom: '1px solid #14161C',
+    borderBottom: '1px solid var(--surface)',
     cursor: 'pointer',
     fontFamily: 'inherit',
   },

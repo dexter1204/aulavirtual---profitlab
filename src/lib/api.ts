@@ -78,6 +78,14 @@ export async function api<T = any>(path: string, opts: Options = {}): Promise<T>
   const text = await res.text();
   const data = text ? safeJson(text) : null;
 
+  // Token inválido o expirado: limpiarlo y avisar al AuthContext para que cierre
+  // la sesión. NO recargamos la página (eso causaba un bucle de recargas): el
+  // guard de AppShell lleva al login por navegación SPA al quedar sin sesión.
+  if (res.status === 401 && typeof window !== 'undefined') {
+    clearToken();
+    window.dispatchEvent(new Event('pl:auth-expired'));
+  }
+
   if (!res.ok) {
     const message = (data && (data.error as string)) || `Error ${res.status}`;
     throw new Error(message);

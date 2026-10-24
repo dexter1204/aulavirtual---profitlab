@@ -27,7 +27,7 @@ export default function NewCoursePage() {
 
   return (
     <Page>
-      <Link href="/admin/cursos" style={{ color: '#94A3B8', fontSize: 13, textDecoration: 'none', display: 'inline-block', marginBottom: 12 }}>
+      <Link href="/admin/cursos" className="pl-pressable" style={{ color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none', display: 'inline-block', marginBottom: 12 }}>
         ← Cursos
       </Link>
       <PageTitle title="Nuevo curso" subtitle="Después podrás añadir módulos y clases" />

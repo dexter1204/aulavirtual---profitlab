@@ -62,16 +62,16 @@ function Editar() {
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', padding: '14px 12px 100px' }}>
       <div style={styles.topbar}>
-        <Link href={`/senales/detalle/?id=${id}`} style={styles.cancel}>Cancelar</Link>
-        <h1 style={styles.title}>Editar señal</h1>
-        <button onClick={submit} disabled={!valid || saving} style={{ ...styles.publish, opacity: valid && !saving ? 1 : 0.45 }}>{saving ? '…' : 'Guardar'}</button>
+        <Link href={`/senales/detalle/?id=${id}`} className="pl-pressable" style={styles.cancel}>Cancelar</Link>
+        <h1 className="pl-title" style={styles.title}>Editar señal</h1>
+        <button onClick={submit} disabled={!valid || saving} className="pl-pressable" style={{ ...styles.publish, opacity: valid && !saving ? 1 : 0.45 }}>{saving ? '…' : 'Guardar'}</button>
       </div>
       <div style={styles.warn}>Los cambios se reflejan para todos los alumnos al instante.</div>
 
       <L label="Trader"><select value={f.trader_id} onChange={(e) => set('trader_id', e.target.value)} style={inputStyle}>{traders.map((t) => <option key={t.id} value={t.id}>★ {t.name}</option>)}</select></L>
       <L label="Activo"><input value={f.asset} onChange={(e) => set('asset', e.target.value.toUpperCase())} style={{ ...inputStyle, fontFamily: 'ui-monospace, monospace', fontWeight: 700 }} /></L>
-      <L label="Dirección"><Toggle options={[['long', 'LONG ▲', '#22c55e'], ['short', 'SHORT ▼', '#ef4444']]} value={f.direction} onChange={(v) => set('direction', v as SignalDirection)} /></L>
-      <L label="Audiencia"><Toggle options={[['free', 'Free', '#94A3B8'], ['premium', 'Premium', '#C7F94C'], ['all', 'Todos', '#94A3B8']]} value={f.audience} onChange={(v) => set('audience', v as Audience)} /></L>
+      <L label="Dirección"><Toggle options={[['long', 'LONG ▲', 'var(--long)'], ['short', 'SHORT ▼', 'var(--short)']]} value={f.direction} onChange={(v) => set('direction', v as SignalDirection)} /></L>
+      <L label="Audiencia"><Toggle options={[['free', 'Free', 'var(--text-muted)'], ['premium', 'Premium', 'var(--primary)'], ['all', 'Todos', 'var(--text-muted)']]} value={f.audience} onChange={(v) => set('audience', v as Audience)} /></L>
       <div style={styles.grid2}>
         <L label="Entry"><input type="number" step="any" value={f.entry} onChange={(e) => set('entry', e.target.value)} style={inputStyle} /></L>
         <L label="Stop loss"><input type="number" step="any" value={f.sl} onChange={(e) => set('sl', e.target.value)} style={{ ...inputStyle, color: '#f87171' }} /></L>
@@ -84,7 +84,7 @@ function Editar() {
         <L label="TP3"><input type="number" step="any" value={f.tp3} onChange={(e) => set('tp3', e.target.value)} style={{ ...inputStyle, color: '#4ade80' }} /></L>
         <L label="TP4"><input type="number" step="any" value={f.tp4} onChange={(e) => set('tp4', e.target.value)} style={{ ...inputStyle, color: '#4ade80' }} /></L>
       </div>
-      <L label="Link TradingView"><input value={f.tv} onChange={(e) => set('tv', e.target.value)} style={{ ...inputStyle, color: '#C7F94C' }} /></L>
+      <L label="Link TradingView"><input value={f.tv} onChange={(e) => set('tv', e.target.value)} style={{ ...inputStyle, color: 'var(--primary)' }} /></L>
       <L label="Análisis / notas"><textarea value={f.notes} onChange={(e) => set('notes', e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} /></L>
       <L label="Recomendaciones"><textarea value={f.recs} onChange={(e) => set('recs', e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} /></L>
     </div>
@@ -93,17 +93,17 @@ function Editar() {
 
 function L({ label, children }: { label: string; children: React.ReactNode }) { return <div style={{ marginBottom: 12 }}><label style={styles.lbl}>{label}</label>{children}</div>; }
 function Toggle({ options, value, onChange }: { options: [string, string, string][]; value: string; onChange: (v: string) => void }) {
-  return <div style={styles.toggle}>{options.map(([v, label, color]) => <button key={v} type="button" onClick={() => onChange(v)} style={{ ...styles.toggleBtn, backgroundColor: value === v ? color : 'transparent', color: value === v ? '#0A0B0E' : '#94A3B8', fontWeight: value === v ? 700 : 500 }}>{label}</button>)}</div>;
+  return <div style={styles.toggle}>{options.map(([v, label, color]) => <button key={v} type="button" className="pl-pressable" onClick={() => onChange(v)} style={{ ...styles.toggleBtn, backgroundColor: value === v ? color : 'transparent', color: value === v ? '#0A0B0E' : 'var(--text-muted)', fontWeight: value === v ? 700 : 500 }}>{label}</button>)}</div>;
 }
 
 const styles: Record<string, React.CSSProperties> = {
   topbar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 10 },
-  cancel: { color: '#94A3B8', fontSize: 14, textDecoration: 'none' },
-  title: { color: '#F1F5F9', fontSize: 17, fontWeight: 700, margin: 0, fontFamily: 'var(--font-bricolage), sans-serif' },
-  publish: { background: '#C7F94C', color: '#0A0B0E', border: 0, borderRadius: 10, padding: '9px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' },
-  warn: { background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.3)', color: '#FCD34D', fontSize: 12.5, borderRadius: 10, padding: '9px 12px', marginBottom: 14 },
-  lbl: { display: 'block', color: '#94A3B8', fontSize: 11, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 6 },
+  cancel: { color: 'var(--text-muted)', fontSize: 14, textDecoration: 'none' },
+  title: { color: 'var(--text)', fontSize: 17, margin: 0 },
+  publish: { background: 'var(--primary)', color: '#0A0B0E', border: 0, borderRadius: 'var(--r-sm)', padding: '9px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' },
+  warn: { background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.3)', color: '#FCD34D', fontSize: 12.5, borderRadius: 'var(--r-sm)', padding: '9px 12px', marginBottom: 14 },
+  lbl: { display: 'block', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 6 },
   grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 },
-  toggle: { display: 'flex', gap: 4, background: '#14161C', border: '1px solid #1F222B', borderRadius: 10, padding: 3 },
-  toggleBtn: { flex: 1, border: 0, borderRadius: 8, padding: '9px 6px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', minHeight: 40 },
+  toggle: { display: 'flex', gap: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: 3 },
+  toggleBtn: { flex: 1, border: 0, borderRadius: 8, padding: '9px 6px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', minHeight: 40, transition: 'background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out)' },
 };

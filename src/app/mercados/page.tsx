@@ -120,8 +120,8 @@ function MercadosHub({ access }: { access: AccessState }) {
   return (
     <div style={{ padding: '14px 12px 0' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
-        <h1 style={styles.h1}><IconChart size={20} color="#C7F94C" /> Mercados</h1>
-        {unlocked && until && <span style={{ color: '#64748B', fontSize: 12 }}>{until}</span>}
+        <h1 className="pl-title" style={styles.h1}><IconChart size={20} color="var(--primary)" /> Mercados</h1>
+        {unlocked && until && <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>{until}</span>}
       </div>
 
       <div style={styles.tabs}>
@@ -132,10 +132,11 @@ function MercadosHub({ access }: { access: AccessState }) {
             <button
               key={t}
               onClick={() => setTab(t)}
-              style={{ ...styles.tab, backgroundColor: active ? '#C7F94C' : '#14161C', color: active ? '#0A0B0E' : '#94A3B8', borderColor: active ? '#C7F94C' : '#1F222B' }}
+              className="pl-pressable"
+              style={{ ...styles.tab, backgroundColor: active ? 'var(--primary)' : 'var(--surface)', color: active ? 'var(--bg)' : 'var(--text-muted)', borderColor: active ? 'var(--primary)' : 'var(--border)' }}
             >
               {TAB_META[t].label}
-              {!open && <IconLock size={12} color={active ? '#0A0B0E' : '#64748B'} />}
+              {!open && <IconLock size={12} color={active ? 'var(--bg)' : 'var(--text-dim)'} />}
             </button>
           );
         })}
@@ -150,9 +151,9 @@ function MercadosHub({ access }: { access: AccessState }) {
             width: '100%',
             height: 'calc(100vh - 200px)',
             minHeight: 460,
-            border: '1px solid #1F222B',
-            borderRadius: 14,
-            background: '#0A0B0E',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--r-md)',
+            background: 'var(--bg)',
           }}
           allow="clipboard-write"
         />
@@ -169,12 +170,12 @@ function TabLocked({ tab }: { tab: SubTab }) {
   return (
     <div style={styles.locked}>
       <div style={{ ...styles.lockIconSm, backgroundColor: `${meta.color}1F` }}><IconLock size={22} color={meta.color} /></div>
-      <h2 style={styles.lockedTitle}>{meta.label} está bloqueado</h2>
+      <h2 className="pl-title" style={styles.lockedTitle}>{meta.label} está bloqueado</h2>
       <p style={styles.lockedText}>
         Tu acceso actual no incluye {meta.label}. Canjea un cupón que lo desbloquee para entrar.
       </p>
-      <Link href="/canjear" style={styles.lockedCta}>
-        <IconTag size={16} color="#C7F94C" /> Canjear un cupón <IconArrowRight size={15} color="#C7F94C" />
+      <Link href="/canjear" className="pl-pressable" style={styles.lockedCta}>
+        <IconTag size={16} color="var(--primary)" /> Canjear un cupón <IconArrowRight size={15} color="var(--primary)" />
       </Link>
     </div>
   );
@@ -223,8 +224,8 @@ function Paywall({ quant, onRedeemed }: { quant: QuantState | null; onRedeemed: 
       <PageTitle title="Mercados" subtitle="Exposiciones de dealers (gamma/beta) + Pre-Apertura US (noticias, futuros y plan por índice)." />
 
       <div style={styles.card}>
-        <div style={styles.lockIcon}><IconLock size={26} color="#C7F94C" /></div>
-        <h2 style={styles.cardTitle}>Activa tu acceso</h2>
+        <div style={styles.lockIcon}><IconLock size={26} color="var(--primary)" /></div>
+        <h2 className="pl-title" style={styles.cardTitle}>Activa tu acceso</h2>
         <p style={styles.cardText}>
           Canjea tu cupón general para abrir <b style={{ color: '#CBD5E1' }}>Exposiciones</b> y <b style={{ color: '#CBD5E1' }}>Pre-Apertura</b>.
           Cada cupón desbloquea los productos que tenga asignados.
@@ -245,7 +246,7 @@ function Paywall({ quant, onRedeemed }: { quant: QuantState | null; onRedeemed: 
         {priceTxt && (
           <>
             <div style={styles.divider}>
-              <span style={{ flex: 1, height: 1, background: '#1F222B' }} />O<span style={{ flex: 1, height: 1, background: '#1F222B' }} />
+              <span style={{ flex: 1, height: 1, background: 'var(--border)' }} />O<span style={{ flex: 1, height: 1, background: 'var(--border)' }} />
             </div>
             <Button variant="outline" full onClick={buy} disabled={paying}>
               <IconCheck size={15} /> {paying ? 'Abriendo el pago…' : `Comprar Exposiciones — ${priceTxt} · ${daysTxt}`}
@@ -258,18 +259,18 @@ function Paywall({ quant, onRedeemed }: { quant: QuantState | null; onRedeemed: 
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  h1: { color: '#F1F5F9', fontSize: 22, fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-bricolage), sans-serif', letterSpacing: -0.4 },
+  h1: { color: 'var(--text)', fontSize: 22, margin: 0, display: 'flex', alignItems: 'center', gap: 8 },
   tabs: { display: 'flex', gap: 8, marginBottom: 12 },
-  tab: { flex: 1, maxWidth: 200, textAlign: 'center', border: '1px solid', borderRadius: 10, padding: '9px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  card: { backgroundColor: '#14161C', border: '1px solid #1F222B', borderRadius: 16, padding: 24, maxWidth: 440, margin: '0 auto', textAlign: 'center' },
-  lockIcon: { width: 52, height: 52, borderRadius: 13, backgroundColor: 'rgba(199,249,76,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' },
-  cardTitle: { color: '#F1F5F9', fontSize: 18, fontWeight: 700, margin: '0 0 6px', fontFamily: 'var(--font-bricolage), sans-serif' },
-  cardText: { color: '#94A3B8', fontSize: 13, lineHeight: 1.5, margin: '0 0 18px' },
-  label: { display: 'block', textAlign: 'left', color: '#94A3B8', fontSize: 12, fontWeight: 600, marginBottom: 6 },
+  tab: { flex: 1, maxWidth: 200, textAlign: 'center', border: '1px solid', borderRadius: 'var(--r-sm)', padding: '9px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  card: { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 24, maxWidth: 440, margin: '0 auto', textAlign: 'center', boxShadow: 'var(--shadow-card)' },
+  lockIcon: { width: 52, height: 52, borderRadius: 'var(--r-md)', backgroundColor: 'rgba(199,249,76,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' },
+  cardTitle: { color: 'var(--text)', fontSize: 18, margin: '0 0 6px' },
+  cardText: { color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.5, margin: '0 0 18px' },
+  label: { display: 'block', textAlign: 'left', color: 'var(--text-muted)', fontSize: 12, fontWeight: 600, marginBottom: 6 },
   divider: { display: 'flex', alignItems: 'center', gap: 10, color: '#475569', fontSize: 11, margin: '16px 0' },
-  locked: { backgroundColor: '#101217', border: '1px solid #1C1F28', borderRadius: 16, padding: '34px 22px', maxWidth: 440, margin: '6px auto 0', textAlign: 'center' },
-  lockIconSm: { width: 48, height: 48, borderRadius: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' },
-  lockedTitle: { color: '#F1F5F9', fontSize: 17, fontWeight: 700, margin: '0 0 6px', fontFamily: 'var(--font-bricolage), sans-serif' },
-  lockedText: { color: '#94A3B8', fontSize: 13, lineHeight: 1.5, margin: '0 auto 18px', maxWidth: 320 },
-  lockedCta: { display: 'inline-flex', alignItems: 'center', gap: 8, color: '#C7F94C', fontSize: 13.5, fontWeight: 700, textDecoration: 'none', border: '1px solid rgba(199,249,76,0.4)', borderRadius: 11, padding: '10px 16px' },
+  locked: { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '34px 22px', maxWidth: 440, margin: '6px auto 0', textAlign: 'center', boxShadow: 'var(--shadow-card)' },
+  lockIconSm: { width: 48, height: 48, borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' },
+  lockedTitle: { color: 'var(--text)', fontSize: 17, margin: '0 0 6px' },
+  lockedText: { color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.5, margin: '0 auto 18px', maxWidth: 320 },
+  lockedCta: { display: 'inline-flex', alignItems: 'center', gap: 8, color: 'var(--primary)', fontSize: 13.5, fontWeight: 700, textDecoration: 'none', border: '1px solid rgba(199,249,76,0.4)', borderRadius: 'var(--r-sm)', padding: '10px 16px' },
 };

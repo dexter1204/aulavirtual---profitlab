@@ -38,9 +38,9 @@ export default function MiAccesoPage() {
   const initial = (user?.name || user?.email || '?').trim().charAt(0).toUpperCase();
 
   function vigencia(p: ProductMeta): { text: string; color: string } {
-    if (!p.premium) return { text: 'Incluido', color: '#8A93A3' };
+    if (!p.premium) return { text: 'Incluido', color: 'var(--text-muted)' };
     const a = p.key !== 'aula' ? access?.products?.[p.key] : undefined;
-    if (!a || !a.has_access) return { text: 'Bloqueado', color: '#8A93A3' };
+    if (!a || !a.has_access) return { text: 'Bloqueado', color: 'var(--text-muted)' };
     if (a.lifetime) return { text: 'Vitalicio', color: '#4F86F7' };
     if (a.access_until) return { text: `Hasta ${fmtDate(a.access_until)}`, color: '#2FBF71' };
     return { text: 'Activo', color: '#2FBF71' };
@@ -72,7 +72,7 @@ export default function MiAccesoPage() {
         })}
       </div>
 
-      <div style={{ marginTop: 16, maxWidth: 440 }}>
+      <div style={{ marginTop: 16, maxWidth: 620 }}>
         <Link href="/canjear" style={{ textDecoration: 'none' }}>
           <Button variant="outline" full>Canjear otro cupón</Button>
         </Link>
@@ -82,13 +82,13 @@ export default function MiAccesoPage() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  me: { display: 'flex', alignItems: 'center', gap: 12, backgroundColor: '#101217', border: '1px solid #1C1F28', borderRadius: 14, padding: 14, marginBottom: 18, maxWidth: 440 },
-  avatar: { width: 44, height: 44, borderRadius: '50%', backgroundColor: '#15181F', border: '1px solid #1C1F28', display: 'grid', placeItems: 'center', fontSize: 16, fontWeight: 800, color: '#F1F5F9', fontFamily: 'var(--font-bricolage), sans-serif', flex: '0 0 auto' },
-  meName: { color: '#F1F5F9', fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-bricolage), sans-serif' },
-  meSub: { color: '#8A93A3', fontSize: 11.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-  sectionLbl: { color: '#8A93A3', fontSize: 11, fontWeight: 700, margin: '0 0 10px' },
-  list: { display: 'flex', flexDirection: 'column', gap: 1, backgroundColor: '#1C1F28', border: '1px solid #1C1F28', borderRadius: 14, overflow: 'hidden', maxWidth: 440 },
-  row: { display: 'flex', alignItems: 'center', gap: 11, backgroundColor: '#101217', padding: '13px 14px' },
+  me: { display: 'flex', alignItems: 'center', gap: 12, backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 14, marginBottom: 18, maxWidth: 620, boxShadow: 'var(--shadow-card)' },
+  avatar: { width: 44, height: 44, borderRadius: '50%', backgroundColor: 'var(--surface-hi)', border: '1px solid var(--border)', display: 'grid', placeItems: 'center', fontSize: 16, fontWeight: 800, color: 'var(--text)', fontFamily: 'var(--font-bricolage), sans-serif', flex: '0 0 auto' },
+  meName: { color: 'var(--text)', fontSize: 15, fontWeight: 700, fontFamily: 'var(--font-bricolage), sans-serif' },
+  meSub: { color: 'var(--text-muted)', fontSize: 11.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  sectionLbl: { color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, margin: '0 0 10px' },
+  list: { display: 'flex', flexDirection: 'column', gap: 1, backgroundColor: 'var(--border)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', overflow: 'hidden', maxWidth: 620, boxShadow: 'var(--shadow-card)' },
+  row: { display: 'flex', alignItems: 'center', gap: 11, backgroundColor: 'var(--surface)', padding: '13px 14px' },
   dot: { width: 9, height: 9, borderRadius: 3, flex: '0 0 auto' },
   name: { flex: 1, color: '#CBD3DF', fontSize: 14, fontWeight: 600 },
   exp: { fontSize: 11.5, fontWeight: 700, whiteSpace: 'nowrap' },

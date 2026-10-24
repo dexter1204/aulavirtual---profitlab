@@ -167,19 +167,19 @@ function EditCourse() {
 
   return (
     <Page>
-      <Link href="/admin/cursos/" style={styles.back}>← Cursos</Link>
+      <Link href="/admin/cursos/" className="pl-pressable" style={styles.back}>← Cursos</Link>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
         <div style={{ minWidth: 0 }}>
-          <h1 style={styles.title} className="clamp-2">{course.title}</h1>
+          <h1 style={styles.title} className="pl-title clamp-2">{course.title}</h1>
           <div style={{ display: 'flex', gap: 6, marginTop: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <Pill color={course.status === 'published' ? '#22C55E' : '#F59E0B'}>
               {course.status === 'published' ? 'Publicado' : course.status === 'scheduled' ? 'Programado' : 'Borrador'}
             </Pill>
-            <span style={{ color: '#64748B', fontSize: 12 }}>{modules.length} módulos · {totalLessons} clases</span>
+            <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>{modules.length} módulos · {totalLessons} clases</span>
           </div>
         </div>
-        <Link href={`/curso/?slug=${course.slug}`} style={styles.previewBtn}><IconEye size={14} /> Ver</Link>
+        <Link href={`/curso/?slug=${course.slug}`} className="pl-pressable" style={styles.previewBtn}><IconEye size={14} /> Ver</Link>
       </div>
 
       {/* TABS */}
@@ -188,7 +188,8 @@ function EditCourse() {
           <button
             key={t}
             onClick={() => setTab(t)}
-            style={{ ...styles.tab, backgroundColor: tab === t ? '#C7F94C' : '#14161C', color: tab === t ? '#0A0B0E' : '#94A3B8', borderColor: tab === t ? '#C7F94C' : '#1F222B' }}
+            className="pl-pressable"
+            style={{ ...styles.tab, backgroundColor: tab === t ? 'var(--primary)' : 'var(--surface)', color: tab === t ? 'var(--bg)' : 'var(--text-muted)', borderColor: tab === t ? 'var(--primary)' : 'var(--border)' }}
           >
             {t === 'contenido' ? 'Contenido' : t === 'tareas' ? 'Tareas' : t === 'ajustes' ? 'Ajustes' : 'Alumnos'}
           </button>
@@ -206,49 +207,49 @@ function EditCourse() {
                 <div key={m.id} style={styles.module}>
                   <div style={styles.moduleHead}>
                     <div style={styles.reorder}>
-                      <button onClick={() => moveModule(mi, -1)} disabled={mi === 0} style={styles.arrow}>▲</button>
-                      <button onClick={() => moveModule(mi, 1)} disabled={mi === modules.length - 1} style={styles.arrow}>▼</button>
+                      <button onClick={() => moveModule(mi, -1)} disabled={mi === 0} className="pl-pressable" style={styles.arrow}>▲</button>
+                      <button onClick={() => moveModule(mi, 1)} disabled={mi === modules.length - 1} className="pl-pressable" style={styles.arrow}>▼</button>
                     </div>
                     <span style={styles.moduleIdx}>{mi + 1}</span>
-                    <span style={{ flex: 1, color: '#F1F5F9', fontSize: 15, fontWeight: 700 }}>{m.title}</span>
-                    <button onClick={() => renameModule(m)} style={styles.iconBtn} aria-label="Renombrar módulo">
+                    <span style={{ flex: 1, color: 'var(--text)', fontSize: 15, fontWeight: 700 }}>{m.title}</span>
+                    <button onClick={() => renameModule(m)} className="pl-pressable" style={styles.iconBtn} aria-label="Renombrar módulo">
                       <IconPencil size={15} />
                     </button>
-                    <button onClick={() => removeModule(m)} style={{ ...styles.iconBtn, color: '#FCA5A5' }} aria-label="Eliminar módulo">
+                    <button onClick={() => removeModule(m)} className="pl-pressable" style={{ ...styles.iconBtn, color: '#FCA5A5' }} aria-label="Eliminar módulo">
                       <IconTrash size={15} />
                     </button>
                   </div>
 
                   <div style={{ padding: 8 }}>
                     {(m.lessons ?? []).length === 0 && (
-                      <p style={{ color: '#64748B', fontSize: 12, textAlign: 'center', padding: '8px 0' }}>Sin clases aún</p>
+                      <p style={{ color: 'var(--text-dim)', fontSize: 12, textAlign: 'center', padding: '8px 0' }}>Sin clases aún</p>
                     )}
                     {(m.lessons ?? []).map((l, li) => (
                       <div key={l.id} style={styles.lesson}>
                         <div style={styles.reorder}>
-                          <button onClick={() => moveLesson(m, li, -1)} disabled={li === 0} style={styles.arrowSm}>▲</button>
-                          <button onClick={() => moveLesson(m, li, 1)} disabled={li === (m.lessons?.length ?? 0) - 1} style={styles.arrowSm}>▼</button>
+                          <button onClick={() => moveLesson(m, li, -1)} disabled={li === 0} className="pl-pressable" style={styles.arrowSm}>▲</button>
+                          <button onClick={() => moveLesson(m, li, 1)} disabled={li === (m.lessons?.length ?? 0) - 1} className="pl-pressable" style={styles.arrowSm}>▼</button>
                         </div>
-                        <span style={{ color: '#64748B', fontSize: 12, width: 18, textAlign: 'center' }}>{li + 1}</span>
+                        <span style={{ color: 'var(--text-dim)', fontSize: 12, width: 18, textAlign: 'center' }}>{li + 1}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ color: '#F1F5F9', fontSize: 13, fontWeight: 500 }} className="clamp-2">{l.title}</div>
+                          <div style={{ color: 'var(--text)', fontSize: 13, fontWeight: 500 }} className="clamp-2">{l.title}</div>
                           <div style={{ display: 'flex', gap: 8, marginTop: 3, flexWrap: 'wrap' }}>
-                            {l.is_preview && <span style={{ color: '#C7F94C', fontSize: 10, fontWeight: 600 }}>MUESTRA</span>}
+                            {l.is_preview && <span style={{ color: 'var(--primary)', fontSize: 10, fontWeight: 600 }}>MUESTRA</span>}
                             {l.release_type === 'scheduled' && <span style={{ color: '#3B82F6', fontSize: 10, fontWeight: 600 }}>PROGRAMADA</span>}
                             {l.release_type === 'drip_days' && <span style={{ color: '#F59E0B', fontSize: 10, fontWeight: 600 }}>GOTEO +{l.drip_days}d</span>}
-                            {l.duration && <span style={{ color: '#64748B', fontSize: 10 }}>{l.duration}</span>}
+                            {l.duration && <span style={{ color: 'var(--text-dim)', fontSize: 10 }}>{l.duration}</span>}
                           </div>
                         </div>
-                        <button onClick={() => setEditing({ moduleId: m.id, lesson: l })} style={styles.iconBtn} aria-label="Editar clase">
+                        <button onClick={() => setEditing({ moduleId: m.id, lesson: l })} className="pl-pressable" style={styles.iconBtn} aria-label="Editar clase">
                           <IconPencil size={15} />
                         </button>
-                        <button onClick={() => removeLesson(l)} style={{ ...styles.iconBtn, color: '#FCA5A5' }} aria-label="Eliminar clase">
+                        <button onClick={() => removeLesson(l)} className="pl-pressable" style={{ ...styles.iconBtn, color: '#FCA5A5' }} aria-label="Eliminar clase">
                           <IconTrash size={15} />
                         </button>
                       </div>
                     ))}
 
-                    <button onClick={() => setEditing({ moduleId: m.id })} style={styles.addLesson}>
+                    <button onClick={() => setEditing({ moduleId: m.id })} className="pl-pressable" style={styles.addLesson}>
                       + Añadir clase
                     </button>
                   </div>
@@ -295,19 +296,19 @@ function EditCourse() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  back: { color: '#94A3B8', fontSize: 13, textDecoration: 'none', display: 'inline-block', marginBottom: 12 },
-  title: { color: '#F1F5F9', fontSize: 22, fontWeight: 800, margin: 0, lineHeight: '27px', fontFamily: 'var(--font-bricolage), sans-serif', letterSpacing: -0.4 },
-  previewBtn: { flexShrink: 0, backgroundColor: '#1F222B', color: '#F1F5F9', fontSize: 12, fontWeight: 600, padding: '8px 12px', borderRadius: 9, textDecoration: 'none' },
+  back: { color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none', display: 'inline-block', marginBottom: 12 },
+  title: { color: 'var(--text)', fontSize: 22, fontWeight: 800, margin: 0, lineHeight: '27px', letterSpacing: -0.4 },
+  previewBtn: { flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 6, backgroundColor: 'var(--surface-hi)', color: 'var(--text)', fontSize: 12, fontWeight: 600, padding: '8px 12px', borderRadius: 9, textDecoration: 'none', border: '1px solid var(--border)' },
   tabs: { display: 'flex', gap: 8, margin: '18px 0 18px' },
-  tab: { flex: 1, textAlign: 'center', border: '1px solid', borderRadius: 10, padding: '9px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
-  module: { backgroundColor: '#14161C', border: '1px solid #1F222B', borderRadius: 14, overflow: 'hidden' },
-  moduleHead: { display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderBottom: '1px solid #1F222B' },
+  tab: { flex: 1, textAlign: 'center', border: '1px solid', borderRadius: 'var(--r-sm)', padding: '9px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
+  module: { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', overflow: 'hidden', boxShadow: 'var(--shadow-card)' },
+  moduleHead: { display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderBottom: '1px solid var(--border)' },
   reorder: { display: 'flex', flexDirection: 'column', gap: 2, flexShrink: 0 },
-  arrow: { background: 'transparent', border: '1px solid #1F222B', borderRadius: 5, color: '#94A3B8', fontSize: 9, width: 22, height: 16, cursor: 'pointer', lineHeight: 1 },
-  arrowSm: { background: 'transparent', border: '1px solid #1F222B', borderRadius: 4, color: '#64748B', fontSize: 8, width: 18, height: 14, cursor: 'pointer', lineHeight: 1 },
-  moduleIdx: { width: 22, height: 22, borderRadius: 6, backgroundColor: 'rgba(199,249,76,0.15)', color: '#C7F94C', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  iconBtn: { background: 'transparent', border: 'none', color: '#94A3B8', fontSize: 14, cursor: 'pointer', padding: 4, flexShrink: 0 },
-  lesson: { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 6px', borderBottom: '1px solid #14161C' },
-  addLesson: { display: 'block', width: '100%', marginTop: 6, background: 'transparent', border: '1px dashed #262932', color: '#C7F94C', borderRadius: 10, padding: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
-  panel: { backgroundColor: '#14161C', border: '1px solid #1F222B', borderRadius: 14, padding: 16 },
+  arrow: { background: 'transparent', border: '1px solid var(--border)', borderRadius: 5, color: 'var(--text-muted)', fontSize: 9, width: 22, height: 16, cursor: 'pointer', lineHeight: 1 },
+  arrowSm: { background: 'transparent', border: '1px solid var(--border)', borderRadius: 4, color: 'var(--text-dim)', fontSize: 8, width: 18, height: 14, cursor: 'pointer', lineHeight: 1 },
+  moduleIdx: { width: 22, height: 22, borderRadius: 6, backgroundColor: 'rgba(199,249,76,0.15)', color: 'var(--primary)', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  iconBtn: { background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: 14, cursor: 'pointer', padding: 4, flexShrink: 0 },
+  lesson: { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 6px', borderBottom: '1px solid var(--surface)' },
+  addLesson: { display: 'block', width: '100%', marginTop: 6, background: 'transparent', border: '1px dashed var(--border-hi)', color: 'var(--primary)', borderRadius: 'var(--r-sm)', padding: 10, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
+  panel: { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 16, boxShadow: 'var(--shadow-card)' },
 };

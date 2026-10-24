@@ -205,8 +205,8 @@ export function LessonEditor({
       </Field>
 
       <label style={styles.checkRow}>
-        <input type="checkbox" checked={isPreview} onChange={(e) => setIsPreview(e.target.checked)} style={{ width: 18, height: 18, accentColor: '#C7F94C' }} />
-        <span style={{ color: '#F1F5F9', fontSize: 13 }}>Clase de muestra gratuita (visible sin inscripción)</span>
+        <input type="checkbox" checked={isPreview} onChange={(e) => setIsPreview(e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--primary)' }} />
+        <span style={{ color: 'var(--text)', fontSize: 13 }}>Clase de muestra gratuita (visible sin inscripción)</span>
       </label>
 
       <Field label="Lanzamiento de la clase (goteo)">
@@ -241,7 +241,7 @@ export function LessonEditor({
         </h4>
 
         {!lessonId ? (
-          <p style={{ color: '#64748B', fontSize: 12, margin: 0 }}>
+          <p style={{ color: 'var(--text-dim)', fontSize: 12, margin: 0 }}>
             Crea la clase (botón de abajo) para poder subir documentos o añadir enlaces.
           </p>
         ) : (
@@ -252,12 +252,12 @@ export function LessonEditor({
                   <div key={m.id} style={styles.matRow}>
                     <span style={{ display: 'flex', flexShrink: 0 }}><MaterialIcon m={m} size={16} /></span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ color: '#F1F5F9', fontSize: 12, fontWeight: 600 }} className="clamp-2">{m.title}</div>
-                      <div style={{ color: '#64748B', fontSize: 10 }}>
+                      <div style={{ color: 'var(--text)', fontSize: 12, fontWeight: 600 }} className="clamp-2">{m.title}</div>
+                      <div style={{ color: 'var(--text-dim)', fontSize: 10 }}>
                         {m.kind === 'file' ? `Archivo${m.size ? ' · ' + formatBytes(m.size) : ''}` : 'Enlace'}
                       </div>
                     </div>
-                    <button onClick={() => removeMaterial(m.id)} style={styles.matDel} aria-label="Eliminar material">
+                    <button onClick={() => removeMaterial(m.id)} className="pl-pressable" style={styles.matDel} aria-label="Eliminar material">
                       <IconX size={14} />
                     </button>
                   </div>
@@ -276,7 +276,7 @@ export function LessonEditor({
             <Button variant="ghost" size="sm" full onClick={() => fileRef.current?.click()} disabled={uploading} style={{ marginBottom: 10 }}>
               {uploading ? 'Subiendo…' : (<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><IconUpload size={15} />Subir documento / archivo</span>)}
             </Button>
-            <p style={{ color: '#64748B', fontSize: 10, margin: '0 0 12px' }}>
+            <p style={{ color: 'var(--text-dim)', fontSize: 10, margin: '0 0 12px' }}>
               PDF, Word, Excel, PowerPoint, imágenes, ZIP, audio o video (máx. 50 MB).
             </p>
 
@@ -303,11 +303,11 @@ function toLocalInput(iso: string): string {
 
 const styles: Record<string, React.CSSProperties> = {
   previewRow: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 },
-  preview: { width: 140, aspectRatio: '16/9', objectFit: 'cover', borderRadius: 8, border: '1px solid #1F222B', backgroundColor: '#0A0B0E' },
-  providerTag: { fontSize: 11, fontWeight: 700, color: '#C7F94C', border: '1px solid rgba(199,249,76,0.4)', borderRadius: 999, padding: '3px 10px' },
+  preview: { width: 140, aspectRatio: '16/9', objectFit: 'cover', borderRadius: 8, border: '1px solid var(--border)', backgroundColor: 'var(--bg)' },
+  providerTag: { fontSize: 11, fontWeight: 700, color: 'var(--primary)', border: '1px solid rgba(199,249,76,0.4)', borderRadius: 'var(--r-pill)', padding: '3px 10px' },
   checkRow: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, cursor: 'pointer' },
-  materialsBox: { marginTop: 8, padding: 14, backgroundColor: '#0A0B0E', border: '1px solid #1F222B', borderRadius: 12 },
-  materialsTitle: { display: 'flex', alignItems: 'center', gap: 8, color: '#F1F5F9', fontSize: 13, fontWeight: 700, margin: '0 0 10px' },
-  matRow: { display: 'flex', alignItems: 'center', gap: 10, backgroundColor: '#14161C', border: '1px solid #1F222B', borderRadius: 8, padding: '7px 10px' },
-  matDel: { background: 'transparent', border: 'none', color: '#FCA5A5', fontSize: 13, cursor: 'pointer', flexShrink: 0 },
+  materialsBox: { marginTop: 8, padding: 14, backgroundColor: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)' },
+  materialsTitle: { display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text)', fontSize: 13, fontWeight: 700, margin: '0 0 10px' },
+  matRow: { display: 'flex', alignItems: 'center', gap: 10, backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '7px 10px' },
+  matDel: { display: 'flex', background: 'transparent', border: 'none', color: '#FCA5A5', fontSize: 13, cursor: 'pointer', flexShrink: 0, padding: 2, borderRadius: 'var(--r-sm)' },
 };

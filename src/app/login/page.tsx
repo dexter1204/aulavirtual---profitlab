@@ -8,8 +8,9 @@ import { LogoMark } from '@/components/Logo';
 import { SUPERAPP, HOME_ROUTE } from '@/lib/basePath';
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, loginDemo } = useAuth();
   const router = useRouter();
+  const isDev = process.env.NODE_ENV !== 'production';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,52 +37,69 @@ export default function LoginPage() {
 
   return (
     <main style={styles.main}>
-      <div style={styles.card}>
+      <div className="pl-rise" style={styles.card}>
+        <div style={styles.sheen} aria-hidden="true" />
+
         <div style={styles.logoRow}>
-          <LogoMark size={34} />
+          <span style={styles.logoBadge}>
+            <LogoMark size={26} />
+          </span>
           <div>
             <h1 style={styles.brand}>Profit Lab</h1>
             <p style={styles.brandSub}>{SUPERAPP ? 'Academy' : 'Aula Virtual · Academy'}</p>
           </div>
         </div>
 
-        <h2 style={styles.title}>
+        <h2 className="pl-display" style={styles.title}>
           Bienvenido
           <br />
           de vuelta.
         </h2>
-        <p style={styles.subtitle}>{SUPERAPP ? 'Ingresa para acceder a tus productos.' : 'Ingresa para continuar tus cursos.'}</p>
+        <p style={styles.subtitle}>
+          {SUPERAPP ? 'Ingresa para acceder a tus productos.' : 'Ingresa para continuar tus cursos.'}
+        </p>
 
         <form onSubmit={handleLogin}>
+          <label style={styles.fieldLabel} htmlFor="email">Email</label>
           <input
+            id="email"
             type="email"
-            placeholder="Email"
+            placeholder="tucorreo@ejemplo.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="pl-input"
             style={styles.input}
             autoCapitalize="none"
+            autoComplete="email"
           />
+
+          <label style={styles.fieldLabel} htmlFor="password">Contraseña</label>
           <input
+            id="password"
             type="password"
-            placeholder="Contraseña"
+            placeholder="••••••••"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="pl-input"
             style={styles.input}
+            autoComplete="current-password"
           />
 
-          {error && <p style={styles.error}>{error}</p>}
+          <div style={{ ...styles.errorWrap, maxHeight: error ? 60 : 0, opacity: error ? 1 : 0 }}>
+            <p style={styles.error}>{error}</p>
+          </div>
 
-          <button type="submit" disabled={loading} style={styles.cta}>
-            {loading ? '...' : 'ENTRAR'}
+          <button type="submit" disabled={loading} className="pl-pressable" style={styles.cta}>
+            {loading ? <span style={styles.ctaSpinner} aria-label="Cargando" /> : 'ENTRAR'}
           </button>
         </form>
 
-        <button type="button" onClick={() => setShowForgot((v) => !v)} style={styles.forgotBtn}>
+        <button type="button" onClick={() => setShowForgot((v) => !v)} className="pl-pressable" style={styles.forgotBtn}>
           ¿Olvidaste tu contraseña?
         </button>
 
-        {showForgot && (
-          <div style={styles.forgotBox}>
+        <div style={{ ...styles.forgotBox, maxHeight: showForgot ? 220 : 0, opacity: showForgot ? 1 : 0, marginTop: showForgot ? 12 : 0 }}>
+          <div style={styles.forgotInner}>
             <p style={styles.forgotText}>
               Escríbenos por WhatsApp y restablecemos tu contraseña. Luego podrás cambiarla
               tú mismo desde «Mi perfil».
@@ -90,6 +108,7 @@ export default function LoginPage() {
               href="https://wa.link/4hlin5"
               target="_blank"
               rel="noopener noreferrer"
+              className="pl-pressable"
               style={styles.waBtn}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -98,14 +117,42 @@ export default function LoginPage() {
               Pedir ayuda por WhatsApp
             </a>
           </div>
-        )}
+        </div>
 
-        <Link href="/signup" style={styles.signupRow}>
+        <Link href="/signup" className="pl-pressable" style={styles.signupRow}>
           ¿No tienes cuenta? <span style={styles.signupLink}>Créala gratis</span>
         </Link>
 
-        <p style={styles.footer}>Acceso seguro · Cifrado SSL</p>
+        {isDev && (
+          <button
+            type="button"
+            onClick={() => { loginDemo(); router.replace(HOME_ROUTE); }}
+            className="pl-pressable"
+            style={styles.demoBtn}
+          >
+            ⚡ Entrar en modo demo (solo local)
+          </button>
+        )}
+
+        <p style={styles.footer}>
+          <span style={styles.lock} aria-hidden="true">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+              <rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="2" />
+              <path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </span>
+          Acceso seguro · Cifrado SSL
+        </p>
       </div>
+
+      <style jsx>{`
+        .pl-input::placeholder { color: var(--text-dim); }
+        .pl-input:focus {
+          border-color: var(--primary) !important;
+          box-shadow: 0 0 0 4px rgba(199, 249, 76, 0.14);
+        }
+        @keyframes pl-cta-spin { to { transform: rotate(360deg); } }
+      `}</style>
     </main>
   );
 }
@@ -119,102 +166,185 @@ function traducirError(msg?: string): string | null {
 
 const styles: Record<string, React.CSSProperties> = {
   main: {
-    minHeight: '100vh',
+    minHeight: '100svh',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 'calc(24px + var(--safe-top)) 20px calc(24px + var(--safe-bottom))',
+  },
+  card: {
+    position: 'relative',
+    width: '100%',
+    maxWidth: 400,
+    boxSizing: 'border-box',
+    padding: '32px 28px 26px',
+    backgroundColor: 'rgba(20, 22, 28, 0.72)',
+    border: '1px solid var(--border-hi)',
+    borderRadius: 'var(--r-xl)',
+    boxShadow: 'var(--shadow-pop)',
+    backdropFilter: 'blur(28px) saturate(150%)',
+    WebkitBackdropFilter: 'blur(28px) saturate(150%)',
+    overflow: 'hidden',
+  },
+  sheen: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.18) 40%, rgba(199,249,76,0.35) 50%, rgba(255,255,255,0.18) 60%, transparent)',
+  },
+  logoRow: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 32 },
+  logoBadge: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 'var(--r-md)',
+    background: 'rgba(199, 249, 76, 0.10)',
+    border: '1px solid rgba(199, 249, 76, 0.22)',
   },
-  card: { width: '100%', maxWidth: 420, padding: 32 },
-  logoRow: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 36 },
   brand: {
-    color: '#F1F5F9',
+    color: 'var(--text)',
     fontSize: 15,
     fontWeight: 700,
     margin: 0,
     lineHeight: '16px',
     fontFamily: 'var(--font-bricolage), sans-serif',
+    letterSpacing: -0.2,
   },
-  brandSub: { color: '#94A3B8', fontSize: 11, margin: '3px 0 0' },
+  brandSub: { color: 'var(--text-muted)', fontSize: 11, margin: '4px 0 0', letterSpacing: 0.2 },
   title: {
-    color: '#F1F5F9',
-    fontSize: 32,
-    fontWeight: 800,
-    lineHeight: '38px',
-    margin: '0 0 8px 0',
-    fontFamily: 'var(--font-bricolage), sans-serif',
-    letterSpacing: -0.6,
+    color: 'var(--text)',
+    fontSize: 34,
+    margin: '0 0 10px 0',
   },
-  subtitle: { color: '#94A3B8', fontSize: 14, marginBottom: 28 },
+  subtitle: { color: 'var(--text-muted)', fontSize: 14.5, marginBottom: 26, lineHeight: 1.45 },
+  fieldLabel: {
+    display: 'block',
+    color: 'var(--text-muted)',
+    fontSize: 12,
+    fontWeight: 600,
+    margin: '0 0 7px 2px',
+  },
   input: {
     width: '100%',
     boxSizing: 'border-box',
-    backgroundColor: '#14161C',
-    border: '1px solid #262932',
-    borderRadius: 10,
+    backgroundColor: 'rgba(10, 11, 14, 0.6)',
+    border: '1px solid var(--border-hi)',
+    borderRadius: 'var(--r-md)',
     padding: '14px',
-    fontSize: 14,
-    color: '#F1F5F9',
-    marginBottom: 12,
+    fontSize: 15,
+    color: 'var(--text)',
+    marginBottom: 16,
+    transition: 'border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out)',
   },
-  error: { color: '#FCA5A5', fontSize: 12, marginBottom: 12, marginTop: 0 },
+  errorWrap: {
+    overflow: 'hidden',
+    transition: 'max-height var(--dur-base) var(--ease-out), opacity var(--dur-base) var(--ease-out)',
+  },
+  error: { color: '#FCA5A5', fontSize: 12.5, margin: '0 0 12px' },
   cta: {
     width: '100%',
-    backgroundColor: '#C7F94C',
+    height: 52,
+    backgroundColor: 'var(--primary)',
     color: '#0A0B0E',
     border: 'none',
-    borderRadius: 10,
-    padding: 16,
+    borderRadius: 'var(--r-md)',
     fontSize: 14,
     fontWeight: 700,
-    letterSpacing: 1.2,
+    letterSpacing: 1.4,
     cursor: 'pointer',
-    marginTop: 12,
+    marginTop: 4,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxShadow: '0 1px 0 rgba(255,255,255,0.3) inset, var(--glow-primary)',
+  },
+  ctaSpinner: {
+    width: 18,
+    height: 18,
+    border: '2.5px solid rgba(10,11,14,0.35)',
+    borderTopColor: '#0A0B0E',
+    borderRadius: '50%',
+    display: 'inline-block',
+    animation: 'pl-cta-spin 0.7s linear infinite',
   },
   signupRow: {
     display: 'block',
     textAlign: 'center',
     textDecoration: 'none',
-    color: '#94A3B8',
-    fontSize: 12,
-    marginTop: 18,
-    padding: 8,
+    color: 'var(--text-muted)',
+    fontSize: 13,
+    marginTop: 20,
+    padding: 10,
+    borderRadius: 'var(--r-sm)',
   },
   forgotBtn: {
     display: 'block',
     width: '100%',
-    marginTop: 14,
+    marginTop: 16,
     background: 'transparent',
     border: 'none',
-    color: '#94A3B8',
-    fontSize: 12,
+    color: 'var(--text-muted)',
+    fontSize: 12.5,
     cursor: 'pointer',
     fontFamily: 'inherit',
     textAlign: 'center',
-    textDecoration: 'underline',
-    padding: 4,
+    padding: 6,
+    borderRadius: 'var(--r-sm)',
   },
   forgotBox: {
-    marginTop: 10,
-    backgroundColor: '#14161C',
-    border: '1px solid #262932',
-    borderRadius: 12,
+    overflow: 'hidden',
+    transition: 'max-height var(--dur-sheet) var(--ease-drawer), opacity var(--dur-base) var(--ease-out), margin-top var(--dur-base) var(--ease-out)',
+  },
+  forgotInner: {
+    backgroundColor: 'rgba(10, 11, 14, 0.5)',
+    border: '1px solid var(--border)',
+    borderRadius: 'var(--r-md)',
     padding: 14,
   },
-  forgotText: { color: '#CBD5E1', fontSize: 12.5, lineHeight: '18px', margin: '0 0 12px' },
+  forgotText: { color: '#CBD5E1', fontSize: 12.5, lineHeight: '19px', margin: '0 0 12px' },
   waBtn: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     backgroundColor: '#25D366',
-    color: '#0A0B0E',
+    color: '#06231A',
     fontSize: 13,
     fontWeight: 700,
-    borderRadius: 10,
-    padding: '11px 14px',
+    borderRadius: 'var(--r-sm)',
+    padding: '12px 14px',
     textDecoration: 'none',
   },
-  signupLink: { color: '#C7F94C', fontWeight: 600 },
-  footer: { textAlign: 'center', color: '#64748B', fontSize: 10, marginTop: 24 },
+  signupLink: { color: 'var(--primary)', fontWeight: 600 },
+  demoBtn: {
+    display: 'block',
+    width: '100%',
+    marginTop: 12,
+    background: 'rgba(199, 249, 76, 0.08)',
+    border: '1px dashed rgba(199, 249, 76, 0.35)',
+    color: 'var(--primary)',
+    fontSize: 12.5,
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    textAlign: 'center',
+    padding: '11px',
+    borderRadius: 'var(--r-sm)',
+  },
+  footer: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    color: 'var(--text-dim)',
+    fontSize: 10.5,
+    marginTop: 24,
+    letterSpacing: 0.3,
+  },
+  lock: { display: 'inline-flex', color: 'var(--text-dim)' },
 };

@@ -51,15 +51,15 @@ export default function SignupPage() {
     return (
       <main style={styles.main}>
         <div style={styles.card}>
-          <div style={{ marginBottom: 16, color: '#C7F94C', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ marginBottom: 16, color: 'var(--primary)', display: 'flex', justifyContent: 'center' }}>
             <IconMail size={42} />
           </div>
-          <h2 style={styles.title}>Revisa tu correo</h2>
+          <h2 className="pl-title" style={styles.title}>Revisa tu correo</h2>
           <p style={styles.subtitle}>
             Te enviamos un enlace de confirmación a <strong>{email}</strong>. Confírmalo y luego
             inicia sesión.
           </p>
-          <Link href="/login" style={{ ...styles.cta, display: 'block', textAlign: 'center', textDecoration: 'none' }}>
+          <Link href="/login" className="pl-pressable" style={{ ...styles.cta, display: 'block', textAlign: 'center', textDecoration: 'none' }}>
             IR A INICIAR SESIÓN
           </Link>
         </div>
@@ -78,7 +78,7 @@ export default function SignupPage() {
           </div>
         </div>
 
-        <h2 style={styles.title}>Crea tu cuenta.</h2>
+        <h2 className="pl-title" style={styles.title}>Crea tu cuenta.</h2>
         <p style={styles.subtitle}>{SUPERAPP ? 'Accede a todos los productos de la academia.' : 'Accede a los cursos de la academia.'}</p>
 
         <form onSubmit={handleSignup}>
@@ -106,12 +106,12 @@ export default function SignupPage() {
 
           {error && <p style={styles.error}>{error}</p>}
 
-          <button type="submit" disabled={loading} style={styles.cta}>
+          <button type="submit" disabled={loading} className="pl-pressable" style={styles.cta}>
             {loading ? '...' : 'CREAR CUENTA'}
           </button>
         </form>
 
-        <Link href="/login" style={styles.signupRow}>
+        <Link href="/login" className="pl-pressable" style={styles.signupRow}>
           ¿Ya tienes cuenta? <span style={styles.signupLink}>Inicia sesión</span>
         </Link>
       </div>
@@ -130,13 +130,13 @@ const styles: Record<string, React.CSSProperties> = {
   main: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 },
   card: { width: '100%', maxWidth: 420, padding: 32 },
   logoRow: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 36 },
-  brand: { color: '#F1F5F9', fontSize: 15, fontWeight: 700, margin: 0, lineHeight: '16px', fontFamily: 'var(--font-bricolage), sans-serif' },
-  brandSub: { color: '#94A3B8', fontSize: 11, margin: '3px 0 0' },
-  title: { color: '#F1F5F9', fontSize: 30, fontWeight: 800, lineHeight: '36px', margin: '0 0 8px 0', fontFamily: 'var(--font-bricolage), sans-serif', letterSpacing: -0.6 },
-  subtitle: { color: '#94A3B8', fontSize: 14, marginBottom: 28 },
-  input: { width: '100%', boxSizing: 'border-box', backgroundColor: '#14161C', border: '1px solid #262932', borderRadius: 10, padding: '14px', fontSize: 14, color: '#F1F5F9', marginBottom: 12 },
+  brand: { color: 'var(--text)', fontSize: 15, fontWeight: 700, margin: 0, lineHeight: '16px', fontFamily: 'var(--font-bricolage), sans-serif' },
+  brandSub: { color: 'var(--text-muted)', fontSize: 11, margin: '3px 0 0' },
+  title: { color: 'var(--text)', fontSize: 30, margin: '0 0 8px 0' },
+  subtitle: { color: 'var(--text-muted)', fontSize: 14, marginBottom: 28 },
+  input: { width: '100%', boxSizing: 'border-box', backgroundColor: 'var(--surface)', border: '1px solid var(--border-hi)', borderRadius: 'var(--r-sm)', padding: '14px', fontSize: 14, color: 'var(--text)', marginBottom: 12, transition: 'border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out)' },
   error: { color: '#FCA5A5', fontSize: 12, marginBottom: 12, marginTop: 0 },
-  cta: { width: '100%', backgroundColor: '#C7F94C', color: '#0A0B0E', border: 'none', borderRadius: 10, padding: 16, fontSize: 14, fontWeight: 700, letterSpacing: 1.2, cursor: 'pointer', marginTop: 12 },
-  signupRow: { display: 'block', textAlign: 'center', textDecoration: 'none', color: '#94A3B8', fontSize: 12, marginTop: 18, padding: 8 },
-  signupLink: { color: '#C7F94C', fontWeight: 600 },
+  cta: { width: '100%', backgroundColor: 'var(--primary)', color: 'var(--bg)', border: 'none', borderRadius: 'var(--r-sm)', padding: 16, fontSize: 14, fontWeight: 700, letterSpacing: 1.2, cursor: 'pointer', marginTop: 12 },
+  signupRow: { display: 'block', textAlign: 'center', textDecoration: 'none', color: 'var(--text-muted)', fontSize: 12, marginTop: 18, padding: 8, borderRadius: 'var(--r-sm)' },
+  signupLink: { color: 'var(--primary)', fontWeight: 600 },
 };

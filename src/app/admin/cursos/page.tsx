@@ -67,7 +67,7 @@ export default function AdminCoursesPage() {
         title="Cursos"
         subtitle="Ordena, publica y edita"
         action={
-          <Link href="/admin/cursos/nuevo" style={styles.newBtn}>
+          <Link href="/admin/cursos/nuevo" className="pl-pressable" style={styles.newBtn}>
             + Nuevo
           </Link>
         }
@@ -83,16 +83,16 @@ export default function AdminCoursesPage() {
           {courses.map((c, i) => (
             <div key={c.id} style={styles.row}>
               <div style={styles.reorder}>
-                <button onClick={() => move(i, -1)} disabled={i === 0} style={styles.arrow}>▲</button>
-                <span style={{ color: '#64748B', fontSize: 11 }}>{i + 1}</span>
-                <button onClick={() => move(i, 1)} disabled={i === courses.length - 1} style={styles.arrow}>▼</button>
+                <button onClick={() => move(i, -1)} disabled={i === 0} className="pl-pressable" style={styles.arrow}>▲</button>
+                <span style={{ color: 'var(--text-dim)', fontSize: 11 }}>{i + 1}</span>
+                <button onClick={() => move(i, 1)} disabled={i === courses.length - 1} className="pl-pressable" style={styles.arrow}>▼</button>
               </div>
 
               {c.thumbnail_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={c.thumbnail_url} alt="" style={styles.thumb} />
               ) : (
-                <div style={{ ...styles.thumb, ...styles.thumbFallback }}><IconVideo size={22} color="#C7F94C" style={{ opacity: 0.55 }} /></div>
+                <div style={{ ...styles.thumb, ...styles.thumbFallback }}><IconVideo size={22} color="var(--primary)" style={{ opacity: 0.55 }} /></div>
               )}
 
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -103,15 +103,15 @@ export default function AdminCoursesPage() {
                   <Pill color={c.status === 'published' ? '#22C55E' : c.status === 'scheduled' ? '#3B82F6' : '#F59E0B'}>
                     {c.status === 'published' ? 'Publicado' : c.status === 'scheduled' ? 'Programado' : 'Borrador'}
                   </Pill>
-                  <span style={{ color: '#64748B', fontSize: 11 }}>{c.category}</span>
-                  <span style={{ color: '#64748B', fontSize: 11 }}>· {c.access_type === 'free' ? 'Gratis' : 'Por inscripción'}</span>
+                  <span style={{ color: 'var(--text-dim)', fontSize: 11 }}>{c.category}</span>
+                  <span style={{ color: 'var(--text-dim)', fontSize: 11 }}>· {c.access_type === 'free' ? 'Gratis' : 'Por inscripción'}</span>
                 </div>
                 <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-                  <Link href={`/admin/curso/?id=${c.id}`} style={styles.editLink}><IconPencil size={13} /> Editar</Link>
-                  <button onClick={() => togglePublish(c)} style={styles.linkBtn}>
+                  <Link href={`/admin/curso/?id=${c.id}`} className="pl-pressable" style={styles.editLink}><IconPencil size={13} /> Editar</Link>
+                  <button onClick={() => togglePublish(c)} className="pl-pressable" style={styles.linkBtn}>
                     {c.status === 'published' ? 'Despublicar' : 'Publicar'}
                   </button>
-                  <button onClick={() => remove(c)} style={{ ...styles.linkBtn, color: '#FCA5A5' }}>Eliminar</button>
+                  <button onClick={() => remove(c)} className="pl-pressable" style={{ ...styles.linkBtn, color: '#FCA5A5' }}>Eliminar</button>
                 </div>
               </div>
             </div>
@@ -124,50 +124,52 @@ export default function AdminCoursesPage() {
 
 const styles: Record<string, React.CSSProperties> = {
   newBtn: {
-    backgroundColor: '#C7F94C',
-    color: '#0A0B0E',
+    backgroundColor: 'var(--primary)',
+    color: 'var(--bg)',
     fontWeight: 700,
     fontSize: 13,
     padding: '9px 16px',
-    borderRadius: 10,
+    borderRadius: 'var(--r-sm)',
     textDecoration: 'none',
+    boxShadow: '0 1px 0 rgba(255,255,255,0.25) inset',
   },
   row: {
     display: 'flex',
     gap: 12,
-    backgroundColor: '#14161C',
-    border: '1px solid #1F222B',
-    borderRadius: 14,
+    backgroundColor: 'var(--surface)',
+    border: '1px solid var(--border)',
+    borderRadius: 'var(--r-md)',
     padding: 12,
     alignItems: 'flex-start',
+    boxShadow: 'var(--shadow-card)',
   },
   reorder: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 },
   arrow: {
     background: 'transparent',
-    border: '1px solid #1F222B',
+    border: '1px solid var(--border)',
     borderRadius: 6,
-    color: '#94A3B8',
+    color: 'var(--text-muted)',
     fontSize: 10,
     width: 24,
     height: 20,
     cursor: 'pointer',
     lineHeight: 1,
   },
-  thumb: { width: 72, height: 46, objectFit: 'cover', borderRadius: 8, flexShrink: 0, backgroundColor: '#0A0B0E' },
+  thumb: { width: 72, height: 46, objectFit: 'cover', borderRadius: 8, flexShrink: 0, backgroundColor: 'var(--bg)' },
   thumbFallback: { display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 },
   title: {
-    color: '#F1F5F9',
+    color: 'var(--text)',
     fontSize: 14,
     fontWeight: 600,
     textDecoration: 'none',
     display: 'block',
     lineHeight: '18px',
   },
-  editLink: { display: 'inline-flex', alignItems: 'center', gap: 5, color: '#C7F94C', fontSize: 12, fontWeight: 600, textDecoration: 'none' },
+  editLink: { display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--primary)', fontSize: 12, fontWeight: 600, textDecoration: 'none' },
   linkBtn: {
     background: 'transparent',
     border: 'none',
-    color: '#94A3B8',
+    color: 'var(--text-muted)',
     fontSize: 12,
     fontWeight: 600,
     cursor: 'pointer',

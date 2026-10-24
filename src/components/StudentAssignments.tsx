@@ -60,7 +60,7 @@ export function StudentAssignments({
         </h2>
       )}
       {assignments.length === 0 ? (
-        <p style={{ color: '#64748B', fontSize: 13, margin: '6px 0 0' }}>
+        <p style={{ color: 'var(--text-dim)', fontSize: 13, margin: '6px 0 0' }}>
           Aún no hay tareas en este curso.
         </p>
       ) : (
@@ -160,7 +160,7 @@ export function AssignmentCard({ assignment: a, courseTitle }: { assignment: Ass
         <>
           {submission?.status === 'revisada' && (submission.grade || submission.feedback) && (
             <div style={styles.feedback}>
-              {submission.grade && <div style={{ color: '#C7F94C', fontSize: 14, fontWeight: 700 }}>Nota: {submission.grade}</div>}
+              {submission.grade && <div style={{ color: 'var(--primary)', fontSize: 14, fontWeight: 700 }}>Nota: {submission.grade}</div>}
               {submission.feedback && <p style={{ color: '#CBD5E1', fontSize: 13, margin: '4px 0 0', whiteSpace: 'pre-wrap' }}>{submission.feedback}</p>}
             </div>
           )}
@@ -170,14 +170,14 @@ export function AssignmentCard({ assignment: a, courseTitle }: { assignment: Ass
               {files.map((f, i) => (
                 <div key={i} style={styles.fileRow}>
                   <IconPaperclip size={14} color="#C7F94C" />
-                  <a href={materialHref(f.url)} target="_blank" rel="noopener noreferrer" style={styles.fileLink}>{f.title}</a>
-                  <button onClick={() => removeFile(i)} style={styles.fileDel} aria-label="Quitar archivo"><IconTrash size={13} /></button>
+                  <a href={materialHref(f.url)} target="_blank" rel="noopener noreferrer" className="pl-pressable" style={styles.fileLink}>{f.title}</a>
+                  <button onClick={() => removeFile(i)} className="pl-pressable" style={styles.fileDel} aria-label="Quitar archivo"><IconTrash size={13} /></button>
                 </div>
               ))}
             </div>
           )}
 
-          <label style={styles.uploadBtn}>
+          <label className="pl-pressable" style={styles.uploadBtn}>
             <input type="file" multiple onChange={onPick} style={{ display: 'none' }}
               accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.png,.jpg,.jpeg,.gif,.webp,.mp4,.mp3,.wav" />
             <IconUpload size={15} /> {uploading ? 'Subiendo…' : 'Adjuntar archivo'}
@@ -196,13 +196,13 @@ export function AssignmentCard({ assignment: a, courseTitle }: { assignment: Ass
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  heading: { color: '#F1F5F9', fontSize: 16, fontWeight: 700, margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-bricolage), sans-serif' },
-  card: { backgroundColor: '#14161C', border: '1px solid #1F222B', borderRadius: 16, padding: 16 },
-  title: { color: '#F1F5F9', fontSize: 16, fontWeight: 700, margin: '2px 0 0', fontFamily: 'var(--font-bricolage), sans-serif' },
-  desc: { color: '#94A3B8', fontSize: 13, margin: '6px 0 0', whiteSpace: 'pre-wrap' },
-  feedback: { backgroundColor: 'rgba(199,249,76,0.08)', border: '1px solid rgba(199,249,76,0.25)', borderRadius: 10, padding: 12, margin: '12px 0' },
-  fileRow: { display: 'flex', alignItems: 'center', gap: 8, backgroundColor: '#0A0B0E', border: '1px solid #1F222B', borderRadius: 9, padding: '8px 10px' },
-  fileLink: { flex: 1, minWidth: 0, color: '#F1F5F9', fontSize: 12, textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-  fileDel: { background: 'transparent', border: 'none', color: '#FCA5A5', cursor: 'pointer', padding: 2, flexShrink: 0 },
-  uploadBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', marginTop: 12, background: 'transparent', border: '1px dashed #262932', color: '#C7F94C', borderRadius: 10, padding: 11, fontSize: 13, fontWeight: 600, cursor: 'pointer' },
+  heading: { color: 'var(--text)', fontSize: 16, fontWeight: 700, margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-bricolage), sans-serif' },
+  card: { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 16, boxShadow: 'var(--shadow-card)' },
+  title: { color: 'var(--text)', fontSize: 16, fontWeight: 700, margin: '2px 0 0', fontFamily: 'var(--font-bricolage), sans-serif' },
+  desc: { color: 'var(--text-muted)', fontSize: 13, margin: '6px 0 0', whiteSpace: 'pre-wrap' },
+  feedback: { backgroundColor: 'rgba(199,249,76,0.08)', border: '1px solid rgba(199,249,76,0.25)', borderRadius: 'var(--r-sm)', padding: 12, margin: '12px 0' },
+  fileRow: { display: 'flex', alignItems: 'center', gap: 8, backgroundColor: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 9, padding: '8px 10px' },
+  fileLink: { flex: 1, minWidth: 0, color: 'var(--text)', fontSize: 12, textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  fileDel: { display: 'flex', background: 'transparent', border: 'none', color: '#FCA5A5', cursor: 'pointer', padding: 2, flexShrink: 0, borderRadius: 'var(--r-sm)' },
+  uploadBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, width: '100%', marginTop: 12, background: 'transparent', border: '1px dashed var(--border-hi)', color: 'var(--primary)', borderRadius: 'var(--r-sm)', padding: 11, fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'border-color var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out)' },
 };

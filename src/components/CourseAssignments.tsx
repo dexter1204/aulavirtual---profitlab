@@ -50,7 +50,7 @@ export function CourseAssignments({ courseId }: { courseId: string }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <span style={{ color: '#94A3B8', fontSize: 13 }}>{assignments.length} tareas</span>
+        <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>{assignments.length} tareas</span>
         <Button size="sm" onClick={() => setEditor({})}>+ Nueva tarea</Button>
       </div>
 
@@ -64,9 +64,9 @@ export function CourseAssignments({ courseId }: { courseId: string }) {
             <div key={a.id} style={styles.card}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ color: '#F1F5F9', fontSize: 14, fontWeight: 700 }} className="clamp-2">{a.title}</div>
+                  <div style={{ color: 'var(--text)', fontSize: 14, fontWeight: 700 }} className="clamp-2">{a.title}</div>
                   {a.description && (
-                    <div style={{ color: '#94A3B8', fontSize: 12, marginTop: 4 }} className="clamp-2">{a.description}</div>
+                    <div style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 4 }} className="clamp-2">{a.description}</div>
                   )}
                   {a.due_date && (
                     <div style={{ marginTop: 6 }}>
@@ -74,10 +74,10 @@ export function CourseAssignments({ courseId }: { courseId: string }) {
                     </div>
                   )}
                 </div>
-                <button onClick={() => setEditor({ assignment: a })} style={styles.iconBtn} aria-label="Editar tarea">
+                <button onClick={() => setEditor({ assignment: a })} className="pl-pressable" style={styles.iconBtn} aria-label="Editar tarea">
                   <IconPencil size={15} />
                 </button>
-                <button onClick={() => remove(a)} style={{ ...styles.iconBtn, color: '#FCA5A5' }} aria-label="Eliminar tarea">
+                <button onClick={() => remove(a)} className="pl-pressable" style={{ ...styles.iconBtn, color: '#FCA5A5' }} aria-label="Eliminar tarea">
                   <IconTrash size={15} />
                 </button>
               </div>
@@ -204,7 +204,7 @@ function SubmissionsModal({ assignment, onClose }: { assignment: Assignment; onC
       {loading ? (
         <Spinner />
       ) : subs.length === 0 ? (
-        <p style={{ color: '#64748B', fontSize: 13, textAlign: 'center', padding: 16 }}>Aún no hay entregas.</p>
+        <p style={{ color: 'var(--text-dim)', fontSize: 13, textAlign: 'center', padding: 16 }}>Aún no hay entregas.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {subs.map((s) => (
@@ -227,8 +227,8 @@ function SubmissionRow({ submission: s, onGrade }: { submission: Submission; onG
           {(s.user_name ?? '?').split(' ').map((x) => x[0]).slice(0, 2).join('').toUpperCase()}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ color: '#F1F5F9', fontSize: 13, fontWeight: 600 }}>{s.user_name}</div>
-          <div style={{ color: '#64748B', fontSize: 11 }}>{new Date(s.updated_at || s.created_at).toLocaleString('es')}</div>
+          <div style={{ color: 'var(--text)', fontSize: 13, fontWeight: 600 }}>{s.user_name}</div>
+          <div style={{ color: 'var(--text-dim)', fontSize: 11 }}>{new Date(s.updated_at || s.created_at).toLocaleString('es')}</div>
         </div>
         <Pill color={s.status === 'revisada' ? '#22C55E' : '#3B82F6'}>{s.status === 'revisada' ? 'Revisada' : 'Entregada'}</Pill>
       </div>
@@ -238,9 +238,9 @@ function SubmissionRow({ submission: s, onGrade }: { submission: Submission; onG
       {(s.files ?? []).length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
           {(s.files ?? []).map((f) => (
-            <a key={f.id} href={materialHref(f.url)} target="_blank" rel="noopener noreferrer" style={styles.fileRow}>
+            <a key={f.id} href={materialHref(f.url)} target="_blank" rel="noopener noreferrer" className="pl-pressable" style={styles.fileRow}>
               <IconPaperclip size={14} color="#C7F94C" />
-              <span style={{ flex: 1, minWidth: 0, color: '#F1F5F9', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.title}</span>
+              <span style={{ flex: 1, minWidth: 0, color: 'var(--text)', fontSize: 12, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.title}</span>
               <IconDownload size={14} color="#94A3B8" />
             </a>
           ))}
@@ -259,10 +259,10 @@ function SubmissionRow({ submission: s, onGrade }: { submission: Submission; onG
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  card: { backgroundColor: '#14161C', border: '1px solid #1F222B', borderRadius: 14, padding: 14 },
-  iconBtn: { background: 'transparent', border: 'none', color: '#94A3B8', fontSize: 14, cursor: 'pointer', padding: 4, flexShrink: 0 },
-  lbl: { display: 'block', color: '#94A3B8', fontSize: 12, fontWeight: 600, marginBottom: 6 },
-  subCard: { backgroundColor: '#0A0B0E', border: '1px solid #1F222B', borderRadius: 12, padding: 12 },
-  avatar: { width: 30, height: 30, borderRadius: 8, backgroundColor: '#C7F94C', color: '#0A0B0E', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 11, flexShrink: 0 },
-  fileRow: { display: 'flex', alignItems: 'center', gap: 8, backgroundColor: '#14161C', border: '1px solid #1F222B', borderRadius: 9, padding: '8px 10px', textDecoration: 'none' },
+  card: { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 14, boxShadow: 'var(--shadow-card)' },
+  iconBtn: { display: 'flex', background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: 14, cursor: 'pointer', padding: 4, flexShrink: 0, borderRadius: 'var(--r-sm)' },
+  lbl: { display: 'block', color: 'var(--text-muted)', fontSize: 12, fontWeight: 600, marginBottom: 6 },
+  subCard: { backgroundColor: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, padding: 12 },
+  avatar: { width: 30, height: 30, borderRadius: 8, backgroundColor: 'var(--primary)', color: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 11, flexShrink: 0 },
+  fileRow: { display: 'flex', alignItems: 'center', gap: 8, backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 9, padding: '8px 10px', textDecoration: 'none' },
 };

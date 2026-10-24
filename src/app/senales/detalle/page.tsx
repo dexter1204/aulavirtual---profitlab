@@ -36,7 +36,7 @@ function Detalle() {
   useEffect(() => { if (id) load(); else setLoading(false); /* eslint-disable-next-line */ }, [id]);
 
   if (loading) return <Spinner />;
-  if (!s) return <div style={{ padding: 40, textAlign: 'center', color: '#64748B' }}>Señal no encontrada.</div>;
+  if (!s) return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-dim)' }}>Señal no encontrada.</div>;
 
   const entry = parseFloat(s.entry_price), sl = parseFloat(s.stop_loss), risk = Math.abs(entry - sl);
   const isLong = s.direction === 'long';
@@ -63,7 +63,7 @@ function Detalle() {
 
   return (
     <div style={{ maxWidth: 760, margin: '0 auto', padding: '14px 12px 100px' }}>
-      <Link href="/senales" style={styles.back}>← Señales</Link>
+      <Link href="/senales" className="pl-pressable" style={styles.back}>← Señales</Link>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 0' }}>
         <h1 style={styles.asset}>{s.asset}</h1>
@@ -74,8 +74,8 @@ function Detalle() {
 
       <div style={styles.traderStrip}>
         <span style={styles.avatar}>{(s.trader?.name ?? 'M')[0]}</span>
-        <div><div style={{ color: '#64748B', fontSize: 10, letterSpacing: 0.6, textTransform: 'uppercase', fontWeight: 700 }}>Firmada por</div>
-          <div style={{ color: '#F1F5F9', fontSize: 14, fontWeight: 600 }}>★ {s.trader?.name ?? 'Mentor'}</div></div>
+        <div><div style={{ color: 'var(--text-dim)', fontSize: 10, letterSpacing: 0.6, textTransform: 'uppercase', fontWeight: 700 }}>Firmada por</div>
+          <div style={{ color: 'var(--text)', fontSize: 14, fontWeight: 600 }}>★ {s.trader?.name ?? 'Mentor'}</div></div>
       </div>
 
       {s.image_url && (
@@ -89,7 +89,7 @@ function Detalle() {
         {s.take_profit_2 && <Row label="TP2" value={fmt(parseFloat(s.take_profit_2))} color="#4ade80" check={rTP2} />}
         {s.take_profit_3 && <Row label="TP3" value={fmt(parseFloat(s.take_profit_3))} color="#4ade80" check={rTP3} />}
         {s.take_profit_4 && <Row label="TP4" value={fmt(parseFloat(s.take_profit_4))} color="#4ade80" check={rTP4} />}
-        <div style={styles.rr}><span>Risk : Reward</span><span style={{ color: '#C7F94C', fontWeight: 700 }}>1 : {rr}</span></div>
+        <div style={styles.rr}><span>Risk : Reward</span><span style={{ color: 'var(--primary)', fontWeight: 700 }}>1 : {rr}</span></div>
       </div>
 
       {isAdmin && !closed && (
@@ -104,7 +104,7 @@ function Detalle() {
             <ActBtn red onClick={() => confirmDo('¿SL alcanzado? Cierre (-1R)', () => closeSignal(s.id, 'sl_hit', -1), 'Cerrada en SL')} disabled={busy}>SL alcanzado</ActBtn>
             <ActBtn onClick={() => confirmDo('¿Cerrar manualmente? (0R)', () => closeSignal(s.id, 'closed_manual', 0), 'Cerrada')} disabled={busy}>Cerrar manual</ActBtn>
           </div>
-          <Link href={`/senales/editar/?id=${s.id}`} style={styles.editLink}>✏️ Editar trade</Link>
+          <Link href={`/senales/editar/?id=${s.id}`} className="pl-pressable" style={styles.editLink}>✏️ Editar trade</Link>
         </div>
       )}
 
@@ -115,20 +115,20 @@ function Detalle() {
             <div key={u.id} style={styles.upRow}>
               <span style={{ ...styles.upDot, background: dotColor(u.type) }} />
               <div><div style={{ color: '#CBD5E1', fontSize: 13 }}>{u.message || humanize(u.type)}</div>
-                <div style={{ color: '#64748B', fontSize: 11 }}>{new Date(u.created_at.replace(' ', 'T')).toLocaleString('es-PE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</div></div>
+                <div style={{ color: 'var(--text-dim)', fontSize: 11 }}>{new Date(u.created_at.replace(' ', 'T')).toLocaleString('es-PE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</div></div>
             </div>
           ))}
         </div>
       )}
 
       {s.notes && <div style={styles.card}><div style={styles.secLabel}>Análisis / notas</div><div style={styles.pre}>{s.notes}</div></div>}
-      {s.recommendations && <div style={{ ...styles.card, borderColor: 'rgba(199,249,76,.4)' }}><div style={{ ...styles.secLabel, color: '#C7F94C' }}>💡 Recomendaciones</div><div style={styles.pre}>{s.recommendations}</div></div>}
-      {s.tradingview_url && <a href={materialHref(s.tradingview_url)} target="_blank" rel="noopener" style={styles.tvLink}>📊 Ver en TradingView ↗</a>}
+      {s.recommendations && <div style={{ ...styles.card, borderColor: 'rgba(199,249,76,.4)' }}><div style={{ ...styles.secLabel, color: 'var(--primary)' }}>💡 Recomendaciones</div><div style={styles.pre}>{s.recommendations}</div></div>}
+      {s.tradingview_url && <a href={materialHref(s.tradingview_url)} target="_blank" rel="noopener" className="pl-pressable" style={styles.tvLink}>📊 Ver en TradingView ↗</a>}
 
       {isAdmin && (
         <div style={styles.danger}>
           <div style={{ color: '#f87171', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>Zona peligrosa</div>
-          <button disabled={busy} onClick={() => { if (confirm('¿Eliminar esta señal?') && confirm('Esto es permanente. ¿Confirmar?')) run(() => deleteSignal(s.id).then(() => router.push('/senales')), 'Señal eliminada'); }} style={styles.deleteBtn}>Eliminar señal</button>
+          <button disabled={busy} onClick={() => { if (confirm('¿Eliminar esta señal?') && confirm('Esto es permanente. ¿Confirmar?')) run(() => deleteSignal(s.id).then(() => router.push('/senales')), 'Señal eliminada'); }} className="pl-pressable" style={styles.deleteBtn}>Eliminar señal</button>
         </div>
       )}
     </div>
@@ -144,19 +144,19 @@ function StatusBanner({ status, r }: { status: SignalStatus; r: number | null })
   };
   const m = map[status];
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#14161C', border: '1px solid #1F222B', borderRadius: 12, padding: '12px 14px', marginBottom: 12 }}>
-      <span style={{ width: 10, height: 10, borderRadius: 999, background: m.color, boxShadow: `0 0 10px ${m.color}` }} />
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: '12px 14px', marginBottom: 12, boxShadow: 'var(--shadow-card)' }}>
+      <span style={{ width: 10, height: 10, borderRadius: 'var(--r-pill)', background: m.color, boxShadow: `0 0 10px ${m.color}` }} />
       <span style={{ color: m.color, fontWeight: 700, fontSize: 13, letterSpacing: 0.4 }}>{m.label}</span>
       <span style={{ flex: 1 }} />
-      {r != null && <span style={{ color: r > 0 ? '#C7F94C' : r < 0 ? '#f87171' : '#94A3B8', fontWeight: 800, fontFamily: 'ui-monospace, monospace' }}>{r > 0 ? '+' : ''}{r}R</span>}
+      {r != null && <span style={{ color: r > 0 ? 'var(--primary)' : r < 0 ? '#f87171' : 'var(--text-muted)', fontWeight: 800, fontFamily: 'ui-monospace, monospace' }}>{r > 0 ? '+' : ''}{r}R</span>}
     </div>
   );
 }
 
-function Row({ label, value, color = '#F1F5F9', check }: { label: string; value: string; color?: string; check?: boolean }) {
+function Row({ label, value, color = 'var(--text)', check }: { label: string; value: string; color?: string; check?: boolean }) {
   return (
     <div style={styles.priceLine}>
-      <span style={{ color: '#94A3B8', fontSize: 13 }}>{label}</span>
+      <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>{label}</span>
       <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         {check && <span style={{ color: '#4ade80' }}>✓</span>}
         <span style={{ color, fontWeight: 700, fontFamily: 'ui-monospace, monospace' }}>{value}</span>
@@ -165,9 +165,9 @@ function Row({ label, value, color = '#F1F5F9', check }: { label: string; value:
   );
 }
 function ActBtn({ children, onClick, disabled, green, red }: { children: React.ReactNode; onClick: () => void; disabled?: boolean; green?: boolean; red?: boolean }) {
-  const c = green ? '#22c55e' : red ? '#ef4444' : '#1F222B';
+  const c = green ? 'var(--long)' : red ? 'var(--short)' : 'var(--border)';
   const fg = green || red ? '#0A0B0E' : '#CBD5E1';
-  return <button onClick={onClick} disabled={disabled} style={{ background: green || red ? c : '#14161C', color: fg, border: `1px solid ${green || red ? c : '#1F222B'}`, borderRadius: 10, padding: '11px 10px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: disabled ? 0.5 : 1, minHeight: 44 }}>{children}</button>;
+  return <button onClick={onClick} disabled={disabled} className={disabled ? undefined : 'pl-pressable'} style={{ background: green || red ? c : 'var(--surface)', color: fg, border: `1px solid ${green || red ? c : 'var(--border)'}`, borderRadius: 'var(--r-sm)', padding: '11px 10px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: disabled ? 0.5 : 1, minHeight: 44 }}>{children}</button>;
 }
 
 function fmt(n: number): string { if (isNaN(n)) return '—'; return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: n < 100 ? 5 : 2 }); }
@@ -184,24 +184,24 @@ function dotColor(t: string): string {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  back: { color: '#94A3B8', fontSize: 13, textDecoration: 'none' },
-  asset: { color: '#F1F5F9', fontSize: 24, fontWeight: 800, margin: 0, fontFamily: 'ui-monospace, monospace' },
-  dir: { fontSize: 12, fontWeight: 700, border: '1px solid', borderRadius: 6, padding: '3px 9px' },
+  back: { color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none' },
+  asset: { color: 'var(--text)', fontSize: 24, fontWeight: 800, margin: 0, fontFamily: 'ui-monospace, monospace' },
+  dir: { fontSize: 12, fontWeight: 700, border: '1px solid', borderRadius: 'var(--r-sm)', padding: '3px 9px' },
   traderStrip: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 },
-  avatar: { width: 34, height: 34, borderRadius: 999, background: 'rgba(199,249,76,.15)', color: '#C7F94C', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 },
-  chartImg: { width: '100%', borderRadius: 12, border: '1px solid #1F222B', marginBottom: 12, aspectRatio: '16/9', objectFit: 'cover' },
-  card: { background: '#14161C', border: '1px solid #1F222B', borderRadius: 14, padding: 16, marginBottom: 12 },
-  priceLine: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #1F222B' },
-  rr: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, color: '#94A3B8', fontSize: 13 },
-  actions: { background: '#14161C', border: '1px solid #1F222B', borderRadius: 14, padding: 16, marginBottom: 12 },
-  actionsTitle: { color: '#94A3B8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 },
+  avatar: { width: 34, height: 34, borderRadius: 'var(--r-pill)', background: 'rgba(199,249,76,.15)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 },
+  chartImg: { width: '100%', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', marginBottom: 12, aspectRatio: '16/9', objectFit: 'cover' },
+  card: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 16, marginBottom: 12, boxShadow: 'var(--shadow-card)' },
+  priceLine: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)' },
+  rr: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, color: 'var(--text-muted)', fontSize: 13 },
+  actions: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 16, marginBottom: 12, boxShadow: 'var(--shadow-card)' },
+  actionsTitle: { color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 },
   actionsGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 },
-  editLink: { display: 'block', textAlign: 'center', marginTop: 12, color: '#C7F94C', fontSize: 13, fontWeight: 600, textDecoration: 'none' },
-  secLabel: { color: '#94A3B8', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 },
+  editLink: { display: 'block', textAlign: 'center', marginTop: 12, color: 'var(--primary)', fontSize: 13, fontWeight: 600, textDecoration: 'none' },
+  secLabel: { color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 10 },
   upRow: { display: 'flex', gap: 10, padding: '8px 0' },
-  upDot: { width: 8, height: 8, borderRadius: 999, marginTop: 5, flexShrink: 0 },
+  upDot: { width: 8, height: 8, borderRadius: 'var(--r-pill)', marginTop: 5, flexShrink: 0 },
   pre: { color: '#CBD5E1', fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap' },
-  tvLink: { display: 'block', textAlign: 'center', color: '#C7F94C', fontSize: 14, textDecoration: 'none', padding: '12px 0', marginBottom: 12 },
-  danger: { border: '1px solid rgba(239,68,68,.3)', borderRadius: 14, padding: 16 },
-  deleteBtn: { width: '100%', background: 'transparent', color: '#f87171', border: '1px solid rgba(239,68,68,.4)', borderRadius: 10, padding: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
+  tvLink: { display: 'block', textAlign: 'center', color: 'var(--primary)', fontSize: 14, textDecoration: 'none', padding: '12px 0', marginBottom: 12 },
+  danger: { border: '1px solid rgba(239,68,68,.3)', borderRadius: 'var(--r-md)', padding: 16 },
+  deleteBtn: { width: '100%', background: 'transparent', color: '#f87171', border: '1px solid rgba(239,68,68,.4)', borderRadius: 'var(--r-sm)', padding: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', transition: 'background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out)' },
 };

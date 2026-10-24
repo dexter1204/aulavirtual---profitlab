@@ -49,28 +49,28 @@ export default function AdminDashboard() {
           </div>
 
           <div style={styles.actions}>
-            <Link href="/admin/cursos/nuevo" style={styles.primaryAction}>
+            <Link href="/admin/cursos/nuevo" className="pl-pressable" style={styles.primaryAction}>
               + Crear nuevo curso
             </Link>
-            <Link href="/admin/cursos" style={styles.secondaryAction}>
+            <Link href="/admin/cursos" className="pl-pressable" style={styles.secondaryAction}>
               Gestionar cursos
             </Link>
           </div>
 
-          <h2 style={styles.h2}>Cursos recientes</h2>
+          <h2 className="pl-title" style={styles.h2}>Cursos recientes</h2>
           {courses.length === 0 ? (
-            <p style={{ color: '#64748B', fontSize: 13 }}>Todavía no hay cursos. Crea el primero.</p>
+            <p style={{ color: 'var(--text-dim)', fontSize: 13 }}>Todavía no hay cursos. Crea el primero.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {courses.slice(0, 6).map((c) => (
                 <Link key={c.id} href={`/admin/curso/?id=${c.id}`} style={{ textDecoration: 'none' }}>
-                  <Card style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12 }}>
+                  <Card interactive style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12 }}>
                     <div style={styles.dot(c.status)} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ color: '#F1F5F9', fontSize: 14, fontWeight: 600 }} className="clamp-2">
+                      <div style={{ color: 'var(--text)', fontSize: 14, fontWeight: 600 }} className="clamp-2">
                         {c.title}
                       </div>
-                      <div style={{ color: '#64748B', fontSize: 11, marginTop: 2 }}>{c.category}</div>
+                      <div style={{ color: 'var(--text-dim)', fontSize: 11, marginTop: 2 }}>{c.category}</div>
                     </div>
                     <Pill color={c.status === 'published' ? '#22C55E' : '#F59E0B'}>
                       {c.status === 'published' ? 'Publicado' : c.status === 'scheduled' ? 'Programado' : 'Borrador'}
@@ -88,42 +88,44 @@ export default function AdminDashboard() {
 
 function Stat({ label, value, accent }: { label: string; value: number; accent?: boolean }) {
   return (
-    <div style={{ ...styles.stat, borderColor: accent ? 'rgba(199,249,76,0.4)' : '#1F222B' }}>
-      <div style={{ color: accent ? '#C7F94C' : '#F1F5F9', fontSize: 24, fontWeight: 800 }}>{value}</div>
-      <div style={{ color: '#64748B', fontSize: 11, marginTop: 2 }}>{label}</div>
+    <div style={{ ...styles.stat, borderColor: accent ? 'rgba(199,249,76,0.4)' : 'var(--border)' }}>
+      <div style={{ color: accent ? 'var(--primary)' : 'var(--text)', fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em' }}>{value}</div>
+      <div style={{ color: 'var(--text-dim)', fontSize: 11, marginTop: 4 }}>{label}</div>
     </div>
   );
 }
 
 const styles: Record<string, any> = {
   stats: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))', gap: 10, marginBottom: 20 },
-  stat: { backgroundColor: '#14161C', border: '1px solid #1F222B', borderRadius: 12, padding: '14px 12px', textAlign: 'center' },
+  stat: { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: '14px 12px', textAlign: 'center', boxShadow: 'var(--shadow-card)' },
   actions: { display: 'flex', gap: 10, marginBottom: 26, flexWrap: 'wrap' },
   primaryAction: {
     flex: 1,
     minWidth: 160,
     textAlign: 'center',
-    backgroundColor: '#C7F94C',
-    color: '#0A0B0E',
+    backgroundColor: 'var(--primary)',
+    color: 'var(--bg)',
     fontWeight: 700,
     fontSize: 14,
     padding: '13px',
-    borderRadius: 10,
+    borderRadius: 'var(--r-sm)',
     textDecoration: 'none',
+    boxShadow: '0 1px 0 rgba(255,255,255,0.25) inset',
   },
   secondaryAction: {
     flex: 1,
     minWidth: 160,
     textAlign: 'center',
-    backgroundColor: '#1F222B',
-    color: '#F1F5F9',
+    backgroundColor: 'var(--surface-hi)',
+    color: 'var(--text)',
     fontWeight: 600,
     fontSize: 14,
     padding: '13px',
-    borderRadius: 10,
+    borderRadius: 'var(--r-sm)',
     textDecoration: 'none',
+    border: '1px solid var(--border)',
   },
-  h2: { color: '#F1F5F9', fontSize: 16, fontWeight: 700, margin: '0 0 12px', fontFamily: 'var(--font-bricolage), sans-serif' },
+  h2: { color: 'var(--text)', fontSize: 16, margin: '0 0 12px' },
   dot: (status: string): React.CSSProperties => ({
     width: 10,
     height: 10,

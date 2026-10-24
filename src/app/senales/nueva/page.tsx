@@ -62,9 +62,9 @@ export default function NuevaSenalPage() {
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', padding: '14px 12px 100px' }}>
       <div style={styles.topbar}>
-        <Link href="/senales" style={styles.cancel}>Cancelar</Link>
-        <h1 style={styles.title}>Nueva señal</h1>
-        <button onClick={submit} disabled={!valid || saving} style={{ ...styles.publish, opacity: valid && !saving ? 1 : 0.45 }}>
+        <Link href="/senales" className="pl-pressable" style={styles.cancel}>Cancelar</Link>
+        <h1 className="pl-title" style={styles.title}>Nueva señal</h1>
+        <button onClick={submit} disabled={!valid || saving} className="pl-pressable" style={{ ...styles.publish, opacity: valid && !saving ? 1 : 0.45 }}>
           {saving ? '…' : 'Publicar'}
         </button>
       </div>
@@ -80,11 +80,11 @@ export default function NuevaSenalPage() {
       </L>
 
       <L label="Dirección">
-        <Toggle options={[['long', 'LONG ▲', '#22c55e'], ['short', 'SHORT ▼', '#ef4444']]} value={direction} onChange={(v) => setDirection(v as SignalDirection)} />
+        <Toggle options={[['long', 'LONG ▲', 'var(--long)'], ['short', 'SHORT ▼', 'var(--short)']]} value={direction} onChange={(v) => setDirection(v as SignalDirection)} />
       </L>
 
       <L label="Audiencia">
-        <Toggle options={[['free', 'Free', '#94A3B8'], ['premium', 'Premium', '#C7F94C'], ['all', 'Todos', '#94A3B8']]} value={audience} onChange={(v) => setAudience(v as Audience)} />
+        <Toggle options={[['free', 'Free', 'var(--text-muted)'], ['premium', 'Premium', 'var(--primary)'], ['all', 'Todos', 'var(--text-muted)']]} value={audience} onChange={(v) => setAudience(v as Audience)} />
       </L>
 
       <div style={styles.grid2}>
@@ -100,7 +100,7 @@ export default function NuevaSenalPage() {
         <L label="TP4"><input type="number" step="any" value={tp4} onChange={(e) => setTp4(e.target.value)} style={{ ...inputStyle, color: '#4ade80' }} /></L>
       </div>
 
-      <L label="Link TradingView (opcional)"><input value={tv} onChange={(e) => setTv(e.target.value)} placeholder="https://www.tradingview.com/x/…" style={{ ...inputStyle, color: '#C7F94C' }} /></L>
+      <L label="Link TradingView (opcional)"><input value={tv} onChange={(e) => setTv(e.target.value)} placeholder="https://www.tradingview.com/x/…" style={{ ...inputStyle, color: 'var(--primary)' }} /></L>
       <L label="Imagen del gráfico (opcional)"><input type="file" accept="image/*" onChange={(e) => setImage(e.target.files?.[0] ?? null)} style={{ ...inputStyle, padding: 9 }} /></L>
       <L label="Análisis / notas (opcional)"><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} /></L>
       <L label="Recomendaciones del trade (opcional)"><textarea value={recs} onChange={(e) => setRecs(e.target.value)} rows={3} style={{ ...inputStyle, resize: 'vertical' }} /></L>
@@ -120,8 +120,8 @@ function Toggle({ options, value, onChange }: { options: [string, string, string
   return (
     <div style={styles.toggle}>
       {options.map(([v, label, color]) => (
-        <button key={v} onClick={() => onChange(v)} type="button"
-          style={{ ...styles.toggleBtn, backgroundColor: value === v ? color : 'transparent', color: value === v ? '#0A0B0E' : '#94A3B8', fontWeight: value === v ? 700 : 500 }}>
+        <button key={v} onClick={() => onChange(v)} type="button" className="pl-pressable"
+          style={{ ...styles.toggleBtn, backgroundColor: value === v ? color : 'transparent', color: value === v ? '#0A0B0E' : 'var(--text-muted)', fontWeight: value === v ? 700 : 500 }}>
           {label}
         </button>
       ))}
@@ -131,11 +131,11 @@ function Toggle({ options, value, onChange }: { options: [string, string, string
 
 const styles: Record<string, React.CSSProperties> = {
   topbar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 14 },
-  cancel: { color: '#94A3B8', fontSize: 14, textDecoration: 'none' },
-  title: { color: '#F1F5F9', fontSize: 17, fontWeight: 700, margin: 0, fontFamily: 'var(--font-bricolage), sans-serif' },
-  publish: { background: '#C7F94C', color: '#0A0B0E', border: 0, borderRadius: 10, padding: '9px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' },
-  lbl: { display: 'block', color: '#94A3B8', fontSize: 11, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 6 },
+  cancel: { color: 'var(--text-muted)', fontSize: 14, textDecoration: 'none' },
+  title: { color: 'var(--text)', fontSize: 17, margin: 0 },
+  publish: { background: 'var(--primary)', color: '#0A0B0E', border: 0, borderRadius: 'var(--r-sm)', padding: '9px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' },
+  lbl: { display: 'block', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 6 },
   grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 },
-  toggle: { display: 'flex', gap: 4, background: '#14161C', border: '1px solid #1F222B', borderRadius: 10, padding: 3 },
-  toggleBtn: { flex: 1, border: 0, borderRadius: 8, padding: '9px 6px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', minHeight: 40 },
+  toggle: { display: 'flex', gap: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: 3 },
+  toggleBtn: { flex: 1, border: 0, borderRadius: 8, padding: '9px 6px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', minHeight: 40, transition: 'background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out)' },
 };

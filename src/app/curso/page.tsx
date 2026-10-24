@@ -57,9 +57,9 @@ function totalDuration(modules: Module[]): string | null {
 function DetailRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0' }}>
-      <span style={{ color: '#C7F94C', display: 'flex', flexShrink: 0 }}>{icon}</span>
-      <span style={{ color: '#94A3B8', fontSize: 13, flex: 1 }}>{label}</span>
-      <span style={{ color: '#F1F5F9', fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{value}</span>
+      <span style={{ color: 'var(--primary)', display: 'flex', flexShrink: 0 }}>{icon}</span>
+      <span style={{ color: 'var(--text-muted)', fontSize: 13, flex: 1 }}>{label}</span>
+      <span style={{ color: 'var(--text)', fontSize: 13, fontWeight: 700, textAlign: 'right' }}>{value}</span>
     </div>
   );
 }
@@ -164,7 +164,7 @@ function CourseDetail() {
   if (!course)
     return (
       <Page>
-        <Empty icon={<IconSearch size={34} color="#64748B" />} title="Curso no encontrado" cta={{ label: 'Volver al catálogo', href: '/cursos/' }} />
+        <Empty icon={<IconSearch size={34} color="var(--text-dim)" />} title="Curso no encontrado" cta={{ label: 'Volver al catálogo', href: '/cursos/' }} />
       </Page>
     );
 
@@ -177,7 +177,7 @@ function CourseDetail() {
 
   return (
     <Page>
-      <Link href="/cursos/" style={styles.back}>
+      <Link href="/cursos/" className="pl-pressable" style={styles.back}>
         <IconArrowLeft size={15} />
         Catálogo
       </Link>
@@ -189,7 +189,7 @@ function CourseDetail() {
           // eslint-disable-next-line @next/next/no-img-element
           <img src={course.thumbnail_url} alt={course.title} style={styles.heroImg} />
         ) : (
-          <div style={{ ...styles.heroImg, ...styles.heroFallback }}><IconVideo size={46} color="#C7F94C" style={{ opacity: 0.5 }} /></div>
+          <div style={{ ...styles.heroImg, ...styles.heroFallback }}><IconVideo size={46} color="var(--primary)" style={{ opacity: 0.5 }} /></div>
         )}
         <div style={styles.heroOverlay} />
         <div style={styles.heroContent}>
@@ -198,7 +198,7 @@ function CourseDetail() {
             <Pill>{levelLabel[course.level] ?? course.level}</Pill>
             {course.status !== 'published' && <Pill color="#F59E0B">{course.status}</Pill>}
           </div>
-          <h1 style={styles.heroTitle}>{course.title}</h1>
+          <h1 className="pl-display" style={styles.heroTitle}>{course.title}</h1>
           {course.subtitle && <p style={styles.heroSub}>{course.subtitle}</p>}
           <p style={styles.instructor}>Por {course.instructor}</p>
         </div>
@@ -213,7 +213,7 @@ function CourseDetail() {
             <div style={styles.progressTrack}>
               <div style={{ ...styles.progressFill, width: `${pct}%` }} />
             </div>
-            <span style={{ color: '#94A3B8', fontSize: 12, marginTop: 6, display: 'block' }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: 12, marginTop: 6, display: 'block' }}>
               {done}/{totalLessons} clases completadas · {pct}%
             </span>
           </div>
@@ -221,7 +221,7 @@ function CourseDetail() {
 
         {!enrolled && !isAdmin && (
           <div style={{ marginBottom: 12 }}>
-            <span style={{ color: course.price > 0 ? '#F1F5F9' : '#86EFAC', fontSize: 24, fontWeight: 800 }}>
+            <span style={{ color: course.price > 0 ? 'var(--text)' : '#86EFAC', fontSize: 24, fontWeight: 800 }}>
               {money(course.price, course.currency)}
             </span>
           </div>
@@ -229,13 +229,13 @@ function CourseDetail() {
 
         {canWatch ? (
           <Button full onClick={() => router.push(learnHref(firstLessonId))} disabled={totalLessons === 0}>
-            <IconPlay size={16} color="#0A0B0E" />
+            <IconPlay size={16} color="var(--bg)" />
             {totalLessons === 0 ? 'Sin clases todavía' : enrolled && done > 0 ? 'Continuar curso' : 'Comenzar curso'}
           </Button>
         ) : course.price > 0 ? (
           <>
             <Button full onClick={handleBuy} disabled={working || !session}>
-              <IconCard size={17} color="#0A0B0E" />
+              <IconCard size={17} color="var(--bg)" />
               {working ? 'Redirigiendo…' : `Comprar por ${money(course.price, course.currency)}`}
             </Button>
             <p style={styles.mpNote}>Pago seguro con Mercado Pago · tarjeta, Yape, transferencia y más</p>
@@ -257,7 +257,7 @@ function CourseDetail() {
         )}
 
         {enrolled && (
-          <button onClick={handleUnenroll} disabled={working} style={styles.unenroll}>
+          <button onClick={handleUnenroll} disabled={working} className="pl-pressable" style={styles.unenroll}>
             Cancelar inscripción
           </button>
         )}
@@ -265,7 +265,7 @@ function CourseDetail() {
 
       {/* DETALLES DEL CURSO */}
       <Card>
-        <h2 style={{ ...styles.sectionTitle, marginBottom: 4 }}>Detalles del curso</h2>
+        <h2 className="pl-title" style={{ ...styles.sectionTitle, marginBottom: 4 }}>Detalles del curso</h2>
         <DetailRow icon={<IconBook size={18} />} label="Lecciones" value={totalLessons} />
         <DetailRow icon={<IconLayers size={18} />} label="Módulos" value={modules.length} />
         {totalDuration(modules) && <DetailRow icon={<IconClock size={18} />} label="Duración" value={totalDuration(modules)} />}
@@ -285,7 +285,7 @@ function CourseDetail() {
       <section style={{ gridArea: 'desc' }}>
         {course.description ? (
           <>
-            <h2 style={styles.sectionTitle}>Sobre este curso</h2>
+            <h2 className="pl-title" style={styles.sectionTitle}>Sobre este curso</h2>
             <p style={styles.desc}>{course.description}</p>
           </>
         ) : null}
@@ -294,14 +294,14 @@ function CourseDetail() {
       {/* CURRÍCULO */}
       <section style={{ gridArea: 'curriculum' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <h2 style={styles.sectionTitle}>Contenido del curso</h2>
-          <span style={{ color: '#64748B', fontSize: 12 }}>
+          <h2 className="pl-title" style={styles.sectionTitle}>Contenido del curso</h2>
+          <span style={{ color: 'var(--text-dim)', fontSize: 12 }}>
             {modules.length} módulos · {totalLessons} clases
           </span>
         </div>
 
         {modules.length === 0 ? (
-          <p style={{ color: '#64748B', fontSize: 13 }}>El contenido se publicará pronto.</p>
+          <p style={{ color: 'var(--text-dim)', fontSize: 13 }}>El contenido se publicará pronto.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
             {modules.map((m, mi) => (
@@ -309,7 +309,7 @@ function CourseDetail() {
                 <div style={styles.moduleHead}>
                   <span style={styles.moduleIdx}>{mi + 1}</span>
                   <span style={styles.moduleTitle}>{m.title}</span>
-                  <span style={{ color: '#64748B', fontSize: 11 }}>{m.lessons?.length ?? 0} clases</span>
+                  <span style={{ color: 'var(--text-dim)', fontSize: 11 }}>{m.lessons?.length ?? 0} clases</span>
                 </div>
                 <div>
                   {(m.lessons ?? []).map((l) => {
@@ -317,7 +317,7 @@ function CourseDetail() {
                     const isDone = progress[l.id];
                     const inner = (
                       <div style={styles.lesson}>
-                        <span style={{ display: 'flex', flexShrink: 0, color: isDone ? '#C7F94C' : unlocked ? '#94A3B8' : '#64748B' }}>
+                        <span style={{ display: 'flex', flexShrink: 0, color: isDone ? 'var(--primary)' : unlocked ? 'var(--text-muted)' : 'var(--text-dim)' }}>
                           {isDone ? <IconCheck size={15} /> : unlocked ? <IconPlay size={13} /> : <IconLock size={14} />}
                         </span>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -328,13 +328,13 @@ function CourseDetail() {
                           </div>
                           <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
                             {l.is_preview && <span style={styles.previewTag}>Muestra gratis</span>}
-                            {l.duration && <span style={{ color: '#64748B', fontSize: 11 }}>{l.duration}</span>}
+                            {l.duration && <span style={{ color: 'var(--text-dim)', fontSize: 11 }}>{l.duration}</span>}
                           </div>
                         </div>
                       </div>
                     );
                     return unlocked ? (
-                      <Link key={l.id} href={learnHref(l.id)} style={styles.lessonLink}>
+                      <Link key={l.id} href={learnHref(l.id)} className="pl-pressable" style={styles.lessonLink}>
                         {inner}
                       </Link>
                     ) : (
@@ -355,8 +355,8 @@ function CourseDetail() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  back: { color: '#94A3B8', fontSize: 13, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 },
-  hero: { position: 'relative', borderRadius: 18, overflow: 'hidden', border: '1px solid #1F222B' },
+  back: { color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 },
+  hero: { position: 'relative', borderRadius: 'var(--r-lg)', overflow: 'hidden', border: '1px solid var(--border)' },
   heroImg: { width: '100%', aspectRatio: '16 / 9', objectFit: 'cover', display: 'block' },
   heroFallback: {
     display: 'flex',
@@ -372,62 +372,56 @@ const styles: Record<string, React.CSSProperties> = {
   },
   heroContent: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 18 },
   heroTitle: {
-    color: '#F1F5F9',
+    color: 'var(--text)',
     fontSize: 24,
-    fontWeight: 800,
     margin: 0,
-    lineHeight: '28px',
-    fontFamily: 'var(--font-bricolage), sans-serif',
-    letterSpacing: -0.5,
   },
   heroSub: { color: '#CBD5E1', fontSize: 14, margin: '8px 0 0' },
-  instructor: { color: '#94A3B8', fontSize: 12, margin: '10px 0 0', fontWeight: 500 },
-  progressTrack: { width: '100%', height: 8, backgroundColor: '#0A0B0E', borderRadius: 999, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: '#C7F94C', borderRadius: 999, boxShadow: '0 0 12px rgba(199,249,76,0.5)' },
+  instructor: { color: 'var(--text-muted)', fontSize: 12, margin: '10px 0 0', fontWeight: 500 },
+  progressTrack: { width: '100%', height: 8, backgroundColor: 'var(--bg)', borderRadius: 'var(--r-pill)', overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: 'var(--primary)', borderRadius: 'var(--r-pill)', boxShadow: '0 0 12px rgba(199,249,76,0.5)' },
   lockedNote: {
     color: '#FCD34D',
     backgroundColor: 'rgba(245,158,11,0.1)',
     border: '1px solid rgba(245,158,11,0.3)',
-    borderRadius: 10,
+    borderRadius: 'var(--r-sm)',
     padding: 14,
     fontSize: 13,
     textAlign: 'center',
   },
-  mpNote: { color: '#64748B', fontSize: 11, textAlign: 'center', margin: '8px 0 0' },
+  mpNote: { color: 'var(--text-dim)', fontSize: 11, textAlign: 'center', margin: '8px 0 0' },
   unenroll: {
     display: 'block',
     width: '100%',
     marginTop: 10,
     background: 'transparent',
     border: 'none',
-    color: '#64748B',
+    color: 'var(--text-dim)',
     fontSize: 12,
     cursor: 'pointer',
     fontFamily: 'inherit',
     padding: 6,
   },
   sectionTitle: {
-    color: '#F1F5F9',
+    color: 'var(--text)',
     fontSize: 17,
-    fontWeight: 700,
     margin: '0 0 10px',
-    fontFamily: 'var(--font-bricolage), sans-serif',
   },
   desc: { color: '#CBD5E1', fontSize: 14, lineHeight: '22px', whiteSpace: 'pre-wrap', margin: 0 },
-  module: { backgroundColor: '#14161C', border: '1px solid #1F222B', borderRadius: 14, overflow: 'hidden' },
+  module: { backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', overflow: 'hidden' },
   moduleHead: {
     display: 'flex',
     alignItems: 'center',
     gap: 10,
     padding: '12px 14px',
-    borderBottom: '1px solid #1F222B',
+    borderBottom: '1px solid var(--border)',
   },
   moduleIdx: {
     width: 22,
     height: 22,
     borderRadius: 6,
     backgroundColor: 'rgba(199,249,76,0.15)',
-    color: '#C7F94C',
+    color: 'var(--primary)',
     fontSize: 12,
     fontWeight: 700,
     display: 'flex',
@@ -435,10 +429,10 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     flexShrink: 0,
   },
-  moduleTitle: { color: '#F1F5F9', fontSize: 14, fontWeight: 600, flex: 1 },
-  lessonLink: { display: 'block', textDecoration: 'none', borderBottom: '1px solid #14161C' },
+  moduleTitle: { color: 'var(--text)', fontSize: 14, fontWeight: 600, flex: 1 },
+  lessonLink: { display: 'block', textDecoration: 'none', borderBottom: '1px solid var(--surface)' },
   lesson: { display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px' },
-  lessonThumb: { width: 64, height: 36, objectFit: 'cover', borderRadius: 6, flexShrink: 0, backgroundColor: '#0A0B0E' },
-  lessonTitle: { color: '#F1F5F9', fontSize: 13, fontWeight: 500, lineHeight: '17px' },
-  previewTag: { color: '#C7F94C', fontSize: 10, fontWeight: 600 },
+  lessonThumb: { width: 64, height: 36, objectFit: 'cover', borderRadius: 6, flexShrink: 0, backgroundColor: 'var(--bg)' },
+  lessonTitle: { color: 'var(--text)', fontSize: 13, fontWeight: 500, lineHeight: '17px' },
+  previewTag: { color: 'var(--primary)', fontSize: 10, fontWeight: 600 },
 };

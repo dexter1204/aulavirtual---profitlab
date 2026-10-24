@@ -214,5 +214,5 @@ function toLocalInput(iso: string): string {
 
 const styles: Record<string, React.CSSProperties> = {
   two: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 },
-  preview: { width: '100%', maxWidth: 280, aspectRatio: '16/9', objectFit: 'cover', borderRadius: 10, marginBottom: 14, border: '1px solid #1F222B' },
+  preview: { width: '100%', maxWidth: 280, aspectRatio: '16/9', objectFit: 'cover', borderRadius: 'var(--r-sm)', marginBottom: 14, border: '1px solid var(--border)', boxShadow: 'var(--shadow-card)' },
 };

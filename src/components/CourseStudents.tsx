@@ -70,7 +70,7 @@ export function CourseStudents({ courseId }: { courseId: string }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-        <span style={{ color: '#94A3B8', fontSize: 13 }}>{enrollments.length} inscritos</span>
+        <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>{enrollments.length} inscritos</span>
         <Button size="sm" onClick={openPicker}>+ Inscribir alumno</Button>
       </div>
 
@@ -86,13 +86,13 @@ export function CourseStudents({ courseId }: { courseId: string }) {
                 {(e.profile?.name ?? '?').split(' ').map((s) => s[0]).slice(0, 2).join('').toUpperCase()}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ color: '#F1F5F9', fontSize: 13, fontWeight: 600 }} className="clamp-2">{e.profile?.name}</div>
-                <div style={{ color: '#64748B', fontSize: 11 }}>{e.profile?.email}</div>
+                <div style={{ color: 'var(--text)', fontSize: 13, fontWeight: 600 }} className="clamp-2">{e.profile?.name}</div>
+                <div style={{ color: 'var(--text-dim)', fontSize: 11 }}>{e.profile?.email}</div>
               </div>
-              <span style={{ color: '#64748B', fontSize: 10 }}>
+              <span style={{ color: 'var(--text-dim)', fontSize: 10 }}>
                 {new Date(e.enrolled_at).toLocaleDateString('es')}
               </span>
-              <button onClick={() => unenroll(e)} style={styles.removeBtn} aria-label="Quitar alumno">
+              <button onClick={() => unenroll(e)} className="pl-pressable" style={styles.removeBtn} aria-label="Quitar alumno">
                 <IconX size={15} />
               </button>
             </div>
@@ -109,21 +109,21 @@ export function CourseStudents({ courseId }: { courseId: string }) {
         />
         <div style={{ maxHeight: 320, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
           {candidates.length === 0 ? (
-            <p style={{ color: '#64748B', fontSize: 13, textAlign: 'center', padding: 16 }}>
+            <p style={{ color: 'var(--text-dim)', fontSize: 13, textAlign: 'center', padding: 16 }}>
               No hay alumnos disponibles.
             </p>
           ) : (
             candidates.map((s) => (
-              <button key={s.id} onClick={() => enroll(s.id)} style={styles.candidate}>
+              <button key={s.id} onClick={() => enroll(s.id)} className="pl-pressable" style={styles.candidate}>
                 <div style={styles.avatar}>
                   {s.name.split(' ').map((x) => x[0]).slice(0, 2).join('').toUpperCase()}
                 </div>
                 <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                  <div style={{ color: '#F1F5F9', fontSize: 13, fontWeight: 600 }}>{s.name}</div>
-                  <div style={{ color: '#64748B', fontSize: 11 }}>{s.email}</div>
+                  <div style={{ color: 'var(--text)', fontSize: 13, fontWeight: 600 }}>{s.name}</div>
+                  <div style={{ color: 'var(--text-dim)', fontSize: 11 }}>{s.email}</div>
                 </div>
-                {s.role === 'admin' && <span style={{ color: '#C7F94C', fontSize: 10 }}>ADMIN</span>}
-                <span style={{ color: '#C7F94C', fontSize: 18 }}>+</span>
+                {s.role === 'admin' && <span style={{ color: 'var(--primary)', fontSize: 10 }}>ADMIN</span>}
+                <span style={{ color: 'var(--primary)', fontSize: 18 }}>+</span>
               </button>
             ))
           )}
@@ -134,8 +134,8 @@ export function CourseStudents({ courseId }: { courseId: string }) {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  row: { display: 'flex', alignItems: 'center', gap: 10, backgroundColor: '#14161C', border: '1px solid #1F222B', borderRadius: 10, padding: '9px 12px' },
-  avatar: { width: 32, height: 32, borderRadius: 8, backgroundColor: '#C7F94C', color: '#0A0B0E', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12, flexShrink: 0 },
-  removeBtn: { background: 'transparent', border: 'none', color: '#FCA5A5', fontSize: 14, cursor: 'pointer', padding: 4, flexShrink: 0 },
-  candidate: { display: 'flex', alignItems: 'center', gap: 10, backgroundColor: '#0A0B0E', border: '1px solid #1F222B', borderRadius: 10, padding: '9px 12px', cursor: 'pointer', fontFamily: 'inherit' },
+  row: { display: 'flex', alignItems: 'center', gap: 10, backgroundColor: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '9px 12px' },
+  avatar: { width: 32, height: 32, borderRadius: 8, backgroundColor: 'var(--primary)', color: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12, flexShrink: 0 },
+  removeBtn: { display: 'flex', background: 'transparent', border: 'none', color: '#FCA5A5', fontSize: 14, cursor: 'pointer', padding: 4, flexShrink: 0, borderRadius: 'var(--r-sm)' },
+  candidate: { display: 'flex', alignItems: 'center', gap: 10, backgroundColor: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '9px 12px', cursor: 'pointer', fontFamily: 'inherit' },
 };

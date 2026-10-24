@@ -54,9 +54,9 @@ function Editar() {
   return (
     <div style={{ maxWidth: 600, margin: '0 auto', padding: '14px 12px 100px' }}>
       <div style={styles.topbar}>
-        <Link href={`/senales/proyecciones/detalle/?id=${id}`} style={styles.cancel}>Cancelar</Link>
-        <h1 style={styles.title}>Editar proyección</h1>
-        <button onClick={submit} disabled={!valid || saving} style={{ ...styles.publish, opacity: valid && !saving ? 1 : 0.45 }}>{saving ? '…' : 'Guardar'}</button>
+        <Link href={`/senales/proyecciones/detalle/?id=${id}`} className="pl-pressable" style={styles.cancel}>Cancelar</Link>
+        <h1 className="pl-title" style={styles.title}>Editar proyección</h1>
+        <button onClick={submit} disabled={!valid || saving} className="pl-pressable" style={{ ...styles.publish, opacity: valid && !saving ? 1 : 0.45 }}>{saving ? '…' : 'Guardar'}</button>
       </div>
       <L label="Trader"><select value={f.trader_id} onChange={(e) => set('trader_id', e.target.value)} style={inputStyle}>{traders.map((t) => <option key={t.id} value={t.id}>★ {t.name}</option>)}</select></L>
       <L label="Título"><input value={f.title} onChange={(e) => set('title', e.target.value)} style={inputStyle} /></L>
@@ -64,10 +64,10 @@ function Editar() {
       <L label="Probabilidad"><Toggle options={[['alta', 'Alta', '#22c55e'], ['media', 'Media', '#f59e0b'], ['baja', 'Baja', '#ef4444']]} value={f.probability} onChange={(v) => set('probability', v as ProjectionProbability)} /></L>
       <L label="Audiencia"><Toggle options={[['free', 'Free', '#94A3B8'], ['premium', 'Premium', '#C7F94C'], ['all', 'Todos', '#94A3B8']]} value={f.audience} onChange={(v) => set('audience', v as Audience)} /></L>
       <L label="Imagen">
-        {currentImg ? <div><img src={currentImg} alt="" style={{ width: '100%', borderRadius: 10, marginBottom: 6 }} /><div style={{ display: 'flex', gap: 10 }}><label style={styles.changeImg}>📷 Cambiar<input type="file" accept="image/*" hidden onChange={(e) => onImage(e.target.files?.[0] ?? null)} /></label><button type="button" onClick={() => { setImage(null); setPreview(null); setRemoveImage(true); }} style={styles.removeImg}>✕ Quitar</button></div></div>
+        {currentImg ? <div><img src={currentImg} alt="" style={{ width: '100%', borderRadius: 'var(--r-md)', border: '1px solid var(--border)', marginBottom: 6 }} /><div style={{ display: 'flex', gap: 10 }}><label className="pl-pressable" style={styles.changeImg}>📷 Cambiar<input type="file" accept="image/*" hidden onChange={(e) => onImage(e.target.files?.[0] ?? null)} /></label><button type="button" onClick={() => { setImage(null); setPreview(null); setRemoveImage(true); }} className="pl-pressable" style={styles.removeImg}>✕ Quitar</button></div></div>
           : <input type="file" accept="image/*" onChange={(e) => onImage(e.target.files?.[0] ?? null)} style={{ ...inputStyle, padding: 9 }} />}
       </L>
-      <L label="Link TradingView"><input value={f.tv} onChange={(e) => set('tv', e.target.value)} style={{ ...inputStyle, color: '#C7F94C' }} /></L>
+      <L label="Link TradingView"><input value={f.tv} onChange={(e) => set('tv', e.target.value)} style={{ ...inputStyle, color: 'var(--primary)' }} /></L>
       <L label="Análisis / descripción"><textarea value={f.desc} onChange={(e) => set('desc', e.target.value)} rows={4} style={{ ...inputStyle, resize: 'vertical' }} /></L>
     </div>
   );
@@ -75,16 +75,16 @@ function Editar() {
 
 function L({ label, children }: { label: string; children: React.ReactNode }) { return <div style={{ marginBottom: 12 }}><label style={styles.lbl}>{label}</label>{children}</div>; }
 function Toggle({ options, value, onChange }: { options: [string, string, string][]; value: string; onChange: (v: string) => void }) {
-  return <div style={styles.toggle}>{options.map(([v, label, color]) => <button key={v} type="button" onClick={() => onChange(v)} style={{ ...styles.toggleBtn, backgroundColor: value === v ? color : 'transparent', color: value === v ? '#0A0B0E' : '#94A3B8', fontWeight: value === v ? 700 : 500 }}>{label}</button>)}</div>;
+  return <div style={styles.toggle}>{options.map(([v, label, color]) => <button key={v} type="button" onClick={() => onChange(v)} className="pl-pressable" style={{ ...styles.toggleBtn, backgroundColor: value === v ? color : 'transparent', color: value === v ? 'var(--bg)' : 'var(--text-muted)', fontWeight: value === v ? 700 : 500 }}>{label}</button>)}</div>;
 }
 const styles: Record<string, React.CSSProperties> = {
   topbar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 14 },
-  cancel: { color: '#94A3B8', fontSize: 14, textDecoration: 'none' },
-  title: { color: '#F1F5F9', fontSize: 17, fontWeight: 700, margin: 0, fontFamily: 'var(--font-bricolage), sans-serif' },
-  publish: { background: '#C7F94C', color: '#0A0B0E', border: 0, borderRadius: 10, padding: '9px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' },
-  lbl: { display: 'block', color: '#94A3B8', fontSize: 11, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 6 },
-  toggle: { display: 'flex', gap: 4, background: '#14161C', border: '1px solid #1F222B', borderRadius: 10, padding: 3 },
-  toggleBtn: { flex: 1, border: 0, borderRadius: 8, padding: '9px 6px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', minHeight: 40 },
-  changeImg: { background: '#14161C', border: '1px solid #1F222B', borderRadius: 8, padding: '6px 12px', color: '#C7F94C', fontSize: 12, cursor: 'pointer' },
-  removeImg: { background: 'none', border: 'none', color: '#f87171', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' },
+  cancel: { color: 'var(--text-muted)', fontSize: 14, textDecoration: 'none' },
+  title: { color: 'var(--text)', fontSize: 17, margin: 0 },
+  publish: { background: 'var(--primary)', color: 'var(--bg)', border: 0, borderRadius: 'var(--r-sm)', padding: '9px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 1px 0 rgba(255,255,255,0.25) inset' },
+  lbl: { display: 'block', color: 'var(--text-muted)', fontSize: 11, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 6 },
+  toggle: { display: 'flex', gap: 4, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 3 },
+  toggleBtn: { flex: 1, border: 0, borderRadius: 'var(--r-sm)', padding: '9px 6px', fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', minHeight: 40 },
+  changeImg: { background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '6px 12px', color: 'var(--primary)', fontSize: 12, cursor: 'pointer' },
+  removeImg: { background: 'none', border: 'none', color: 'var(--short)', fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' },
 };

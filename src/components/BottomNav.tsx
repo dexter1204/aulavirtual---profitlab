@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { stripBase, SUPERAPP } from '@/lib/basePath';
+import { stripBase, SUPERAPP, HOME_ROUTE } from '@/lib/basePath';
+import { hSelection } from '@/lib/haptics';
+import { LogoMark, LogoWordmark } from './Logo';
 
 export function BottomNav() {
   const pathname = stripBase(usePathname());
@@ -18,7 +20,9 @@ export function BottomNav() {
     ...(SUPERAPP ? [{ href: '/inicio', label: 'Inicio', icon: 'home' as IconType }] : []),
     { href: '/cursos', label: 'Catálogo', icon: 'catalog' },
     { href: '/mis-cursos', label: 'Mis cursos', icon: 'learning' },
-    ...(isAdmin ? [] : [{ href: '/tareas', label: 'Tareas', icon: 'tasks' as IconType }]),
+    // Las tareas ya no viven en el menú: aparecen dentro de cada curso
+    // (ver aprender/page.tsx → <StudentAssignments hideWhenEmpty />) y solo
+    // cuando ese curso tiene tareas asignadas.
     // Mercados y Señales solo en el super-app; el aula puro es solo cursos.
     ...(SUPERAPP ? [
       { href: '/mercados', label: 'Mercados', icon: 'markets' as IconType },
@@ -29,28 +33,41 @@ export function BottomNav() {
   ];
 
   return (
-    <nav style={styles.nav} aria-label="Navegación principal">
-      <div style={{ ...styles.container, gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
+    <nav className="pl-nav pl-tabbar" aria-label="Navegación principal">
+      {/* Marca · solo visible como cabecera del sidebar en escritorio */}
+      <Link href={HOME_ROUTE} className="pl-sidebar-brand pl-pressable">
+        <LogoMark size={24} />
+        <LogoWordmark size={16} />
+      </Link>
+
+      <div className="pl-tabinner">
         {items.map((it) => {
           const active = isActive(it.href);
           return (
             <Link
               key={it.href}
               href={it.href}
-              style={styles.item}
+              className="pl-pressable pl-tabitem"
+              data-active={active}
               aria-current={active ? 'page' : undefined}
+              onPointerDown={() => { if (!active) hSelection(); }}
             >
-              <Icon type={it.icon} active={active} />
               <span
+                className="pl-tabicon"
+                style={{ transform: active ? 'translateY(-1px) scale(1.06)' : 'none' }}
+              >
+                <Icon type={it.icon} active={active} />
+              </span>
+              <span
+                className="pl-tablabel"
                 style={{
-                  ...styles.label,
                   color: active ? '#C7F94C' : '#94A3B8',
-                  fontWeight: active ? 600 : 400,
+                  fontWeight: active ? 700 : 500,
                 }}
               >
                 {it.label}
               </span>
-              {active && <span style={styles.indicator} />}
+              {active && <span className="pl-tabindicator" />}
             </Link>
           );
         })}
@@ -135,48 +152,3 @@ function Icon({ type, active }: { type: IconType; active: boolean }) {
   );
 }
 
-const styles: Record<string, React.CSSProperties> = {
-  nav: {
-    position: 'fixed',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(10, 11, 14, 0.92)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    borderTop: '1px solid #1F222B',
-    zIndex: 100,
-    paddingBottom: 'env(safe-area-inset-bottom, 0)',
-  },
-  container: { maxWidth: 760, margin: '0 auto', display: 'grid', height: 60 },
-  item: {
-    position: 'relative',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 3,
-    minWidth: 0,
-    paddingInline: 2,
-    textDecoration: 'none',
-  },
-  label: {
-    fontSize: 9.5,
-    letterSpacing: 0,
-    whiteSpace: 'nowrap',
-    maxWidth: '100%',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  indicator: {
-    position: 'absolute',
-    top: 0,
-    left: '50%',
-    transform: 'translateX(-50%)',
-    width: 28,
-    height: 3,
-    backgroundColor: '#C7F94C',
-    borderRadius: '0 0 3px 3px',
-    boxShadow: '0 0 12px rgba(199, 249, 76, 0.5)',
-  },
-};

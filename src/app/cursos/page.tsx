@@ -75,11 +75,12 @@ export default function CatalogPage() {
               type="button"
               aria-pressed={active}
               onClick={() => setCat(c)}
+              className="pl-pressable"
               style={{
                 ...styles.chip,
-                backgroundColor: active ? '#C7F94C' : '#14161C',
-                color: active ? '#0A0B0E' : '#94A3B8',
-                borderColor: active ? '#C7F94C' : '#1F222B',
+                backgroundColor: active ? 'var(--primary)' : 'var(--surface)',
+                color: active ? 'var(--bg)' : 'var(--text-muted)',
+                borderColor: active ? 'var(--primary)' : 'var(--border)',
               }}
             >
               {c}
@@ -121,15 +122,15 @@ const styles: Record<string, React.CSSProperties> = {
   chip: {
     flexShrink: 0,
     border: '1px solid',
-    borderRadius: 999,
+    borderRadius: 'var(--r-pill)',
     padding: '7px 14px',
     fontSize: 12,
     fontWeight: 600,
     cursor: 'pointer',
     whiteSpace: 'nowrap',
-    transition: 'background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease',
+    transition: 'background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out)',
   },
-  count: { color: '#64748B', fontSize: 12, fontWeight: 500, margin: '0 0 12px' },
+  count: { color: 'var(--text-dim)', fontSize: 12, fontWeight: 500, margin: '0 0 12px' },
   grid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
