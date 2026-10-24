@@ -1,8 +1,15 @@
 'use client';
 
 import { Suspense, useEffect, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+
+// Quant nativo: cliente-only (Plotly usa WebGL/DOM) → nunca en el prerender del export.
+const QuantView = dynamic(
+  () => import('@/components/quant/QuantView').then((m) => m.QuantView),
+  { ssr: false, loading: () => <div style={{ padding: 24, color: 'var(--text-muted)' }}>Cargando Mercados…</div> },
+);
 import { useAuth } from '@/contexts/AuthContext';
 import {
   getAccess,
@@ -142,11 +149,16 @@ function MercadosHub({ access }: { access: AccessState }) {
         })}
       </div>
 
-      {unlocked ? (
+      {!unlocked ? (
+        <TabLocked tab={tab} />
+      ) : tab === 'exposiciones' ? (
+        // Quant NATIVO (ya no iframe): pantallas React con Plotly, mismo token/tema.
+        <QuantView />
+      ) : (
         <iframe
           key={tab}
           src={src}
-          title={tab === 'exposiciones' ? 'ProfitLab Quant — Exposiciones' : 'ProfitLab — Pre-Apertura'}
+          title="ProfitLab — Pre-Apertura"
           style={{
             width: '100%',
             height: 'calc(100vh - 200px)',
@@ -157,8 +169,6 @@ function MercadosHub({ access }: { access: AccessState }) {
           }}
           allow="clipboard-write"
         />
-      ) : (
-        <TabLocked tab={tab} />
       )}
     </div>
   );

@@ -573,3 +573,10 @@ select[style*="rgb(20, 22, 28)"] {
 @media (prefers-contrast: more) {
   :root { --border: #3A3F4C; --border-hi: #4A5160; --text-muted: #C2CCDA; }
 }
+
+/* ── Quant (Mercados nativo) ─────────────────────────────────────────── */
+/* Gamma & Flow: en desktop, chart + panel de régimen lado a lado. */
+.quant-gamma-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+@media (min-width: 1000px) {
+  .quant-gamma-grid { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
+}
