@@ -1,0 +1,612 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   Tokens de color para utilidades Tailwind (v4 @theme).
+   Necesario porque este proyecto no carga la tailwind.config.ts
+   en v4 → sin esto, clases como text-bull / bg-panel / text-text
+   no se generan. Mapea la gama del Aula (ver :root) a los nombres
+   semánticos que usan los componentes de Pre-Apertura (Mercados
+   nativo, Fase 2). Ver [[mercados-nativo]].
+   ============================================================ */
+@theme {
+  --color-panel:  #14161C;
+  --color-panel2: #0F1117;
+  --color-muted:  #9AA6B6;
+  --color-accent: #C7F94C;
+  --color-bull:   #22C55E;
+  --color-bear:   #EF4444;
+  --color-warn:   #F59E0B;
+  --color-text:   #F1F5F9;
+  --color-border: #22252F;
+}
+
+/* ============================================================
+   PROFIT LAB · SISTEMA DE DISEÑO (Apple-style)
+   Tokens de color, movimiento, materiales y tipografía.
+   Filosofía: claridad, jerarquía, moderación y movimiento con
+   propósito. Curvas fuertes (Emil Kowalski), materiales con
+   profundidad (Apple HIG), accesibilidad de serie.
+   ============================================================ */
+:root {
+  /* — Color — */
+  --bg:          #0A0B0E;
+  --bg-elev:     #0E1014;
+  --surface:     #14161C;
+  --surface-hi:  #1A1D26;
+  --border:      #22252F;
+  --border-hi:   #2B2F3A;
+  --text:        #F1F5F9;
+  --text-muted:  #9AA6B6;
+  --text-dim:    #6B7688;
+  --primary:     #C7F94C;
+  --primary-dim: #A9D93F;
+  --long:        #22C55E;
+  --short:       #EF4444;
+  --warning:     #F59E0B;
+
+  /* — Materiales translúcidos (chrome flotante) — */
+  --mat-nav:    rgba(10, 11, 14, 0.68);
+  --mat-header: rgba(10, 11, 14, 0.62);
+  --mat-sheet:  #16181F;
+  --scrim:      rgba(4, 5, 7, 0.62);
+
+  /* — Radios — */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+  --r-pill: 999px;
+
+  /* — Sombras (profundidad por tamaño de superficie) — */
+  --shadow-chip:  0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-card:  0 2px 8px rgba(0, 0, 0, 0.30);
+  --shadow-pop:   0 12px 32px rgba(0, 0, 0, 0.50);
+  --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.55);
+  --glow-primary: 0 0 24px rgba(199, 249, 76, 0.28);
+
+  /* — Curvas de easing (fuertes, intencionales) — */
+  --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);     /* entradas / feedback */
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);    /* movimiento en pantalla */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);     /* sheets estilo iOS */
+
+  /* — Duraciones — */
+  --dur-press: 140ms;
+  --dur-fast:  180ms;
+  --dur-base:  240ms;
+  --dur-sheet: 360ms;
+
+  /* — Área segura (notch / home indicator) — */
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  background-color: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  position: relative;
+  overflow-x: hidden;
+  font-family: var(--font-manrope), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+* { -webkit-tap-highlight-color: transparent; }
+
+::selection { background: rgba(199, 249, 76, 0.26); color: var(--text); }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-hi); }
+
+/* ============================================================
+   FONDO · profundidad calmada y estática (Apple: deferencia)
+   Un único brillo lima muy sutil arriba + viñeta de profundidad.
+   Sin oscilación infinita (evita parpadeo vestibular ~0.2 Hz).
+   ============================================================ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image:
+    radial-gradient(120% 70% at 50% -10%, rgba(199, 249, 76, 0.10) 0%, transparent 55%),
+    radial-gradient(90% 60% at 85% 8%,   rgba(99, 102, 241, 0.06) 0%, transparent 60%);
+}
+
+/* Viñeta inferior: asienta el contenido y da sensación de capa */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(130% 90% at 50% 120%, rgba(0, 0, 0, 0.45) 0%, transparent 55%);
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* <main> transparente para dejar ver la capa de fondo */
+main { background-color: transparent !important; }
+
+/* ============================================================
+   TIPOGRAFÍA · tamaño-específica (tracking óptico + leading)
+   Grandes: tracking negativo, leading apretado.
+   Cuerpo: tracking ~0, leading cómodo.
+   ============================================================ */
+h1, h2, h3 {
+  font-family: var(--font-bricolage), -apple-system, sans-serif;
+  text-wrap: balance;
+}
+.pl-display {
+  font-family: var(--font-bricolage), -apple-system, sans-serif;
+  font-weight: 800;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+.pl-title {
+  font-family: var(--font-bricolage), -apple-system, sans-serif;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+.pl-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* ============================================================
+   INTERACCIÓN · feedback de presión instantáneo (pointer-down)
+   Todo lo pulsable responde al tacto, no al release.
+   ============================================================ */
+.pl-pressable {
+  transition: transform var(--dur-press) var(--ease-out),
+              filter var(--dur-press) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              background-color var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out);
+  touch-action: manipulation;
+}
+.pl-pressable:active { transform: scale(0.97); }
+
+/* Elevable (cards enlazables): solo en dispositivos con puntero fino */
+@media (hover: hover) and (pointer: fine) {
+  .pl-lift { transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+  .pl-lift:hover { transform: translateY(-3px); border-color: rgba(199, 249, 76, 0.30) !important; box-shadow: var(--shadow-pop); }
+}
+
+/* Foco accesible por teclado */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* ============================================================
+   MATERIALES · chrome translúcido (contenido corre por debajo)
+   ============================================================ */
+.pl-header {
+  background-color: var(--mat-header);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border-bottom: 1px solid rgba(34, 37, 47, 0.6);
+}
+.pl-nav {
+  background-color: var(--mat-nav);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ============================================================
+   NAVEGACIÓN RESPONSIVE
+   Móvil: barra inferior fija (tab bar).
+   Escritorio (≥1024px): sidebar vertical fija a la izquierda.
+   Mismo build para la app nativa (siempre angosta → tab bar).
+   ============================================================ */
+.pl-tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  padding-bottom: var(--safe-bottom);
+}
+.pl-sidebar-brand { display: none; }
+.pl-tabinner {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  height: 60px;
+}
+.pl-tabitem {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding-inline: 2px;
+  text-decoration: none;
+}
+.pl-tabicon {
+  display: flex;
+  transition: transform var(--dur-base) var(--ease-out);
+  will-change: transform;
+}
+.pl-tablabel {
+  font-size: 9.5px;
+  letter-spacing: 0.1px;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.pl-tabindicator {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 26px;
+  height: 3px;
+  background: var(--primary);
+  border-radius: 0 0 3px 3px;
+  box-shadow: 0 0 12px rgba(199, 249, 76, 0.55);
+}
+
+/* El contenido (header + main) deja sitio al sidebar en escritorio */
+@media (min-width: 1024px) {
+  .pl-content { padding-left: 248px; }
+  .pl-brandrow { display: none !important; }
+  .pl-main {
+    padding-bottom: 48px !important;
+    /* Alinear el contenido junto al sidebar (look dashboard) en vez de centrarlo */
+    margin-left: 40px !important;
+    margin-right: auto !important;
+    padding-left: 8px;
+    padding-right: 24px;
+  }
+  /* Con la marca oculta, mantener el usuario a la derecha */
+  .pl-header { justify-content: flex-end !important; }
+
+  .pl-tabbar {
+    top: 0;
+    bottom: 0;
+    right: auto;
+    width: 248px;
+    display: flex;
+    flex-direction: column;
+    border-top: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: var(--safe-top);
+    padding-bottom: 0;
+  }
+  .pl-sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 24px 20px 14px;
+    text-decoration: none;
+    border-radius: var(--r-sm);
+  }
+  .pl-tabinner {
+    max-width: none;
+    margin: 0;
+    flex-direction: column;
+    height: auto;
+    gap: 2px;
+    padding: 6px 12px;
+    overflow-y: auto;
+  }
+  .pl-tabitem {
+    flex: none;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 11px 14px;
+    border-radius: var(--r-md);
+  }
+  .pl-tabitem[data-active='true'] { background: var(--surface-hi); }
+  .pl-tabicon { transform: none !important; }
+  .pl-tablabel { font-size: 14px; letter-spacing: 0; }
+  .pl-tabindicator {
+    top: 50%;
+    left: 0;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 22px;
+    border-radius: 0 3px 3px 0;
+  }
+}
+
+/* Sheet / modal · materializar (blur + escala + opacidad) */
+.pl-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: var(--scrim);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-out);
+}
+.pl-scrim[data-open='true'] { opacity: 1; }
+
+.pl-sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background-color: var(--mat-sheet);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--r-xl) var(--r-xl) var(--r-md) var(--r-md);
+  box-shadow: var(--shadow-sheet);
+  margin-bottom: calc(60px + var(--safe-bottom));
+  transform: translateY(16px) scale(0.98);
+  opacity: 0;
+  transition: transform var(--dur-sheet) var(--ease-drawer),
+              opacity var(--dur-base) var(--ease-out);
+}
+.pl-scrim[data-open='true'] .pl-sheet { transform: translateY(0) scale(1); opacity: 1; }
+.pl-sheet::before {
+  content: '';
+  display: block;
+  width: 36px;
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: var(--border-hi);
+  margin: 2px auto 14px;
+}
+
+/* Popover origen-consciente (escala desde su gatillo) */
+.pl-pop {
+  transform-origin: var(--pl-origin, top right);
+  transform: scale(0.96);
+  opacity: 0;
+  transition: transform var(--dur-fast) var(--ease-out),
+              opacity var(--dur-fast) var(--ease-out);
+}
+.pl-pop[data-open='true'] { transform: scale(1); opacity: 1; }
+
+/* Entrada con escalonado (stagger) para listas */
+@keyframes pl-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.pl-rise { opacity: 0; animation: pl-rise var(--dur-base) var(--ease-out) forwards; }
+
+/* ============================================================
+   GLASSMORPHISM HEREDADO · atenuado hacia material Apple
+   (Las páginas aún no rediseñadas usan estilos inline con rgb();
+    estos selectores los mantienen coherentes y más sólidos.)
+   ============================================================ */
+header[style*="position: sticky"],
+header[style*="position:sticky"] {
+  background-color: var(--mat-header) !important;
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border-bottom-color: rgba(34, 37, 47, 0.6) !important;
+}
+[style*="rgb(20, 22, 28)"] {
+  background-color: rgba(20, 22, 28, 0.82) !important;
+  border-color: rgba(34, 37, 47, 0.7) !important;
+}
+[style*="rgb(31, 34, 43)"] {
+  background-color: rgba(31, 34, 43, 0.72) !important;
+}
+a[style*="rgb(20, 22, 28)"] {
+  transition: border-color var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  a[style*="rgb(20, 22, 28)"]:hover {
+    border-color: rgba(199, 249, 76, 0.28) !important;
+  }
+}
+
+/* Modal heredado · panel sólido */
+.modalPanel {
+  background-color: var(--mat-sheet) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: var(--shadow-sheet) !important;
+}
+
+/* Inputs · sólidos para escritura cómoda */
+input[style*="rgb(10, 11, 14)"],
+input[style*="rgb(20, 22, 28)"],
+textarea[style*="rgb(10, 11, 14)"],
+textarea[style*="rgb(20, 22, 28)"],
+select[style*="rgb(10, 11, 14)"],
+select[style*="rgb(20, 22, 28)"] {
+  background-color: var(--bg) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Botones lima · proteger fondo sólido */
+[style*="background-color: rgb(199, 249, 76)"],
+[style*="background-color:rgb(199, 249, 76)"],
+[style*="background: rgb(199, 249, 76)"],
+[style*="background:rgb(199, 249, 76)"] {
+  background-color: var(--primary) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ============================================================
+   PÁGINA DE CURSO · dos columnas en escritorio, una en móvil
+   ============================================================ */
+.courseGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-areas: "hero" "side" "desc" "curriculum";
+  gap: 20px;
+  align-items: start;
+}
+.courseGrid .ca-side {
+  grid-area: side;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+@media (min-width: 900px) {
+  .courseGrid {
+    grid-template-columns: minmax(0, 1fr) 352px;
+    grid-template-areas: "hero side" "desc side" "curriculum side";
+    column-gap: 28px;
+    row-gap: 24px;
+  }
+  .courseGrid .ca-side { position: sticky; top: 84px; }
+}
+
+/* ============================================================
+   TARJETA DE CURSO · hover, foco y zoom de miniatura
+   ============================================================ */
+.courseCard {
+  transition: transform var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
+  will-change: transform;
+}
+@media (hover: hover) and (pointer: fine) {
+  .courseCard:hover {
+    transform: translateY(-3px);
+    border-color: rgba(199, 249, 76, 0.35) !important;
+    box-shadow: var(--shadow-pop);
+  }
+  .courseCard:hover .courseThumb { transform: scale(1.045); }
+  .courseCard:hover .courseCardCta > span { transform: translateX(3px); }
+}
+.courseCard:active { transform: scale(0.99); }
+.courseCard:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-color: rgba(199, 249, 76, 0.5) !important;
+}
+.courseThumb { transition: transform 0.4s var(--ease-out); }
+.courseCardCta > span { transition: transform var(--dur-fast) var(--ease-out); }
+
+/* Buscador con ícono */
+.searchField { position: relative; }
+.searchField .searchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  pointer-events: none;
+  display: flex;
+}
+.searchField input { padding-left: 42px !important; padding-right: 42px !important; }
+.searchField input[type="search"]::-webkit-search-cancel-button,
+.searchField input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.searchField .searchClear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.searchField .searchClear:hover { background: var(--border); color: var(--text); }
+
+/* Clamp de texto multilínea */
+.clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.clamp-3 { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ============================================================
+   Reproductor de video (YouTubePlayer) · llena el recuadro 16:9
+   ============================================================ */
+.yt-stage,
+.yt-stage iframe,
+.yt-stage > div {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  border: 0;
+  pointer-events: none;
+}
+
+/* ============================================================
+   ACCESIBILIDAD · tres señales independientes
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .pl-sheet { transform: none !important; }
+  .courseCard:hover { transform: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .pl-header, .pl-nav, .pl-scrim {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .pl-header { background-color: #0C0D11 !important; }
+  .pl-nav { background-color: #0C0D11 !important; }
+}
+@media (prefers-contrast: more) {
+  :root { --border: #3A3F4C; --border-hi: #4A5160; --text-muted: #C2CCDA; }
+}
+
+/* ── Quant (Mercados nativo) ─────────────────────────────────────────── */
+/* Gamma & Flow: en desktop, chart + panel de régimen lado a lado. */
+.quant-gamma-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+@media (min-width: 1000px) {
+  .quant-gamma-grid { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
+}
+
+/* Rediseño móvil "Terminal de bolsillo": filas con scroll horizontal sin barra. */
+.quant-hscroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; }
+.quant-hscroll::-webkit-scrollbar { display: none; }
+/* KPIs hero: tarjetas con snap horizontal (sin celdas huérfanas). */
+.quant-kpis { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(45%, 1fr); gap: 9px;
+  overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 2px; }
+.quant-kpis::-webkit-scrollbar { display: none; }
+.quant-kpis > * { scroll-snap-align: start; }
+@media (min-width: 680px) { .quant-kpis { grid-auto-columns: minmax(160px, 1fr); } }
