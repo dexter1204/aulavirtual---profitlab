@@ -580,3 +580,13 @@ select[style*="rgb(20, 22, 28)"] {
 @media (min-width: 1000px) {
   .quant-gamma-grid { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
 }
+
+/* Rediseño móvil "Terminal de bolsillo": filas con scroll horizontal sin barra. */
+.quant-hscroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; }
+.quant-hscroll::-webkit-scrollbar { display: none; }
+/* KPIs hero: tarjetas con snap horizontal (sin celdas huérfanas). */
+.quant-kpis { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(45%, 1fr); gap: 9px;
+  overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 2px; }
+.quant-kpis::-webkit-scrollbar { display: none; }
+.quant-kpis > * { scroll-snap-align: start; }
+@media (min-width: 680px) { .quant-kpis { grid-auto-columns: minmax(160px, 1fr); } }

@@ -172,9 +172,7 @@ export function netDriftFigure(d: any): Figure {
     name: `${d.ticker || ''} (${fmtPrice(T.last)})`, line: { color: WHITE, width: 1.4 },
     hovertemplate: `%{x}<br>${d.ticker || ''} $%{y:,.2f}<extra></extra>` };
   const layout = Object.assign({}, BASE_LAYOUT, {
-    margin: { l: 66, r: 20, t: 92, b: 44 }, hovermode: 'x unified',
-    annotations: [{ xref: 'paper', yref: 'paper', x: 0.5, xanchor: 'center', y: 1.17, yanchor: 'bottom',
-      showarrow: false, text: `Net Drift (Premium) · ${d.ticker || ''}`, font: { size: 12, color: C.text } }],
+    margin: { l: 66, r: 20, t: 44, b: 44 }, hovermode: 'x unified',
     showlegend: true, legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: 1.04, font: { color: C.text, size: 11 } },
     xaxis: { type: 'category', tickmode: 'auto', nticks: 12, gridcolor: C.grid, tickfont: { size: 9 }, showgrid: true, anchor: 'y2', domain: [0, 1] },
     yaxis: { domain: [0.56, 1], title: { text: 'Premium drift ($)', font: { size: 10 } }, gridcolor: C.grid,
@@ -260,9 +258,7 @@ export function volatilityDriftFigure(d: any): Figure {
     name: `${d.ticker || ''} (${fmtPrice(lastPx)})`, line: { color: C.white, width: 1.5 },
     hovertemplate: `%{x}<br>${d.ticker || ''} $%{y:,.2f}<extra></extra>` });
   const layout = Object.assign({}, BASE_LAYOUT, {
-    margin: { l: 56, r: 62, t: 64, b: 44 }, hovermode: 'x unified',
-    annotations: [{ xref: 'paper', yref: 'paper', x: 0.5, xanchor: 'center', y: 1.14, yanchor: 'bottom',
-      showarrow: false, text: `Volatility Drift · ${d.ticker || ''}`, font: { size: 12, color: C.text } }],
+    margin: { l: 56, r: 62, t: 44, b: 44 }, hovermode: 'x unified',
     showlegend: true, legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: 1.02, font: { color: C.text, size: 11 } },
     xaxis: { type: 'category', tickmode: 'auto', nticks: 12, gridcolor: C.grid, tickfont: { size: 9 }, showgrid: true },
     yaxis: { title: { text: 'Volatilidad anual (%)', font: { size: 10 } }, gridcolor: C.grid, zeroline: false, ticksuffix: '%', tickfont: { size: 9 } },
