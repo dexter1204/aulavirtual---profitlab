@@ -3,6 +3,26 @@
 @tailwind utilities;
 
 /* ============================================================
+   Tokens de color para utilidades Tailwind (v4 @theme).
+   Necesario porque este proyecto no carga la tailwind.config.ts
+   en v4 → sin esto, clases como text-bull / bg-panel / text-text
+   no se generan. Mapea la gama del Aula (ver :root) a los nombres
+   semánticos que usan los componentes de Pre-Apertura (Mercados
+   nativo, Fase 2). Ver [[mercados-nativo]].
+   ============================================================ */
+@theme {
+  --color-panel:  #14161C;
+  --color-panel2: #0F1117;
+  --color-muted:  #9AA6B6;
+  --color-accent: #C7F94C;
+  --color-bull:   #22C55E;
+  --color-bear:   #EF4444;
+  --color-warn:   #F59E0B;
+  --color-text:   #F1F5F9;
+  --color-border: #22252F;
+}
+
+/* ============================================================
    PROFIT LAB · SISTEMA DE DISEÑO (Apple-style)
    Tokens de color, movimiento, materiales y tipografía.
    Filosofía: claridad, jerarquía, moderación y movimiento con

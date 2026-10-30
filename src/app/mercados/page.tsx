@@ -10,6 +10,12 @@ const QuantView = dynamic(
   () => import('@/components/quant/QuantView').then((m) => m.QuantView),
   { ssr: false, loading: () => <div style={{ padding: 24, color: 'var(--text-muted)' }}>Cargando Mercados…</div> },
 );
+// Pre-Apertura nativo: cliente-only (lightweight-charts usa DOM/canvas) →
+// nunca en el prerender del export estático.
+const PreAperturaView = dynamic(
+  () => import('@/components/preapertura/PreAperturaView').then((m) => m.PreAperturaView),
+  { ssr: false, loading: () => <div style={{ padding: 24, color: 'var(--text-muted)' }}>Cargando Pre-Apertura…</div> },
+);
 import { useAuth } from '@/contexts/AuthContext';
 import {
   getAccess,
@@ -17,9 +23,6 @@ import {
   redeemAccessCoupon,
   quantCheckout,
   verifyPayment,
-  getToken,
-  QUANT_URL,
-  PREAPERTURA_URL,
   type AccessState,
   type ProductAccess,
   type QuantState,
@@ -107,15 +110,8 @@ function MercadosHub({ access }: { access: AccessState }) {
   }, [search, hasQuant]);
 
   const [tab, setTab] = useState<SubTab>(initial);
-  const token = getToken() ?? '';
   const product = TAB_PRODUCT[tab];
   const unlocked = tab === 'exposiciones' ? hasQuant : hasNews;
-
-  // Exposiciones (quant): token por hash. Pre-Apertura (Node): token por la
-  // ruta /sso para que su servidor fije la sesión (SSO).
-  const src = tab === 'exposiciones'
-    ? `${QUANT_URL}#plq=${encodeURIComponent(token)}`
-    : `${PREAPERTURA_URL}sso?token=${encodeURIComponent(token)}`;
 
   const pa: ProductAccess | undefined = access.products?.[product];
   const until = pa?.lifetime
@@ -155,20 +151,8 @@ function MercadosHub({ access }: { access: AccessState }) {
         // Quant NATIVO (ya no iframe): pantallas React con Plotly, mismo token/tema.
         <QuantView />
       ) : (
-        <iframe
-          key={tab}
-          src={src}
-          title="ProfitLab — Pre-Apertura"
-          style={{
-            width: '100%',
-            height: 'calc(100vh - 200px)',
-            minHeight: 460,
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--r-md)',
-            background: 'var(--bg)',
-          }}
-          allow="clipboard-write"
-        />
+        // Pre-Apertura NATIVO (ya no iframe): datos del servicio Node por Bearer.
+        <PreAperturaView />
       )}
     </div>
   );
